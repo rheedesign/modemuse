@@ -2124,10 +2124,12 @@ function HomeScreen() {
 
   async function fetchOutfitSuggestion(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
     const user = currentUser || (await supabase.auth.getUser()).data?.user;
+    const userIsAdmin = user?.email === "cnrhee@gmail.com";
+    console.log("[DEBUG] fetchOutfitSuggestion called", { feature, temperature, extraInstruction: extraInstruction?.slice(0, 100), userEmail: user?.email, isAdmin: userIsAdmin });
     const data = closetDataRef.current.filter((item) => item.image_url);
     const { tempF, cityName } = weatherRef.current;
-    console.log("[HomeScreen] fetchOutfitSuggestion called, closet items:", data.length, "weather:", tempF, cityName, "location:", locationLabel || cityName);
-    if (!data.length) { console.log("[HomeScreen] No closet items, skipping"); return null; }
+    console.log("[DEBUG] Context:", { closetItems: data.length, weather: tempF, city: cityName, location: locationLabel || cityName, dailyLookCount: getDailyLookCount(), limit: DAILY_LOOK_LIMIT });
+    if (!data.length) { console.log("[DEBUG] No closet items, skipping"); return null; }
 
     // Build text-only item list (no vision image blocks) to reduce token usage
     const itemList = data.map((item, i) => {
@@ -2170,35 +2172,50 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         content: prompt,
       }],
     };
-    console.log("[HomeScreen] Sending API request (text-only), items count:", data.length);
+    console.log("[DEBUG] API request body:", JSON.stringify({ model: requestBody.model, max_tokens: requestBody.max_tokens, temperature: requestBody.temperature, system: requestBody.system?.slice(0, 200), prompt: prompt.slice(0, 300) }));
 
-    const result = await runTrackedAnthropicRequest({
-      user,
-      feature,
-      requestBody,
-      metadata: {
-        screen: "home",
-        location: activeLocation,
-        itemCount: data.length,
-        temperature,
-        extraInstruction: extraInstruction || "",
-      },
-    });
+    let result;
+    try {
+      result = await runTrackedAnthropicRequest({
+        user,
+        feature,
+        requestBody,
+        metadata: {
+          screen: "home",
+          location: activeLocation,
+          itemCount: data.length,
+          temperature,
+          extraInstruction: extraInstruction || "",
+        },
+      });
+      console.log("[DEBUG] API response OK:", { stopReason: result.stop_reason, usage: result.usage, text: result.content?.[0]?.text?.slice(0, 300) });
+    } catch (apiErr) {
+      console.error("[DEBUG] API request FAILED:", { error: apiErr.message, stack: apiErr.stack });
+      throw apiErr;
+    }
 
-    console.log("[HomeScreen] AI text:", result.content?.[0]?.text?.slice(0, 200));
-    return parseOutfitResponse(result.content?.[0]?.text || "");
+    const parsed = parseOutfitResponse(result.content?.[0]?.text || "");
+    console.log("[DEBUG] Parsed outfit result:", { urls: parsed?.urls?.length, vibe: parsed?.vibe, caption: parsed?.caption?.slice(0, 80) });
+    return parsed;
   }
 
   async function refreshSuggestedOutfit(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
-    if (!isAdmin && getDailyLookCount() >= DAILY_LOOK_LIMIT) {
+    const currentCount = getDailyLookCount();
+    console.log("[DEBUG] refreshSuggestedOutfit", { feature, isAdmin, dailyCount: currentCount, limit: DAILY_LOOK_LIMIT, hasFetched: hasFetchedOutfit.current });
+    if (!isAdmin && currentCount >= DAILY_LOOK_LIMIT) {
+      console.log("[DEBUG] Daily limit reached, blocking request");
       setLimitReached(true);
       setCountdownText(getCountdownToMidnight());
       return null;
     }
+    if (isAdmin) console.log("[DEBUG] Admin bypass active — skipping all limits");
     const result = await fetchOutfitSuggestion(extraInstruction, temperature, feature, currentUser);
-    if (!result) return null;
+    if (!result) { console.log("[DEBUG] fetchOutfitSuggestion returned null"); return null; }
     applyOutfitResult(result);
-    if (!isAdmin) incrementDailyLookCount();
+    if (!isAdmin) {
+      const newCount = incrementDailyLookCount();
+      console.log("[DEBUG] Incremented daily look count to", newCount);
+    }
     return result;
   }
 
@@ -2242,19 +2259,23 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
       console.log("[HomeScreen] Fetched closet items:", data?.length, "valid (with image_url):", validItems.length);
       setItemCount(count || 0);
       closetDataRef.current = validItems;
-      if (validItems.length === 0) { setLoadingOutfit(false); return; }
-      const isAdmin = user.email === "cnrhee@gmail.com";
-      if (!isAdmin && hasFetchedOutfit.current) { setLoadingOutfit(false); return; }
+      if (validItems.length === 0) { console.log("[DEBUG] init: no valid items, skipping outfit"); setLoadingOutfit(false); return; }
+      const initIsAdmin = user.email === "cnrhee@gmail.com";
+      console.log("[DEBUG] init: cache check", { isAdmin: initIsAdmin, hasFetched: hasFetchedOutfit.current, email: user.email });
+      if (!initIsAdmin && hasFetchedOutfit.current) { console.log("[DEBUG] init: already fetched, using cache"); setLoadingOutfit(false); return; }
       hasFetchedOutfit.current = true;
-      if (isAdmin) outfitHistoryRef.current = [];
+      if (initIsAdmin) { console.log("[DEBUG] init: admin bypass — clearing outfit history"); outfitHistoryRef.current = []; }
 
       try {
+        console.log("[DEBUG] init: calling refreshSuggestedOutfit");
         const result = await refreshSuggestedOutfit(undefined, 0.85, "home_daily_outfit", user);
         if (!result) {
-          console.warn("[HomeScreen] fetchOutfitSuggestion returned null");
+          console.warn("[DEBUG] init: refreshSuggestedOutfit returned null");
+        } else {
+          console.log("[DEBUG] init: outfit generated successfully", { urls: result.urls?.length, vibe: result.vibe });
         }
       } catch (err) {
-        console.error("[HomeScreen] Outfit suggestion error:", err);
+        console.error("[DEBUG] init: outfit suggestion error:", err.message, err);
       }
       setLoadingOutfit(false);
     }
@@ -2263,12 +2284,10 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
   }, []);
 
   async function handleNewLook() {
+    console.log("[DEBUG] handleNewLook triggered", { regenerating, loadingOutfit, isAdmin, dailyCount: getDailyLookCount() });
     if (regenerating || loadingOutfit) return;
-    if (!isAdmin && getDailyLookCount() >= DAILY_LOOK_LIMIT) {
-      setLimitReached(true);
-      setCountdownText(getCountdownToMidnight());
-      return;
-    }
+    // DEBUG: bypass cache for all users on New Look button
+    console.log("[DEBUG] handleNewLook: forcing fresh API call (cache bypass for debugging)");
     setRegenerating(true);
     setLoadingOutfit(true);
     try {
