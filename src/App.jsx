@@ -111,17 +111,19 @@ function BottomNav() {
         position: "fixed",
         left: "50%",
         transform: "translateX(-50%)",
-        bottom: "max(0px, env(safe-area-inset-bottom))",
+        bottom: 0,
         width: "min(390px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
+        background: "#fff",
+        borderTop: "1px solid #f0f0f0",
+        padding: "6px 8px calc(4px + env(safe-area-inset-bottom, 0px))",
       }}
-      className="border-t border-gray-100 bg-white px-4 py-2"
     >
-      <ul className="grid grid-cols-4 gap-2">
+      <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, margin: 0, padding: 0, listStyle: "none" }}>
         {items.map((item) => (
           <li key={item.to}>
-            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-1 py-1 text-xs">
+            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 py-1 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap" }}>
               {({ isActive }) => (
                 <>
                   <item.icon active={isActive} />
@@ -692,8 +694,8 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
   const rotations = ["-4deg", "3deg", "2deg", "-3deg"];
   const displayImages = (images || []).slice(0, 6);
   const imageCount = displayImages.length;
-  const gridGap = compact ? (imageCount <= 4 ? "8px" : "6px") : (imageCount <= 4 ? "10px" : "8px");
-  const gridPadding = compact ? (imageCount <= 4 ? "12px" : "10px") : (imageCount <= 4 ? "14px" : "12px");
+  const gridGap = compact ? "8px" : (imageCount <= 4 ? "10px" : "8px");
+  const gridPadding = compact ? "12px" : (imageCount <= 4 ? "14px" : "12px");
   return (
     <div style={{
       borderRadius: "24px",
@@ -704,37 +706,41 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
       boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
       overflow: "hidden",
       position: "relative",
+      padding: "20px",
     }}>
-      <div
-        className={pulsing ? "flatlayPulse" : ""}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: gridGap,
-          padding: gridPadding,
-          transition: "opacity 0.3s ease",
-        }}
-      >
-        {displayImages.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              aspectRatio: "1",
-              borderRadius: "16px",
-              overflow: "hidden",
-              transform: `rotate(${rotations[i] || "0deg"})`,
-              background: "#F3F1FA",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
-          >
-            <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
-          </div>
-        ))}
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
+        <div
+          className={pulsing ? "flatlayPulse" : ""}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: gridGap,
+            width: compact ? "280px" : "90%",
+            maxWidth: "90%",
+            transition: "opacity 0.3s ease",
+          }}
+        >
+          {displayImages.map((url, i) => (
+            <div
+              key={i}
+              style={{
+                aspectRatio: "1",
+                borderRadius: compact ? "14px" : "16px",
+                overflow: "hidden",
+                transform: `rotate(${rotations[i] || "0deg"})`,
+                background: "#F3F1FA",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+              }}
+            >
+              <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: compact ? "4px" : "6px" }} />
+            </div>
+          ))}
+        </div>
       </div>
       {(caption || children) && (
-        <div style={{ padding: compact ? "4px 12px 10px" : "6px 14px 14px", textAlign: "center" }}>
+        <div style={{ textAlign: "center" }}>
           {caption && (
-            <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#3d355b", letterSpacing: "0.02em" }}>{caption}</p>
+            <p style={{ margin: "16px 0 0", fontSize: "13px", fontWeight: 600, color: "#3d355b", letterSpacing: "0.02em" }}>{caption}</p>
           )}
           {children}
         </div>
@@ -1354,9 +1360,9 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: `${PAGE_TOP_PADDING} 0 80px` }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(20px, calc(env(safe-area-inset-top) + 12px)) 0 68px" }}>
         {/* Weather pill with inline unit toggle */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 16px 0", gap: "4px", flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", maxWidth: "100%" }}>
               <span
@@ -1453,14 +1459,14 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         </div>
 
         {/* Headline */}
-        <div style={{ padding: "10px 24px 0", textAlign: "center", flexShrink: 0 }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.15" }}>
+        <div style={{ padding: "14px 24px 0", textAlign: "center" }}>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.2" }}>
             What will you<br />wear today?
           </h1>
         </div>
 
         {/* User avatar + name */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px 24px 0", textAlign: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 24px 0", textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}>
               {userName ? `${userName}'s Closet` : "My Closet"}
@@ -1483,13 +1489,13 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         </div>
 
         {/* Daily outfit suggestion */}
-        <div style={{ padding: "10px 16px 0", flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ padding: "16px 16px 24px" }}>
           {loadingOutfit ? (
             <div
               style={{
                 borderRadius: "24px",
                 background: "linear-gradient(180deg, rgba(243,241,252,0.92) 0%, rgba(237,234,249,0.95) 100%)",
-                padding: "14px",
+                padding: "10px",
                 overflow: "hidden",
                 position: "relative",
               }}
@@ -1499,16 +1505,16 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                 <div style={{ display: "flex", justifyContent: "center" }}>
                   <SkeletonBlock width="120px" height="14px" style={{ marginBottom: "14px" }} />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
-                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
-                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
-                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
-                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "8px" }}>
+                  <SkeletonBlock height="120px" radius="14px" />
+                  <SkeletonBlock height="120px" radius="14px" />
+                  <SkeletonBlock height="120px" radius="14px" />
+                  <SkeletonBlock height="120px" radius="14px" />
                 </div>
-                <SkeletonBlock width="180px" height="14px" style={{ margin: "0 auto 12px" }} />
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-                  <SkeletonBlock width="110px" height="38px" />
-                  <SkeletonBlock width="104px" height="38px" />
+                <SkeletonBlock width="140px" height="12px" style={{ margin: "0 auto 8px" }} />
+                <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+                  <SkeletonBlock width="100px" height="34px" />
+                  <SkeletonBlock width="96px" height="34px" />
                 </div>
               </div>
             </div>
@@ -1530,7 +1536,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                       background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
                       color: "white",
                       borderRadius: "100px",
-                      padding: "9px 20px",
+                      padding: "10px 22px",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
@@ -1548,7 +1554,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                       background: "transparent",
                       color: "#7C6FE0",
                       borderRadius: "100px",
-                      padding: "9px 18px",
+                      padding: "10px 18px",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: regenerating ? "default" : "pointer",
