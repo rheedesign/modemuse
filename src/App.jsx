@@ -160,6 +160,62 @@ function SkeletonBlock({ height = "16px", width = "100%", radius = "999px", styl
   );
 }
 
+function ClosetItemImage({ url, name, rotation }) {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <div
+      style={{
+        aspectRatio: "1",
+        borderRadius: "16px",
+        overflow: "hidden",
+        background: "#f5f5f7",
+        border: "1px solid #eee",
+        position: "relative",
+      }}
+    >
+      {!loaded && !errored && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "16px",
+            background: "linear-gradient(90deg, #EEEAF8 25%, #F7F5FB 37%, #EEEAF8 63%)",
+            backgroundSize: "400% 100%",
+            animation: "deShimmer 1.4s ease-in-out infinite",
+          }}
+        />
+      )}
+      {errored ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: "#bbb", fontSize: "12px", textAlign: "center", padding: "8px" }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
+      ) : (
+        <img
+          src={url}
+          alt={name}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            transform: rotation ? `rotate(${rotation}deg)` : "none",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 0.2s ease",
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 function summarizeLookbookTitle(text) {
   if (!text) return "";
 
@@ -294,10 +350,20 @@ function summarizeLookbookTitle(text) {
     .replace(/\bT-Shirt\b/g, "T-Shirt")
     .replace(/\bBaby Shower\b/g, "Baby Shower")
     .replace(/\bDate Night\b/g, "Date Night")
-    .replace(/\bBaby Shower\b/g, "Baby Shower")
     .replace(/\bLookbook\b/g, "Lookbook")
     .replace(/\bIi\b/g, "II")
     .trim();
+
+  // Truncate to ~30 chars at a word boundary
+  if (candidate.length > 30) {
+    const words = candidate.split(" ");
+    let truncated = "";
+    for (const word of words) {
+      if ((truncated + " " + word).trim().length > 28) break;
+      truncated = (truncated + " " + word).trim();
+    }
+    candidate = truncated ? truncated + "..." : candidate.slice(0, 28) + "...";
+  }
 
   return candidate;
 }
@@ -626,9 +692,8 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
   const rotations = ["-4deg", "3deg", "2deg", "-3deg"];
   const displayImages = (images || []).slice(0, 6);
   const imageCount = displayImages.length;
-  const gridHeight = compact ? (imageCount <= 4 ? "298px" : "262px") : (imageCount <= 4 ? "324px" : "286px");
-  const gridGap = compact ? (imageCount <= 4 ? "10px" : "8px") : (imageCount <= 4 ? "12px" : "8px");
-  const gridPadding = compact ? (imageCount <= 4 ? "16px" : "12px") : (imageCount <= 4 ? "18px" : "14px");
+  const gridGap = compact ? (imageCount <= 4 ? "8px" : "6px") : (imageCount <= 4 ? "10px" : "8px");
+  const gridPadding = compact ? (imageCount <= 4 ? "12px" : "10px") : (imageCount <= 4 ? "14px" : "12px");
   return (
     <div style={{
       borderRadius: "24px",
@@ -645,10 +710,8 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gridAutoRows: "1fr",
           gap: gridGap,
           padding: gridPadding,
-          height: gridHeight,
           transition: "opacity 0.3s ease",
         }}
       >
@@ -656,7 +719,7 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
           <div
             key={i}
             style={{
-              height: "100%",
+              aspectRatio: "1",
               borderRadius: "16px",
               overflow: "hidden",
               transform: `rotate(${rotations[i] || "0deg"})`,
@@ -664,12 +727,12 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
               boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
             }}
           >
-            <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px" }} />
+            <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
           </div>
         ))}
       </div>
       {(caption || children) && (
-        <div style={{ padding: compact ? "4px 14px 14px" : "6px 16px 16px", textAlign: "center" }}>
+        <div style={{ padding: compact ? "4px 12px 10px" : "6px 14px 14px", textAlign: "center" }}>
           {caption && (
             <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#3d355b", letterSpacing: "0.02em" }}>{caption}</p>
           )}
@@ -1291,9 +1354,9 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflow: "hidden", padding: `${PAGE_TOP_PADDING} 0 90px` }}>
+      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: `${PAGE_TOP_PADDING} 0 80px` }}>
         {/* Weather pill with inline unit toggle */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "10px 16px 0", gap: "6px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6px 16px 0", gap: "4px", flexShrink: 0 }}>
           {weather ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", maxWidth: "100%" }}>
               <span
@@ -1352,11 +1415,6 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                   </button>
                 </span>
               </span>
-              {locationMode !== "custom" && (
-                <p style={{ margin: 0, fontSize: "11px", color: "#8A8798", fontWeight: 500 }}>
-                  Planning a trip? Tap the pin to set a destination.
-                </p>
-              )}
             </div>
           ) : (
             <div
@@ -1395,16 +1453,16 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         </div>
 
         {/* Headline */}
-        <div style={{ padding: "18px 24px 0", textAlign: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "27px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.16" }}>
+        <div style={{ padding: "10px 24px 0", textAlign: "center", flexShrink: 0 }}>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.15" }}>
             What will you<br />wear today?
           </h1>
         </div>
 
         {/* User avatar + name */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "18px 24px 0", textAlign: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px 24px 0", textAlign: "center", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <p style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#1a1a2e" }}>
+            <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}>
               {userName ? `${userName}'s Closet` : "My Closet"}
             </p>
             <button
@@ -1425,14 +1483,13 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         </div>
 
         {/* Daily outfit suggestion */}
-        <div style={{ padding: "20px 20px 0", marginTop: "auto" }}>
+        <div style={{ padding: "10px 16px 0", flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           {loadingOutfit ? (
             <div
               style={{
                 borderRadius: "24px",
                 background: "linear-gradient(180deg, rgba(243,241,252,0.92) 0%, rgba(237,234,249,0.95) 100%)",
-                padding: "18px",
-                minHeight: "360px",
+                padding: "14px",
                 overflow: "hidden",
                 position: "relative",
               }}
@@ -1442,13 +1499,13 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                 <div style={{ display: "flex", justifyContent: "center" }}>
                   <SkeletonBlock width="120px" height="14px" style={{ marginBottom: "14px" }} />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "14px" }}>
-                  <SkeletonBlock height="140px" radius="18px" />
-                  <SkeletonBlock height="140px" radius="18px" />
-                  <SkeletonBlock height="140px" radius="18px" />
-                  <SkeletonBlock height="140px" radius="18px" />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
+                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
+                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
+                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
+                  <div style={{ aspectRatio: "1" }}><SkeletonBlock height="100%" radius="16px" /></div>
                 </div>
-                <SkeletonBlock width="180px" height="14px" style={{ margin: "0 auto 16px" }} />
+                <SkeletonBlock width="180px" height="14px" style={{ margin: "0 auto 12px" }} />
                 <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                   <SkeletonBlock width="110px" height="38px" />
                   <SkeletonBlock width="104px" height="38px" />
@@ -2352,11 +2409,20 @@ function ClosetScreen() {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "0 16px 100px",
+          padding: "0 16px 80px",
         }}
       >
         {isLoadingItems ? (
-          <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "40px" }}>Loading your wardrobe...</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px", marginTop: "12px" }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i}>
+                <div style={{ aspectRatio: "1", borderRadius: "16px", overflow: "hidden" }}>
+                  <SkeletonBlock height="100%" radius="16px" />
+                </div>
+                <SkeletonBlock width="70%" height="12px" style={{ marginTop: "8px" }} />
+              </div>
+            ))}
+          </div>
         ) : filteredItems.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "40px", color: "#999" }}>
             {items.length === 0 ? (
@@ -2406,27 +2472,7 @@ function ClosetScreen() {
                     onTouchCancel={endLongPress}
                     onContextMenu={(e) => e.preventDefault()}
                   >
-                    <div
-                      style={{
-                        aspectRatio: "1",
-                        borderRadius: "16px",
-                        overflow: "hidden",
-                        background: "#f5f5f7",
-                        border: "1px solid #eee",
-                      }}
-                    >
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          transform: item.rotation ? `rotate(${item.rotation}deg)` : "none",
-                        }}
-                      />
-                    </div>
+                    <ClosetItemImage url={item.image_url} name={item.name} rotation={item.rotation} />
                     <p
                       style={{
                         margin: "8px 0 0",
@@ -2998,7 +3044,7 @@ function ItemDetailScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 108px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 80px" }}>
         {/* Back button */}
         <button
           onClick={() => navigate("/closet")}
@@ -3649,7 +3695,7 @@ function UploadScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 100px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 80px" }}>
 
         {phase === "pick" && (
           <>
@@ -4500,7 +4546,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px 16px 156px",
+          padding: "16px 16px 80px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -5187,7 +5233,7 @@ function FavoritesScreen() {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px 100px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px 80px" }}>
         {isLoading ? (
           <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ borderRadius: "22px", border: "1px solid #EEEAF8", padding: "10px", boxShadow: "0 6px 20px rgba(124,111,224,0.04)" }}>
