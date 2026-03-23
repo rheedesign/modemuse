@@ -484,7 +484,7 @@ function OnboardingSplash() {
   return (
     <AppShell gradient hideBottomNav>
       <div className="flex min-h-[80vh] flex-col justify-between">
-        <div className="pt-14">
+        <div className="pt-14 text-center">
           <LogoWordmark centered />
           <h1 className="mt-4 text-4xl font-bold leading-tight text-gray-900">Your AI wardrobe stylist</h1>
           <p className="mt-4 text-sm text-gray-600">Upload your closet, mix looks, and get instant outfit ideas.</p>
@@ -541,10 +541,10 @@ function SignUpScreen() {
     <AppShell gradient hideBottomNav>
       <div className="pt-8">
         <div className="mb-8">
-          <LogoWordmark compact />
+          <LogoWordmark compact centered />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
-        <p className="mt-1 text-sm text-gray-600">Start building your digital wardrobe.</p>
+        <h2 className="text-center text-2xl font-bold text-gray-900">Create your account</h2>
+        <p className="mt-1 text-center text-sm text-gray-600">Start building your digital wardrobe.</p>
         <form className="mt-8 space-y-4" onSubmit={handleSignUp}>
           <Field
             label="First Name"
@@ -653,10 +653,10 @@ function LogInScreen() {
     <AppShell gradient hideBottomNav>
       <div className="pt-8">
         <div className="mb-8">
-          <LogoWordmark compact />
+          <LogoWordmark compact centered />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-1 text-sm text-gray-600">Log in to continue with Daily Edit.</p>
+        <h2 className="text-center text-2xl font-bold text-gray-900">Welcome back</h2>
+        <p className="mt-1 text-center text-sm text-gray-600">Log in to continue with Daily Edit.</p>
         <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
           <Field
             label="Email"
@@ -3540,9 +3540,30 @@ function UploadScreen() {
     return data;
   }
 
+  async function compressImage(file, maxSizeMB = 3) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const maxPx = 1500;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = h * maxPx / w; w = maxPx; }
+          else { w = w * maxPx / h; h = maxPx; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        canvas.toBlob(resolve, "image/jpeg", 0.8);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   async function removeBackground(file) {
+    const compressed = await compressImage(file);
     const formData = new FormData();
-    formData.append("image_file", file);
+    formData.append("image_file", compressed, file.name);
     const res = await fetch("/api/photoroom", {
       method: "POST",
       body: formData,
