@@ -411,11 +411,23 @@ async function runTrackedAnthropicRequest({
   if (!user?.id) throw new Error("You need to be signed in.");
   if (!AI_ENABLED) throw new Error(AI_PAUSED_MESSAGE);
 
-  const quota = await ensureAiUsageAvailable(user.id);
-  if (!quota.allowed) throw new Error(quota.message);
+  // Usage check — don't let tracking failures block the request
+  try {
+    const quota = await ensureAiUsageAvailable(user.id);
+    console.log("[DEBUG] ensureAiUsageAvailable result:", quota);
+    if (!quota.allowed) throw new Error(quota.message);
+  } catch (quotaErr) {
+    // If it's a quota limit message, re-throw it
+    if (quotaErr.message?.includes("daily AI cap") || quotaErr.message?.includes("free AI requests")) {
+      throw quotaErr;
+    }
+    // Otherwise tracking failed — log and proceed anyway
+    console.warn("[DEBUG] Usage tracking check failed, proceeding with request:", quotaErr.message);
+  }
 
   let response;
   let data;
+  console.log("[DEBUG] About to fetch /api/anthropic/v1/messages", { feature, model: requestBody.model });
   try {
     response = await fetch("/api/anthropic/v1/messages", {
       method: "POST",
@@ -427,39 +439,23 @@ async function runTrackedAnthropicRequest({
       },
       body: JSON.stringify(requestBody),
     });
+    console.log("[DEBUG] Fetch response received:", { status: response.status, ok: response.ok });
     data = await response.json();
+    console.log("[DEBUG] Response JSON parsed:", { hasContent: !!data?.content, error: data?.error });
   } catch (err) {
-    await recordAiUsageEvent({
-      userId: user.id,
-      userEmail: user.email,
-      feature,
-      success: false,
-      errorMessage: err.message || "Network error",
-      metadata,
-    });
+    console.error("[DEBUG] Fetch to /api/anthropic FAILED:", err.message);
+    try { await recordAiUsageEvent({ userId: user.id, userEmail: user.email, feature, success: false, errorMessage: err.message || "Network error", metadata }); } catch (trackErr) { console.warn("[DEBUG] Failed to record usage event:", trackErr.message); }
     throw err;
   }
 
   if (!response.ok) {
     const errorMessage = data?.error?.message || `API error: ${response.status}`;
-    await recordAiUsageEvent({
-      userId: user.id,
-      userEmail: user.email,
-      feature,
-      success: false,
-      errorMessage,
-      metadata,
-    });
+    console.error("[DEBUG] API returned error:", { status: response.status, errorMessage, fullError: data?.error });
+    try { await recordAiUsageEvent({ userId: user.id, userEmail: user.email, feature, success: false, errorMessage, metadata }); } catch (trackErr) { console.warn("[DEBUG] Failed to record usage event:", trackErr.message); }
     throw new Error(errorMessage);
   }
 
-  await recordAiUsageEvent({
-    userId: user.id,
-    userEmail: user.email,
-    feature,
-    success: true,
-    metadata,
-  });
+  try { await recordAiUsageEvent({ userId: user.id, userEmail: user.email, feature, success: true, metadata }); } catch (trackErr) { console.warn("[DEBUG] Failed to record success usage event:", trackErr.message); }
 
   return data;
 }
@@ -1458,7 +1454,13 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
               }}
             >
-              <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: compact ? "4px" : "6px" }} />
+              <img
+                src={url}
+                alt=""
+                crossOrigin="anonymous"
+                onError={(e) => { e.target.style.display = "none"; }}
+                style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: compact ? "4px" : "6px" }}
+              />
             </div>
           ))}
         </div>
@@ -1910,11 +1912,14 @@ function HomeScreen() {
   }
 
   function applyOutfitResult(result) {
-    setSuggestedImages(result.urls);
+    console.log("[DEBUG] applyOutfitResult — raw URLs:", result.urls);
+    const validUrls = (result.urls || []).filter((url) => url && (url.startsWith("http://") || url.startsWith("https://")));
+    console.log("[DEBUG] applyOutfitResult — valid URLs:", validUrls);
+    setSuggestedImages(validUrls);
     setSuggestionCaption(result.caption);
     setSuggestionVibe(result.vibe);
-    previousUrlsRef.current = result.urls;
-    recordOutfitHistory(result.urls);
+    previousUrlsRef.current = validUrls;
+    recordOutfitHistory(validUrls);
   }
 
   function buildRetryInstruction(previousUrls, previousVibe) {
@@ -2406,7 +2411,9 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
               </span>
             </div>
           ) : (
-            <div
+            <button
+              type="button"
+              onClick={() => setLocationSheetOpen(true)}
               style={{
                 borderRadius: "999px",
                 padding: "8px 14px",
@@ -2414,30 +2421,17 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                 backdropFilter: "blur(8px)",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
+                gap: "6px",
                 color: "#6b6578",
                 fontSize: "12px",
                 fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
               }}
             >
-              <span aria-hidden="true">☀︎</span>
-              Weather unavailable
-              <button
-                type="button"
-                onClick={() => setLocationSheetOpen(true)}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "#B08A4A",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                Set location
-              </button>
-            </div>
+              <span aria-hidden="true">{"\uD83D\uDCCD"}</span>
+              Set location
+            </button>
           )}
         </div>
 
