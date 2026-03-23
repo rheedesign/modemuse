@@ -112,7 +112,7 @@ function BottomNav() {
         left: "50%",
         transform: "translateX(-50%)",
         bottom: 0,
-        width: "min(390px, 100vw)",
+        width: "min(430px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
         background: "#fff",
@@ -127,7 +127,7 @@ function BottomNav() {
               {({ isActive }) => (
                 <>
                   <item.icon active={isActive} />
-                  <span className={isActive ? "text-primary font-medium" : "text-gray-500"}>{item.label}</span>
+                  <span className={isActive ? "text-primary font-medium" : "text-gray-500"} style={{ fontSize: "clamp(10px, 2.5vw, 12px)" }}>{item.label}</span>
                 </>
               )}
             </NavLink>
@@ -437,7 +437,7 @@ function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
 
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[390px] bg-white shadow-sm">
+    <div className="relative mx-auto min-h-screen w-full max-w-[430px] bg-white shadow-sm">
       <main
         className={`${gradient ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-white"} min-h-screen px-5 pb-28`}
         style={{ paddingTop: PAGE_TOP_PADDING }}
@@ -715,8 +715,8 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: gridGap,
-            width: compact ? "280px" : "90%",
-            maxWidth: "90%",
+            width: compact ? "80%" : "90%",
+            maxWidth: "320px",
             transition: "opacity 0.3s ease",
           }}
         >
@@ -801,7 +801,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
         background: "white",
         display: "flex",
         flexDirection: "column",
-        maxWidth: "390px",
+        maxWidth: "430px",
         margin: "0 auto",
         transform: visible ? "translateY(0)" : "translateY(100%)",
         transition: "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
@@ -1354,7 +1354,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "390px",
+        maxWidth: "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FFF0E8 0%, #f3eefa 50%, #E8E4F8 100%)",
         position: "relative",
@@ -1460,7 +1460,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
 
         {/* Headline */}
         <div style={{ padding: "14px 24px 0", textAlign: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.2" }}>
+          <h1 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.2" }}>
             What will you<br />wear today?
           </h1>
         </div>
@@ -1682,7 +1682,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         <>
           <div
             onClick={() => setProfileSheetOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "430px", margin: "0 auto" }}
           />
           <div
             style={{
@@ -1690,7 +1690,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
               bottom: SHEET_BOTTOM_OFFSET,
               left: 0,
               right: 0,
-              maxWidth: "390px",
+              maxWidth: "430px",
               margin: "0 auto",
               background: "white",
               borderRadius: "24px 24px 0 0",
@@ -1794,7 +1794,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         <>
           <div
             onClick={() => setLocationSheetOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "430px", margin: "0 auto" }}
           />
           <div
             style={{
@@ -1802,7 +1802,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
               bottom: SHEET_BOTTOM_OFFSET,
               left: 0,
               right: 0,
-              maxWidth: "390px",
+              maxWidth: "430px",
               margin: "0 auto",
               background: "white",
               borderRadius: "24px 24px 0 0",
@@ -2267,7 +2267,7 @@ function ClosetScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "390px",
+        maxWidth: "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
@@ -2275,7 +2275,7 @@ function ClosetScreen() {
     >
       {/* Header */}
       <div style={{ padding: "20px 16px 0" }}>
-        <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>My Wardrobe</h1>
+        <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#1a1a2e" }}>My Wardrobe</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
 
         {/* Re-analyze button */}
@@ -2415,7 +2415,7 @@ function ClosetScreen() {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "0 16px 80px",
+          padding: "0 16px 120px",
         }}
       >
         {isLoadingItems ? (
@@ -2510,9 +2510,9 @@ function ClosetScreen() {
         type="button"
         onClick={() => navigate("/upload")}
         style={{
-          position: "absolute",
-          bottom: "80px",
-          right: "20px",
+          position: "fixed",
+          bottom: "100px",
+          right: "max(16px, calc((100vw - 430px) / 2 + 16px))",
           width: "52px",
           height: "52px",
           borderRadius: "50%",
@@ -2526,7 +2526,7 @@ function ClosetScreen() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 10,
+          zIndex: 50,
         }}
       >
         +
@@ -2542,7 +2542,7 @@ function ClosetScreen() {
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
-            maxWidth: "390px",
+            maxWidth: "430px",
             background: "white",
             borderRadius: "24px 24px 0 0",
             padding: "20px 20px 16px",
@@ -2707,7 +2707,7 @@ function ClosetScreen() {
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
-            maxWidth: "390px",
+            maxWidth: "430px",
             background: "white",
             borderRadius: "24px 24px 0 0",
             padding: "20px 20px 16px",
@@ -3033,7 +3033,7 @@ function ItemDetailScreen() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "#999", fontSize: "14px" }}>Loading...</p>
       </div>
     );
@@ -3041,7 +3041,7 @@ function ItemDetailScreen() {
 
   if (!item) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "#999", fontSize: "14px" }}>Item not found.</p>
         <button onClick={() => navigate("/closet")} style={{ marginTop: "12px", background: "none", border: "none", color: "#7C6FE0", fontWeight: 600, cursor: "pointer", fontSize: "14px" }}>Back to Closet</button>
       </div>
@@ -3049,7 +3049,7 @@ function ItemDetailScreen() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "0 0 80px" }}>
         {/* Back button */}
         <button
@@ -3400,7 +3400,7 @@ function ItemDetailScreen() {
         <>
           <div
             onClick={() => !merging && setMergeModalOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "430px", margin: "0 auto" }}
           />
           <div
             style={{
@@ -3408,7 +3408,7 @@ function ItemDetailScreen() {
               bottom: SHEET_BOTTOM_OFFSET,
               left: 0,
               right: 0,
-              maxWidth: "390px",
+              maxWidth: "430px",
               margin: "0 auto",
               background: "white",
               borderRadius: "24px 24px 0 0",
@@ -3700,12 +3700,12 @@ function UploadScreen() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 80px" }}>
 
         {phase === "pick" && (
           <>
-            <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
+            <h1 style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload any photo — a single item, outfit, or full look. We'll identify every piece.</p>
 
             <div
@@ -4426,7 +4426,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "390px",
+        maxWidth: "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
@@ -4552,7 +4552,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px 16px 80px",
+          padding: "16px 16px 140px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -4900,11 +4900,11 @@ Only suggest items they don't already own. Skip this section entirely if the out
       <div
         style={{
           position: "fixed",
+          bottom: SHEET_BOTTOM_OFFSET,
           left: "50%",
           transform: "translateX(-50%)",
-          bottom: SHEET_BOTTOM_OFFSET,
           width: "100%",
-          maxWidth: "390px",
+          maxWidth: "430px",
           padding: "12px 16px",
           borderTop: "1px solid #eee",
           display: "flex",
@@ -4972,7 +4972,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
               left: "50%",
               transform: "translateX(-50%)",
               width: "100%",
-              maxWidth: "390px",
+              maxWidth: "430px",
               background: "white",
               borderRadius: "24px 24px 0 0",
               padding: "24px 20px 32px",
@@ -5172,14 +5172,14 @@ function FavoritesScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "390px",
+        maxWidth: "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
       }}
     >
       <div style={{ padding: `calc(env(safe-area-inset-top) + 18px) 16px 0` }}>
-        <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>Lookbook</h1>
+        <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#1a1a2e" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
         </p>
@@ -5363,7 +5363,7 @@ function FavoritesScreen() {
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
-            maxWidth: "390px",
+            maxWidth: "430px",
             background: "white",
             borderRadius: "24px 24px 0 0",
             padding: "20px 20px 16px",
@@ -5441,7 +5441,7 @@ function FavoritesScreen() {
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
-            maxWidth: "390px",
+            maxWidth: "430px",
             background: "white",
             borderRadius: "24px 24px 0 0",
             padding: "20px 20px 16px",
@@ -5553,7 +5553,7 @@ function AppRouter() {
   }
 
   return (
-    <div className={`min-h-screen ${isOnboarding ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-[#f4f4f8]"}`}>
+    <div className={`min-h-[100dvh] overflow-x-hidden ${isOnboarding ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-[#f4f4f8]"}`}>
       <style>{`
         @keyframes deShimmer {
           0% { background-position: 100% 0; }
