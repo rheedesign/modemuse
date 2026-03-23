@@ -1,0 +1,16 @@
+{
+  "name": "Daily Edit",
+  "short_name": "Daily Edit",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#7C6FE0",
+  "icons": [
+    {
+      "src": "/daily-edit-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

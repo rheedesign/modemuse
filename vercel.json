@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/anthropic/v1/messages", "destination": "/api/anthropic" },
+    { "source": "/api/photoroom", "destination": "/api/photoroom" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

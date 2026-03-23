@@ -1,53 +1,123 @@
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import supabase from "./supabase";
 
-function IconHome({ active }) {
+function IconShirt({ active }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 10.5L12 3l9 7.5" />
-      <path d="M5 9.5V21h14V9.5" />
-      <path d="M9 21v-6h6v6" />
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15.5 2L20 6l-3 2v12H7V8L4 6l4.5-4" />
+      <path d="M9.5 2C9.5 3.38 10.62 4.5 12 4.5S14.5 3.38 14.5 2" />
     </svg>
   );
 }
 
-function IconCloset({ active }) {
+function IconHanger({ active, className = "", tone = "" }) {
+  const stateClass = tone || (active ? "text-primary" : "text-gray-400");
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 6h16" />
-      <path d="M12 6c0-2-1-3-3-3S6 4 6 6" />
-      <path d="M4 6l8 8 8-8" />
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a3 3 0 0 1 3 3c0 1.66-3 3-3 3" />
+      <path d="M12 8L3 16h18L12 8z" />
+      <path d="M3 16v2h18v-2" />
     </svg>
   );
 }
 
-function IconChat({ active }) {
+function IconSparkle({ active }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 5h16v10H8l-4 4V5z" />
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
     </svg>
   );
 }
 
-function IconStar({ active }) {
+function IconHeart({ active }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 3.5l2.6 5.2 5.8.8-4.2 4.1 1 5.9-5.2-2.7-5.2 2.7 1-5.9-4.2-4.1 5.8-.8L12 3.5z" />
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
     </svg>
+  );
+}
+
+function LogoMark({ size = 44 }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "16px",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(243,241,252,0.95) 100%)",
+        border: "1px solid rgba(124,111,224,0.20)",
+        boxShadow: "0 10px 24px rgba(124,111,224,0.08)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: "10px",
+          borderRadius: "12px",
+          border: "1px solid rgba(124,111,224,0.10)",
+        }}
+      />
+      <span
+        style={{
+          position: "relative",
+          fontSize: size >= 44 ? "15px" : "13px",
+          fontWeight: 700,
+          letterSpacing: "0.12em",
+          color: "#5F52D3",
+          transform: "translateX(1px)",
+        }}
+      >
+        DE
+      </span>
+    </div>
+  );
+}
+
+function LogoWordmark({ compact = false, centered = false }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "12px", justifyContent: centered ? "center" : "flex-start" }}>
+      <LogoMark size={compact ? 38 : 44} />
+      <div style={{ textAlign: centered ? "center" : "left" }}>
+        <div style={{ fontSize: compact ? "20px" : "24px", fontWeight: 800, letterSpacing: "-0.05em", color: "#161625", lineHeight: 1 }}>
+          Daily Edit
+        </div>
+        <div style={{ marginTop: "4px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C6FE0" }}>
+          Your style, curated
+        </div>
+      </div>
+    </div>
   );
 }
 
 function BottomNav() {
   const items = [
-    { to: "/home", label: "Home", icon: IconHome },
-    { to: "/closet", label: "Closet", icon: IconCloset },
-    { to: "/chat", label: "Chat", icon: IconChat },
-    { to: "/favorites", label: "Favorites", icon: IconStar },
+    { to: "/home", label: "Home", icon: IconShirt },
+    { to: "/closet", label: "Closet", icon: IconHanger },
+    { to: "/chat", label: "Chat", icon: IconSparkle },
+    { to: "/favorites", label: "Lookbook", icon: IconHeart },
   ];
 
-  return (
-    <nav className="sticky bottom-0 border-t border-gray-100 bg-white px-4 py-2">
+  const nav = (
+    <nav
+      style={{
+        position: "fixed",
+        left: "50%",
+        transform: "translateX(-50%)",
+        bottom: "max(0px, env(safe-area-inset-bottom))",
+        width: "min(390px, 100vw)",
+        zIndex: 12000,
+        pointerEvents: "auto",
+      }}
+      className="border-t border-gray-100 bg-white px-4 py-2"
+    >
       <ul className="grid grid-cols-4 gap-2">
         {items.map((item) => (
           <li key={item.to}>
@@ -64,15 +134,248 @@ function BottomNav() {
       </ul>
     </nav>
   );
+
+  if (typeof document === "undefined") return nav;
+  return createPortal(nav, document.body);
+}
+
+const SHEET_BOTTOM_OFFSET = "calc(env(safe-area-inset-bottom) + 64px)";
+const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
+const PAGE_TOP_PADDING = "max(28px, calc(env(safe-area-inset-top) + 18px))";
+
+function SkeletonBlock({ height = "16px", width = "100%", radius = "999px", style = {} }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        background: "linear-gradient(90deg, #EEEAF8 25%, #F7F5FB 37%, #EEEAF8 63%)",
+        backgroundSize: "400% 100%",
+        animation: "deShimmer 1.4s ease-in-out infinite",
+        ...style,
+      }}
+    />
+  );
+}
+
+function summarizeLookbookTitle(text) {
+  if (!text) return "";
+
+  const raw = String(text).replace(/\s+/g, " ").trim();
+  const lower = raw.toLowerCase();
+
+  const prefixPatterns = [
+    /^giv[e]? me (?:recs|recommendations?) for\s+/i,
+    /^giv[e]? me\s+/i,
+    /^give me (?:recs|recommendations?) for\s+/i,
+    /^give me\s+/i,
+    /^show me\s+\d+\s+outfit options using my\s+/i,
+    /^show me\s+/i,
+    /^pick an? outfit for\s+/i,
+    /^pick an? outfit\s+/i,
+    /^pick\s+/i,
+    /^style this item(?: for)?\s+/i,
+    /^style an? outfit for\s+/i,
+    /^recommend an? outfit for\s+/i,
+    /^recommend\s+/i,
+    /^outfit for\s+/i,
+    /^outfit idea for\s+/i,
+    /^look for\s+/i,
+    /^i need an? outfit for\s+/i,
+  ];
+
+  let candidate = raw;
+  for (const pattern of prefixPatterns) {
+    if (pattern.test(candidate)) {
+      candidate = candidate.replace(pattern, "");
+      break;
+    }
+  }
+
+  candidate = candidate
+    .replace(/^your look[:\-\s]*/i, "")
+    .replace(/^the look[:\-\s]*/i, "")
+    .replace(/^look[:\-\s]*/i, "")
+    .replace(/^style[:\-\s]*/i, "")
+    .replace(/^(?:the|a|an|my)\s+/i, "")
+    .replace(/\.\.\.$/, "")
+    .replace(/\s+(?:could be|maybe|with|using my)\b.*$/i, "")
+    .replace(/\s+outside of my wardrobe\.$/i, "")
+    .replace(/\s+outside of my wardrobe$/i, "")
+    .trim();
+
+  candidate = candidate
+    .replace(/\b(?:outfit|look|attire|style|idea|ideas)\b$/i, "")
+    .replace(/\b(?:church)\b$/i, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  const eventKeywords = [
+    "baptism",
+    "ceremony",
+    "party",
+    "wedding",
+    "brunch",
+    "date night",
+    "concert",
+    "office",
+    "picnic",
+    "vacation",
+    "travel",
+    "gala",
+    "dinner",
+    "garden",
+    "festival",
+    "graduation",
+    "rehearsal",
+    "baby shower",
+  ];
+  const clothingKeywords = [
+    "shirt",
+    "t-shirt",
+    "tee",
+    "top",
+    "blouse",
+    "sweater",
+    "cardigan",
+    "jacket",
+    "blazer",
+    "coat",
+    "dress",
+    "skirt",
+    "pants",
+    "trousers",
+    "jeans",
+    "shorts",
+    "heels",
+    "sandals",
+    "flats",
+    "sneakers",
+    "boots",
+    "bag",
+    "purse",
+    "handbag",
+    "clutch",
+    "shirt dress",
+    "tank",
+    "vest",
+    "cardi",
+    "loafer",
+  ];
+
+  const hasEvent = eventKeywords.some((keyword) => lower.includes(keyword));
+  const hasClothing = clothingKeywords.some((keyword) => lower.includes(keyword));
+
+  if (!candidate) candidate = raw;
+  if (hasEvent) {
+    candidate = candidate.replace(/\bchurch\b/gi, "").replace(/\s{2,}/g, " ").trim();
+  }
+  if (!hasEvent && hasClothing) {
+    const words = candidate.split(" ").filter(Boolean);
+    const firstClothingIndex = words.findIndex((word) => clothingKeywords.some((keyword) => word.toLowerCase().includes(keyword)));
+    if (firstClothingIndex > 0) {
+      const head = words.slice(0, firstClothingIndex);
+      const garment = words[firstClothingIndex];
+      if (words.length <= 2 || /t-?shirt/i.test(garment)) {
+        candidate = words.slice(0, Math.min(3, words.length)).join(" ");
+      } else if (head.length > 0) {
+        candidate = head.slice(0, 2).join(" ");
+      }
+    }
+    if (!/\boutfit\b/i.test(candidate)) {
+      candidate = `${candidate} Outfit`;
+    }
+  }
+
+  candidate = candidate
+    .replace(/\b(\w)/g, (match) => match.toUpperCase())
+    .replace(/\bT-Shirt\b/g, "T-Shirt")
+    .replace(/\bBaby Shower\b/g, "Baby Shower")
+    .replace(/\bDate Night\b/g, "Date Night")
+    .replace(/\bBaby Shower\b/g, "Baby Shower")
+    .replace(/\bLookbook\b/g, "Lookbook")
+    .replace(/\bIi\b/g, "II")
+    .trim();
+
+  return candidate;
+}
+
+function getLookbookDisplayTitle(outfit, conversationTitle = "") {
+  if (!outfit) return "Untitled Look";
+
+  const convoSummary = summarizeLookbookTitle(conversationTitle);
+  const titleSummary = summarizeLookbookTitle(outfit.title);
+  const descriptionSummary = summarizeLookbookTitle(outfit.description);
+  const occasionSummary = summarizeLookbookTitle(outfit.occasion && outfit.occasion !== "Other" ? outfit.occasion : "");
+
+  if (convoSummary && (isLikelyPromptTitle(conversationTitle) || isLikelyItemListTitle(outfit.title) || !titleSummary)) return convoSummary;
+  if (titleSummary && !isLikelyItemListTitle(outfit.title)) return titleSummary;
+  if (descriptionSummary && isLikelyPromptTitle(outfit.description)) return descriptionSummary;
+  if (occasionSummary) return occasionSummary;
+  if (convoSummary) return convoSummary;
+  if (titleSummary) return titleSummary;
+  if (descriptionSummary) return descriptionSummary;
+
+  return "Untitled Look";
+}
+
+function isLikelyPromptTitle(text) {
+  if (!text) return false;
+  return /(give me|show me|pick|style|recommend|need an? outfit|outfit for|look for|could be|church|baptism|ceremony|party|wedding|garden)/i.test(text);
+}
+
+function isLikelyItemListTitle(text) {
+  if (!text) return false;
+  const lowered = String(text).toLowerCase();
+  const itemHits = ["shirt", "tee", "top", "blouse", "sweater", "jacket", "blazer", "dress", "skirt", "pants", "jeans", "shorts", "heels", "sandals", "sneakers", "boots", "bag", "purse", "handbag", "clutch"]
+    .filter((word) => lowered.includes(word)).length;
+  return itemHits >= 2 || lowered.includes("why it works") || lowered.split(" ").length >= 6;
+}
+
+function getLookbookContextTag(outfit, conversationTitle = "") {
+  const source = `${outfit?.occasion || ""} ${outfit?.title || ""} ${outfit?.description || ""} ${conversationTitle || ""}`.toLowerCase();
+  if (/\bbaptism\b|\bceremony\b|\bwedding\b|\bchurch\b/.test(source)) return "Ceremony";
+  if (/\btravel\b|\btrip\b|\bhawaii\b|\bvacation\b|\bairport\b/.test(source)) return "Travel";
+  if (/\boffice\b|\bwork\b|\bmeeting\b|\bdesk\b/.test(source)) return "Office";
+  if (/\bdate night\b|\bdinner\b|\bgoing out\b|\bparty\b/.test(source)) return "Going Out";
+  if (/\bgarden\b|\bpicnic\b|\boutdoor\b|\bpark\b/.test(source)) return "Outdoor";
+  if (/\bbrunch\b|\bcasual\b|\beveryday\b|\berrand\b/.test(source)) return "Casual";
+  return "Styled";
+}
+
+function getWeatherMoodLine({ tempF, weatherCode, windSpeed, cityName, locationLabel, locationMode }) {
+  const place = locationLabel || cityName || "";
+  if (locationMode === "custom" && place) {
+    if (/\bhawaii\b|\bvacation\b|\btrip\b|\btravel\b|\bbeach\b|\bisland\b/i.test(place)) return "Vacation ready";
+    return `Planning for ${place}`;
+  }
+  if (tempF === null || tempF === undefined) return "Styled today";
+  if ((weatherCode >= 51 && weatherCode <= 67) || weatherCode >= 80) return "Rain ready";
+  if (windSpeed !== null && windSpeed !== undefined && windSpeed >= 15) return "Wind-ready";
+  if (tempF <= 50) return "Cold-weather edit";
+  if (tempF >= 78) return "Light layers";
+  return "Styled today";
+}
+
+function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
+  if (tempF === null || tempF === undefined) return "hero-accent-move";
+  if ((weatherCode >= 51 && weatherCode <= 67) || weatherCode >= 80) return "hero-accent-rain";
+  if (windSpeed !== null && windSpeed !== undefined && windSpeed >= 15) return "hero-accent-wind";
+  if (tempF <= 50) return "hero-accent-cool";
+  return "hero-accent-sun";
 }
 
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-[390px] bg-white shadow-sm">
-      <main className={`${gradient ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-white"} min-h-screen px-5 pb-28 pt-8`}>
+      <main
+        className={`${gradient ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-white"} min-h-screen px-5 pb-28`}
+        style={{ paddingTop: PAGE_TOP_PADDING }}
+      >
         {children}
       </main>
-      {!hideBottomNav && <BottomNav />}
     </div>
   );
 }
@@ -114,7 +417,7 @@ function OnboardingSplash() {
     <AppShell gradient hideBottomNav>
       <div className="flex min-h-[80vh] flex-col justify-between">
         <div className="pt-14">
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">ModeMuse</p>
+          <LogoWordmark centered />
           <h1 className="mt-4 text-4xl font-bold leading-tight text-gray-900">Your AI wardrobe stylist</h1>
           <p className="mt-4 text-sm text-gray-600">Upload your closet, mix looks, and get instant outfit ideas.</p>
         </div>
@@ -133,9 +436,10 @@ function OnboardingSplash() {
 
 function SignUpScreen() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [styleGender, setStyleGender] = useState("womens");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -143,18 +447,17 @@ function SignUpScreen() {
     event.preventDefault();
     setError("");
     setIsSubmitting(true);
-    console.log('Sign up clicked, email:', email, 'supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          display_name: name.trim() || undefined,
+          first_name: firstName.trim() || undefined,
+          style_gender: styleGender,
         },
       },
     });
-    console.log('Supabase response:', data, 'error:', error);
 
     setIsSubmitting(false);
 
@@ -169,16 +472,19 @@ function SignUpScreen() {
   return (
     <AppShell gradient hideBottomNav>
       <div className="pt-8">
+        <div className="mb-8">
+          <LogoWordmark compact />
+        </div>
         <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
         <p className="mt-1 text-sm text-gray-600">Start building your digital wardrobe.</p>
         <form className="mt-8 space-y-4" onSubmit={handleSignUp}>
           <Field
-            label="Name"
-            name="name"
-            placeholder="Jane Doe"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
+            label="First Name"
+            name="firstName"
+            placeholder="Jane"
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            autoComplete="given-name"
             required
           />
           <Field
@@ -201,6 +507,36 @@ function SignUpScreen() {
             autoComplete="new-password"
             required
           />
+          <div>
+            <span className="mb-2 block text-sm font-medium text-gray-700">How do you want to be styled?</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+              {[
+                { value: "womens", label: "Women's" },
+                { value: "mens", label: "Men's" },
+                { value: "fluid", label: "Gender Fluid" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setStyleGender(opt.value)}
+                  style={{
+                    padding: "14px 20px",
+                    borderRadius: "100px",
+                    border: styleGender === opt.value ? "2px solid #7C6FE0" : "1.5px solid #e0e0e0",
+                    background: styleGender === opt.value ? "#f3f1fc" : "white",
+                    color: styleGender === opt.value ? "#7C6FE0" : "#555",
+                    fontSize: "15px",
+                    fontWeight: styleGender === opt.value ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    textAlign: "center",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}
           <div className="pt-2">
             <PillButton
@@ -248,8 +584,11 @@ function LogInScreen() {
   return (
     <AppShell gradient hideBottomNav>
       <div className="pt-8">
+        <div className="mb-8">
+          <LogoWordmark compact />
+        </div>
         <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-1 text-sm text-gray-600">Log in to continue with ModeMuse.</p>
+        <p className="mt-1 text-sm text-gray-600">Log in to continue with Daily Edit.</p>
         <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
           <Field
             label="Email"
@@ -283,44 +622,54 @@ function LogInScreen() {
   );
 }
 
-function FlatLayCard({ images, caption, children, pulsing }) {
-  const slots = [
-    { top: "6%", left: "4%", width: "44%", rotate: "-5deg", zIndex: 1 },
-    { top: "22%", left: "26%", width: "48%", rotate: "2deg", zIndex: 4 },
-    { top: "4%", right: "4%", left: "auto", width: "42%", rotate: "6deg", zIndex: 2 },
-    { bottom: "8%", left: "6%", top: "auto", width: "30%", rotate: "-3deg", zIndex: 3 },
-  ];
+function FlatLayCard({ images, caption, children, pulsing, compact = false }) {
+  const rotations = ["-4deg", "3deg", "2deg", "-3deg"];
+  const displayImages = (images || []).slice(0, 6);
+  const imageCount = displayImages.length;
+  const gridHeight = compact ? (imageCount <= 4 ? "298px" : "262px") : (imageCount <= 4 ? "324px" : "286px");
+  const gridGap = compact ? (imageCount <= 4 ? "10px" : "8px") : (imageCount <= 4 ? "12px" : "8px");
+  const gridPadding = compact ? (imageCount <= 4 ? "16px" : "12px") : (imageCount <= 4 ? "18px" : "14px");
   return (
-    <div style={{ borderRadius: "24px", background: "linear-gradient(145deg, #FDF6F0, #F5F0FA)", overflow: "hidden", position: "relative" }}>
+    <div style={{
+      borderRadius: "24px",
+      background: "rgba(255, 255, 255, 0.25)",
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      border: "1px solid rgba(255, 255, 255, 0.4)",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+      overflow: "hidden",
+      position: "relative",
+    }}>
       <div
         className={pulsing ? "flatlayPulse" : ""}
-        style={{ position: "relative", width: "100%", paddingBottom: "115%", overflow: "hidden", transition: "opacity 0.3s ease" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gridAutoRows: "1fr",
+          gap: gridGap,
+          padding: gridPadding,
+          height: gridHeight,
+          transition: "opacity 0.3s ease",
+        }}
       >
-        {images.slice(0, 4).map((url, i) => (
+        {displayImages.map((url, i) => (
           <div
             key={i}
             style={{
-              position: "absolute",
-              top: slots[i]?.top,
-              left: slots[i]?.left,
-              right: slots[i]?.right || "auto",
-              bottom: slots[i]?.bottom || "auto",
-              width: slots[i]?.width || "40%",
-              aspectRatio: "3/4",
-              borderRadius: "14px",
+              height: "100%",
+              borderRadius: "16px",
               overflow: "hidden",
-              transform: `rotate(${slots[i]?.rotate || "0deg"})`,
-              zIndex: slots[i]?.zIndex || 1,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-              background: "#FFFFFF",
+              transform: `rotate(${rotations[i] || "0deg"})`,
+              background: "#F3F1FA",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
             }}
           >
-            <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
+            <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px" }} />
           </div>
         ))}
       </div>
       {(caption || children) && (
-        <div style={{ padding: "14px 16px 16px", textAlign: "center" }}>
+        <div style={{ padding: compact ? "4px 14px 14px" : "6px 16px 16px", textAlign: "center" }}>
           {caption && (
             <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#3d355b", letterSpacing: "0.02em" }}>{caption}</p>
           )}
@@ -334,16 +683,269 @@ function FlatLayCard({ images, caption, children, pulsing }) {
 function getDisplayName(user) {
   if (!user) return "";
   const meta = user.user_metadata || {};
-  const raw = meta.display_name || meta.first_name || meta.full_name?.split(" ")[0] || "";
+  const raw = meta.first_name || meta.display_name || meta.full_name?.split(" ")[0] || "";
   if (raw) return raw.charAt(0).toUpperCase() + raw.slice(1);
   const emailPrefix = (user.email || "").split("@")[0] || "";
   return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
 }
 
+function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onGetStyled }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  }
+
+  // Touch-to-dismiss
+  const touchStartY = useRef(0);
+  function onTouchStart(e) { touchStartY.current = e.touches[0].clientY; }
+  function onTouchEnd(e) {
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (dy > 100) handleClose();
+  }
+
+  // Extract item names from URLs (last path segment, decoded)
+  function nameFromUrl(url) {
+    try {
+      const parts = new URL(url).pathname.split("/");
+      const file = parts[parts.length - 1] || "";
+      return decodeURIComponent(file.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ")).slice(0, 40);
+    } catch { return ""; }
+  }
+
+  const imgs = (images || []).slice(0, 6);
+  const isFeatured = imgs.length >= 3;
+
+  return (
+    <div
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 10000,
+        background: "white",
+        display: "flex",
+        flexDirection: "column",
+        maxWidth: "390px",
+        margin: "0 auto",
+        transform: visible ? "translateY(0)" : "translateY(100%)",
+        transition: "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 16px 0" }}>
+        <button
+          type="button"
+          onClick={handleClose}
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+            border: "none",
+            background: "#f5f5f7",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <h2 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#1a1a2e", textAlign: "center", flex: 1 }}>
+          {vibe || "Outfit"}
+        </h2>
+        <div style={{ width: "36px" }} />
+      </div>
+
+      {caption && (
+        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888", textAlign: "center", padding: "0 20px" }}>{caption}</p>
+      )}
+
+      {/* Image grid */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 168px" }}>
+        {isFeatured ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            {imgs.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  gridColumn: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "1 / -1" : undefined,
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  background: "#fff",
+                  padding: "3px",
+                  boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+                  aspectRatio: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "2/1.15" : "1",
+                }}
+              >
+                <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {imgs.map((url, i) => (
+              <div key={i} style={{ borderRadius: "12px", overflow: "hidden", background: "#fff", padding: "3px", boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)" }}>
+                <img src={url} alt="" style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom CTA */}
+      <div style={{
+        position: "absolute",
+        bottom: SHEET_BOTTOM_OFFSET,
+        left: 0,
+        right: 0,
+        padding: "16px 20px 20px",
+        background: "linear-gradient(transparent, white 30%)",
+      }}>
+        <button
+          type="button"
+          onClick={() => { handleClose(); setTimeout(onGetStyled || onNavigateChat, 350); }}
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: "100px",
+            border: "none",
+            background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
+            color: "white",
+            fontWeight: 600,
+            fontSize: "15px",
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+          }}
+        >
+          Get Styled
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function getStyleSystemPrompt(styleGender) {
+  const NO_YEAR = `\n\nIMPORTANT: Never mention the year 2026 or any year in your response. Never say "in 2026" or "current 2026 trends" or reference any specific year — just make confident style statements without referencing the year.`;
+
+  const WOMENS_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa, Bottega Veneta, and emerging labels. You understand the full spectrum of current aesthetics including: office siren, ballet core evolved, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, dark academia, and the ongoing No Buy / underconsumption movement where people want to style what they own rather than buy new things.
+
+You are aware of current trends:
+- Tailoring is having a major moment — structured shoulders, wide leg trousers, blazers worn as tops
+- Sheer and layering is everywhere — slip dresses over turtlenecks, mesh over basics
+- Metallics have moved from evening to daytime — silver and gold as neutrals
+- Ballet flats and kitten heels dominate over chunky sneakers
+- Minimalist bags — small structured bags, hobo bags, soft leather totes
+- Denim is relaxed and wide — barrel leg, wide straight, trouser jean
+- Color is either very neutral (beige, ivory, chocolate, camel) or very saturated (cherry red, cobalt, forest green)
+
+When suggesting outfits:
+- Be specific and opinionated — don't just say 'this works', say WHY it's a strong look right now
+- Reference current micro-trends when relevant
+- Consider the weather temperature and dress appropriately
+- Always create a complete look — top, bottom or dress, shoes, and one accessory
+- Champion the No Buy ethos — celebrate what the user already owns, frame new purchase suggestions as rare intentional gap pieces only
+- Prioritize unexpected combinations over safe obvious ones
+- Keep descriptions punchy and confident, like a stylist texting a client
+- Name the vibe in 3 words max (e.g. 'Office Siren Sunday', 'Parisian Errand Run', 'Quiet Luxury Off-Duty', 'Ballet Core Elevated')`;
+
+  const MENS_PROMPT = `You are a world-class men's fashion stylist with deep knowledge of current trends. You follow menswear fashion weeks, read GQ and Highsnobiety, love designers like Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP, and Bottega Veneta. You understand current men's aesthetics including: quiet luxury menswear, gorpcore evolved, smart casual, old money prep, workwear heritage, and sport luxe.
+
+Current menswear trends:
+- Relaxed tailoring dominates — unstructured blazers, pleated trousers, overshirts worn as jackets
+- Workwear heritage is huge — Carhartt-inspired pieces, utility vests, cargo trousers styled up
+- Loafers and clean leather sneakers over chunky shoes
+- Tonal dressing — all navy, all camel, all olive
+- Quiet luxury in menswear means cashmere, wool, leather — quality over logos
+- Wide leg denim and straight trousers, never skinny
+- Layering — long sleeve under short sleeve, shirt under knit
+
+When suggesting outfits:
+- Be specific and opinionated about why this combination works right now
+- Reference current micro-trends when relevant
+- Consider the weather temperature and dress appropriately
+- Always create a complete look — top, bottom, shoes, one accessory (watch, bag, hat)
+- Champion the No Buy ethos — celebrate what the user already owns, frame new purchase suggestions as rare intentional gap pieces only
+- Prioritize unexpected combinations over safe obvious ones
+- Keep descriptions punchy and confident, like a stylist texting a client
+- Name the vibe in 3 words max (e.g. 'ALD Off-Duty', 'Heritage Workwear Smart', 'Quiet Luxury Errand')`;
+
+  const FLUID_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends across all gender expressions. You follow fashion weeks globally, read Vogue, GQ, i-D, and Highsnobiety, love designers like The Row, Bottega Veneta, Jacquemus, Aime Leon Dore, Toteme, Reformation, Alaïa, and emerging labels. You understand the full spectrum of current aesthetics including: quiet luxury, gorpcore evolved, office siren, ballet core evolved, smart casual, new minimalism, workwear heritage, sport luxe, boho revival, dark academia, and the ongoing No Buy / underconsumption movement.
+
+Current trends:
+- Relaxed tailoring dominates across all styling — unstructured blazers, wide leg trousers, oversized shirting
+- Layering is everywhere — slip pieces over knits, mesh over basics, overshirts as outerwear
+- Metallics have moved from evening to daytime — silver and gold as neutrals
+- Clean footwear — loafers, ballet flats, kitten heels, minimal leather sneakers
+- Minimalist bags — structured crossbodies, hobo bags, soft leather totes
+- Denim is relaxed and wide — barrel leg, wide straight, trouser jean
+- Color is either very neutral (beige, ivory, chocolate, camel, olive) or very saturated (cherry red, cobalt, forest green)
+- Tonal dressing — monochrome head-to-toe in any palette
+
+When suggesting outfits:
+- Be specific and opinionated — say WHY it's a strong look right now
+- Never assume or reference gender — focus on silhouette, proportion, and vibe
+- Reference current trends when relevant without gendering them
+- Consider the weather temperature and dress appropriately
+- Always create a complete look — top, bottom or one-piece, shoes, and one accessory
+- Champion the No Buy ethos — celebrate what the user already owns
+- Prioritize unexpected combinations over safe obvious ones
+- Keep descriptions punchy and confident, like a stylist texting a client
+- Name the vibe in 3 words max (e.g. 'Quiet Luxury Off-Duty', 'Tonal Workwear Chic', 'New Minimalist Errand')`;
+
+  if (styleGender === "mens") return MENS_PROMPT + NO_YEAR;
+  if (styleGender === "fluid") return FLUID_PROMPT + NO_YEAR;
+  return WOMENS_PROMPT + NO_YEAR;
+}
+
+function WeatherIcon({ kind, color = "#7C6FE0" }) {
+  if (kind === "rain") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 14a4.5 4.5 0 0 1 4.4-5.5A5 5 0 0 1 20 11a3.5 3.5 0 0 1-1 6.9H7.2A3.2 3.2 0 0 1 6 14z" />
+        <path d="M9 18l-1 2" />
+        <path d="M13 18l-1 2" />
+        <path d="M17 18l-1 2" />
+      </svg>
+    );
+  }
+
+  if (kind === "wind") {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 8h10a2 2 0 1 0-2-2" />
+        <path d="M4 12h12a2 2 0 1 1-2 2" />
+        <path d="M4 16h8" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" fill={color} stroke="none" />
+      <path d="M12 2v3" />
+      <path d="M12 19v3" />
+      <path d="M4.9 4.9l2.1 2.1" />
+      <path d="M17 17l2.1 2.1" />
+      <path d="M2 12h3" />
+      <path d="M19 12h3" />
+      <path d="M4.9 19.1 7 17" />
+      <path d="M17 7l2.1-2.1" />
+    </svg>
+  );
+}
+
 function HomeScreen() {
   const navigate = useNavigate();
   const [weather, setWeather] = useState(null);
-  const [weatherLabel, setWeatherLabel] = useState("");
   const [userName, setUserName] = useState("");
   const [itemCount, setItemCount] = useState(0);
   const [suggestedImages, setSuggestedImages] = useState([]);
@@ -351,9 +953,153 @@ function HomeScreen() {
   const [suggestionVibe, setSuggestionVibe] = useState("Today's Look");
   const [loadingOutfit, setLoadingOutfit] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [editStyleGender, setEditStyleGender] = useState("womens");
+  const [locationSheetOpen, setLocationSheetOpen] = useState(false);
+  const [locationMode, setLocationMode] = useState(() => localStorage.getItem("modemuse_weather_location_mode") || "current");
+  const [locationQuery, setLocationQuery] = useState(() => localStorage.getItem("modemuse_weather_location_query") || "");
+  const [locationLabel, setLocationLabel] = useState(() => localStorage.getItem("modemuse_weather_location_label") || "");
+  const [locationInput, setLocationInput] = useState(() => localStorage.getItem("modemuse_weather_location_query") || "");
+  const [locationSaving, setLocationSaving] = useState(false);
+  const [useCelsius, setUseCelsius] = useState(() => localStorage.getItem("modemuse_tempUnit") === "C");
+  const [outfitModalOpen, setOutfitModalOpen] = useState(false);
   const closetDataRef = useRef([]);
-  const weatherRef = useRef({ tempF: null, cityName: "" });
+  const weatherRef = useRef({ tempF: null, cityName: "", weatherCode: null, windSpeed: null });
   const previousUrlsRef = useRef([]);
+  const retryStyleRef = useRef(0);
+  const hasFetchedOutfit = useRef(false);
+  const styleGenderRef = useRef("womens");
+
+  function toggleTempUnit() {
+    const newVal = !useCelsius;
+    setUseCelsius(newVal);
+    localStorage.setItem("modemuse_tempUnit", newVal ? "C" : "F");
+  }
+
+  function formatTemp(tempF) {
+    if (tempF === null || tempF === undefined) return "";
+    if (useCelsius) return `${Math.round((tempF - 32) * 5 / 9)}°C`;
+    return `${Math.round(tempF)}°F`;
+  }
+
+  function getWeatherKind() {
+    const { weatherCode, windSpeed } = weatherRef.current;
+    if (weatherCode === null || weatherCode === undefined) return "sun";
+    if ((weatherCode >= 51 && weatherCode <= 67) || weatherCode >= 80) return "rain";
+    if (windSpeed !== null && windSpeed !== undefined && windSpeed >= 15) return "wind";
+    return weatherCode === 0 ? "sun" : "sun";
+  }
+
+  function getHomeWeatherMoodLine() {
+    return getWeatherMoodLine({
+      ...weatherRef.current,
+      locationLabel,
+      locationMode,
+    });
+  }
+
+  function getHomeHeroAccentClass() {
+    return getHeroAccentClass(weatherRef.current);
+  }
+
+  function getRecommendedOutfitItemCount() {
+    const { tempF, weatherCode, windSpeed } = weatherRef.current;
+    if (tempF !== null && tempF <= 50) return 6;
+    if (weatherCode !== null && ((weatherCode >= 51 && weatherCode <= 67) || weatherCode >= 80)) return 6;
+    if (windSpeed !== null && windSpeed >= 15) return 5;
+    if (tempF !== null && tempF <= 65) return 5;
+    return 4;
+  }
+
+  function buildRetryInstruction(previousUrls, previousVibe) {
+    const retryDirections = [
+      "Make it more minimal and clean with a sharper silhouette.",
+      "Make it more layered and fashion-forward with a different proportion.",
+      "Make it more polished and elevated, not casual.",
+      "Make it more relaxed and effortless, not structured.",
+      "Make it more bold and directional with a stronger color story.",
+      "Make it more soft and feminine / fluid, not tailored.",
+    ];
+    const retryDirection = retryDirections[retryStyleRef.current % retryDirections.length];
+    retryStyleRef.current += 1;
+
+    const previousItems = closetDataRef.current.filter((item) => previousUrls.includes(item.image_url));
+    const previousNames = [...new Set(previousItems.map((item) => item.name).filter(Boolean))];
+    const previousCategories = [...new Set(previousItems.map((item) => item.category).filter(Boolean))];
+    const avoidDetails = [
+      previousNames.length ? `Avoid these exact items: ${previousNames.join(", ")}.` : "",
+      previousCategories.length ? `Avoid leaning on the same categories too heavily: ${previousCategories.join(", ")}.` : "",
+      previousVibe ? `Do not repeat the vibe "${previousVibe}".` : "",
+      "Change the outfit formula if possible: use a different hero piece, different footwear, or a different layering structure.",
+      retryDirection,
+      "If the previous outfit was more neutral, move bolder. If it was more dressed-up, make this one more casual. Do not echo the last styling choice.",
+      "Return a truly different outfit even if it means using a different color palette or a different balance of top/bottom/accessories.",
+    ].filter(Boolean).join(" ");
+
+    return avoidDetails;
+  }
+
+  function saveLocationSelection(mode, query, label) {
+    setLocationMode(mode);
+    setLocationQuery(query);
+    setLocationLabel(label);
+    localStorage.setItem("modemuse_weather_location_mode", mode);
+    localStorage.setItem("modemuse_weather_location_query", query);
+    localStorage.setItem("modemuse_weather_location_label", label);
+  }
+
+  async function loadWeatherFromCoordinates(latitude, longitude, fallbackLabel = "") {
+    const [weatherRes, geoRes] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&temperature_unit=fahrenheit`),
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`),
+    ]);
+    const weatherData = await weatherRes.json();
+    const geoData = await geoRes.json();
+    const tempF = Math.round(weatherData.current_weather?.temperature || 0);
+    const weatherCode = weatherData.current_weather?.weathercode ?? null;
+    const windSpeed = weatherData.current_weather?.windspeed ?? null;
+    const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || geoData.address?.state || "";
+    const state = geoData.address?.state || "";
+    const stateShort = state.length > 3 ? state.slice(0, 2).toUpperCase() : state;
+    const geoLabel = geoData.display_name?.split(",").slice(0, 2).join(", ") || fallbackLabel || "Current location";
+    const cityName = city
+      ? `${city}${stateShort && !city.includes(stateShort) ? ", " + stateShort : ""}`
+      : geoLabel;
+    weatherRef.current = { tempF, cityName, weatherCode, windSpeed };
+    setWeather(true);
+    setLocationLabel(cityName);
+    localStorage.setItem("modemuse_weather_location_label", cityName);
+    return cityName;
+  }
+
+  async function loadWeatherForCurrentLocation() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const cityName = await loadWeatherFromCoordinates(latitude, longitude);
+          saveLocationSelection("current", "", cityName || "");
+        } catch {
+          // Keep the UI usable even if reverse geocoding fails.
+        }
+        resolve(null);
+      }, () => resolve(null));
+    });
+  }
+
+  async function loadWeatherForDestination(query) {
+    const trimmed = query.trim();
+    if (!trimmed) return null;
+    const searchRes = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(trimmed)}`);
+    const searchData = await searchRes.json();
+    const match = searchData?.[0];
+    if (!match) return null;
+    const cityName = await loadWeatherFromCoordinates(match.lat, match.lon, match.display_name || trimmed);
+    saveLocationSelection("custom", trimmed, cityName);
+    return cityName;
+  }
 
   function parseOutfitResponse(text) {
     const urlRegex = /https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)/gi;
@@ -373,33 +1119,57 @@ function HomeScreen() {
       caption = caption.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\n{2,}/g, " ").replace(/^\s*[-•]\s*/gm, "").trim();
     }
 
-    return { urls: urls.slice(0, 4), caption: caption || "Your daily look", vibe };
+    return { urls: urls.slice(0, 6), caption: caption || "Your daily look", vibe };
   }
 
-  async function fetchOutfitSuggestion(extraInstruction) {
-    const data = closetDataRef.current;
+  async function fetchOutfitSuggestion(extraInstruction, temperature = 0.85) {
+    const data = closetDataRef.current.filter((item) => item.image_url);
     const { tempF, cityName } = weatherRef.current;
-    if (!data.length) return null;
+    console.log("[HomeScreen] fetchOutfitSuggestion called, closet items:", data.length, "weather:", tempF, cityName, "location:", locationLabel || cityName);
+    if (!data.length) { console.log("[HomeScreen] No closet items, skipping"); return null; }
 
-    const imageBlocks = data.flatMap((item, i) => [
-      { type: "text", text: `Item ${i + 1} (${item.image_url}):` },
-      { type: "image", source: { type: "url", url: item.image_url } },
-    ]);
+    // Build text-only item list (no vision image blocks) to reduce token usage
+    const itemList = data.map((item, i) => {
+      const parts = [`Item ${i + 1}: ${item.image_url}`];
+      if (item.name) parts.push(`Name: ${item.name}`);
+      if (item.category) parts.push(`Category: ${item.category}`);
+      return parts.join(" | ");
+    }).join("\n");
 
+    const activeLocation = locationMode === "custom" && locationLabel
+      ? locationLabel
+      : (cityName || locationLabel || "their current location");
     const weatherContext = tempF !== null
-      ? `The current weather is ${tempF}°F in ${cityName}.`
-      : "Weather is unknown.";
+      ? `The weather at ${activeLocation} is ${tempF}°F${cityName ? ` in ${cityName}` : ""}.`
+      : `The target location is ${activeLocation}.`;
 
-    const prompt = `${weatherContext} Build a complete outfit from my closet with exactly 4 items: 1) a Top, 2) a Bottom (or Dress), 3) Shoes, 4) an Accessory or Outerwear piece. If my closet is missing one of these categories, note what's missing.${extraInstruction ? " " + extraInstruction : ""}
+    const systemPrompt = getStyleSystemPrompt(styleGenderRef.current);
+
+    const itemTarget = getRecommendedOutfitItemCount();
+    const prompt = `Here are all my clothing items:\n${itemList}\n\n${weatherContext} Style me a complete outfit from my closet for that location — pick ${itemTarget} to ${Math.min(itemTarget + 1, 6)} items that work together as a cohesive look. In colder or wetter weather, include extra layers or accessories like jackets, boots, beanies, scarves, or bags when useful.${extraInstruction ? " " + extraInstruction : ""}
 
 Respond in this exact format:
-VIBE: [a short 2-4 word style descriptor like "Casual Friday Vibes" or "Clean Girl Energy" or "Weekend Brunch Ready"]
+VIBE: [3 words max — punchy, trend-aware style descriptor]
 ITEMS:
 [image URL 1]
 [image URL 2]
 [image URL 3]
 [image URL 4]
-WHY: [one short sentence about the look]`;
+[image URL 5 if needed]
+[image URL 6 if needed]
+WHY: [one punchy sentence — reference a specific trend or aesthetic, explain why this combination is strong right now]`;
+
+    const requestBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 512,
+      temperature,
+      system: systemPrompt,
+      messages: [{
+        role: "user",
+        content: prompt,
+      }],
+    };
+    console.log("[HomeScreen] Sending API request (text-only), items count:", data.length);
 
     const response = await fetch("/api/anthropic/v1/messages", {
       method: "POST",
@@ -409,74 +1179,67 @@ WHY: [one short sentence about the look]`;
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "text", text: "Here are all my clothing items:" },
-            ...imageBlocks,
-            { type: "text", text: prompt },
-          ],
-        }],
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const result = await response.json();
-    if (!response.ok) return null;
+    console.log("[HomeScreen] API response status:", response.status, "ok:", response.ok);
+    if (!response.ok) {
+      console.error("[HomeScreen] API error:", JSON.stringify(result));
+      return null;
+    }
+    console.log("[HomeScreen] AI text:", result.content?.[0]?.text?.slice(0, 200));
     return parseOutfitResponse(result.content?.[0]?.text || "");
+  }
+
+  async function refreshSuggestedOutfit(extraInstruction, temperature = 0.85) {
+    const result = await fetchOutfitSuggestion(extraInstruction, temperature);
+    if (!result) return null;
+    setSuggestedImages(result.urls);
+    setSuggestionCaption(result.caption);
+    setSuggestionVibe(result.vibe);
+    previousUrlsRef.current = result.urls;
+    return result;
   }
 
   useEffect(() => {
     async function init() {
-      // Fetch weather
-      await new Promise((resolve) => {
-        if (!navigator.geolocation) { resolve(); return; }
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          try {
-            const [weatherRes, geoRes] = await Promise.all([
-              fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&temperature_unit=fahrenheit`),
-              fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`),
-            ]);
-            const weatherData = await weatherRes.json();
-            const geoData = await geoRes.json();
-            const tempF = Math.round(weatherData.current_weather?.temperature || 0);
-            const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || "";
-            const state = geoData.address?.state || "";
-            const stateShort = state.length > 3 ? state.slice(0, 2).toUpperCase() : state;
-            const cityName = `${city}${stateShort ? ", " + stateShort : ""}`;
-            weatherRef.current = { tempF, cityName };
-            setWeather(`${tempF}°F · ${cityName}`);
-            setWeatherLabel(`${tempF}°F ${cityName}`);
-          } catch { /* silent */ }
-          resolve();
-        }, () => resolve());
-      });
+      if (locationMode === "custom" && locationQuery.trim()) {
+        try {
+          await loadWeatherForDestination(locationQuery);
+        } catch {
+          await loadWeatherForCurrentLocation();
+        }
+      } else {
+        await loadWeatherForCurrentLocation();
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoadingOutfit(false); return; }
       setUserName(getDisplayName(user));
+      styleGenderRef.current = user.user_metadata?.style_gender || "womens";
 
       const { data, count } = await supabase
         .from("clothing_items")
-        .select("image_url", { count: "exact" })
+        .select("image_url, name, category", { count: "exact" })
         .eq("user_id", user.id);
 
+      const validItems = (data || []).filter((item) => item.image_url);
+      console.log("[HomeScreen] Fetched closet items:", data?.length, "valid (with image_url):", validItems.length);
       setItemCount(count || 0);
-      closetDataRef.current = data || [];
-      if (!data || data.length === 0) { setLoadingOutfit(false); return; }
+      closetDataRef.current = validItems;
+      if (validItems.length === 0) { setLoadingOutfit(false); return; }
+      if (hasFetchedOutfit.current) { setLoadingOutfit(false); return; }
+      hasFetchedOutfit.current = true;
 
       try {
-        const result = await fetchOutfitSuggestion();
-        if (result) {
-          setSuggestedImages(result.urls);
-          setSuggestionCaption(result.caption);
-          setSuggestionVibe(result.vibe);
-          previousUrlsRef.current = result.urls;
+        const result = await refreshSuggestedOutfit();
+        if (!result) {
+          console.warn("[HomeScreen] fetchOutfitSuggestion returned null");
         }
-      } catch { /* silent */ }
+      } catch (err) {
+        console.error("[HomeScreen] Outfit suggestion error:", err);
+      }
       setLoadingOutfit(false);
     }
 
@@ -484,20 +1247,36 @@ WHY: [one short sentence about the look]`;
   }, []);
 
   async function handleNewLook() {
+    if (regenerating || loadingOutfit) return;
     setRegenerating(true);
+    setLoadingOutfit(true);
     try {
       const prevUrls = previousUrlsRef.current;
+      const prevVibe = suggestionVibe;
       const avoidList = prevUrls.length > 0
-        ? `Suggest a completely different outfit combination. Do NOT use these items: ${prevUrls.join(", ")}.`
-        : "Suggest a completely different outfit combination, not the one you suggested before.";
-      const result = await fetchOutfitSuggestion(avoidList);
-      if (result) {
-        setSuggestedImages(result.urls);
-        setSuggestionCaption(result.caption);
-        previousUrlsRef.current = result.urls;
+        ? buildRetryInstruction(prevUrls, prevVibe)
+        : "Suggest a completely different outfit combination from the previous suggestion. Use a different silhouette, different key pieces, and a different color story.";
+
+      const firstResult = await refreshSuggestedOutfit(avoidList, 1.1);
+      if (!firstResult) throw new Error("No new outfit was generated.");
+
+      const sameAsPrevious = prevUrls.length > 0
+        && firstResult.urls.length === prevUrls.length
+        && firstResult.urls.every((url, index) => url === prevUrls[index]);
+
+      if (sameAsPrevious) {
+        const fallbackResult = await refreshSuggestedOutfit(
+          `${buildRetryInstruction(prevUrls, prevVibe)} Absolutely do not repeat the previous outfit image set.`,
+          1.2,
+        );
+        if (!fallbackResult) throw new Error("No new outfit was generated.");
       }
-    } catch { /* silent */ }
-    setRegenerating(false);
+    } catch (err) {
+      console.error("[HomeScreen] New Look error:", err);
+    } finally {
+      setLoadingOutfit(false);
+      setRegenerating(false);
+    }
   }
 
   return (
@@ -512,82 +1291,246 @@ WHY: [one short sentence about the look]`;
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 90px" }}>
-        {/* Weather pill */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "18px 16px 0" }}>
-          {weather && (
-            <span
+      <div style={{ flex: 1, overflow: "hidden", padding: `${PAGE_TOP_PADDING} 0 90px` }}>
+        {/* Weather pill with inline unit toggle */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "10px 16px 0", gap: "6px" }}>
+          {weather ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", maxWidth: "100%" }}>
+              <span
+                style={{
+                  background: "rgba(255,255,255,0.7)",
+                  backdropFilter: "blur(8px)",
+                  borderRadius: "100px",
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  color: "#555",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  maxWidth: "100%",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                }}
+              >
+                <WeatherIcon kind={getWeatherKind()} />
+                {(() => {
+                  const t = weatherRef.current.tempF;
+                  if (t === null || t === undefined) return "";
+                  return useCelsius ? Math.round((t - 32) * 5 / 9) : Math.round(t);
+                })()}
+                <button type="button" onClick={() => { if (useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 400 : 700, color: useCelsius ? "#bbb" : "#1a1a2e", lineHeight: 1 }}>°F</button>
+                <span style={{ color: "#ccc", margin: "0 1px", userSelect: "none", fontSize: "11px" }}>|</span>
+                <button type="button" onClick={() => { if (!useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 700 : 400, color: useCelsius ? "#1a1a2e" : "#bbb", lineHeight: 1 }}>°C</button>
+                <span style={{ margin: "0 2px", color: "#ccc" }}>·</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <span>{locationLabel || weatherRef.current.cityName}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationInput(locationMode === "custom" ? locationQuery : "");
+                      setLocationSheetOpen(true);
+                    }}
+                    aria-label="Change location"
+                    title="Change location"
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      margin: 0,
+                      cursor: "pointer",
+                      color: "#7C6FE0",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+                    </svg>
+                  </button>
+                </span>
+              </span>
+              {locationMode !== "custom" && (
+                <p style={{ margin: 0, fontSize: "11px", color: "#8A8798", fontWeight: 500 }}>
+                  Planning a trip? Tap the pin to set a destination.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div
               style={{
-                background: "rgba(255,255,255,0.7)",
+                borderRadius: "999px",
+                padding: "8px 14px",
+                background: "rgba(255,255,255,0.72)",
                 backdropFilter: "blur(8px)",
-                borderRadius: "100px",
-                padding: "6px 16px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#6b6578",
                 fontSize: "12px",
-                fontWeight: 500,
-                color: "#555",
+                fontWeight: 600,
               }}
             >
-              {weather}
-            </span>
+              <span aria-hidden="true">☀︎</span>
+              Weather unavailable
+              <button
+                type="button"
+                onClick={() => setLocationSheetOpen(true)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#7C6FE0",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                Set location
+              </button>
+            </div>
           )}
         </div>
 
         {/* Headline */}
-        <div style={{ padding: "20px 24px 0", textAlign: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.2" }}>
+        <div style={{ padding: "18px 24px 0", textAlign: "center" }}>
+          <h1 style={{ margin: 0, fontSize: "27px", fontWeight: 800, color: "#1a1a2e", lineHeight: "1.16" }}>
             What will you<br />wear today?
           </h1>
         </div>
 
         {/* User avatar + name */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px 24px 0", textAlign: "center" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #7C6FE0, #9B8FFF)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "18px",
-              fontWeight: 700,
-            }}
-          >
-            {userName ? userName.charAt(0).toUpperCase() : "?"}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "18px 24px 0", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <p style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#1a1a2e" }}>
+              {userName ? `${userName}'s Closet` : "My Closet"}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setNameInput(userName);
+                setEditStyleGender(styleGenderRef.current);
+                setProfileSheetOpen(true);
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
+              aria-label="Edit profile"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C6FE0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+              </svg>
+            </button>
           </div>
-          <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#1a1a2e" }}>
-            {userName ? `${userName}'s Closet` : "My Closet"}
-          </p>
         </div>
 
         {/* Daily outfit suggestion */}
-        <div style={{ padding: "24px 20px 0" }}>
+        <div style={{ padding: "20px 20px 0", marginTop: "auto" }}>
           {loadingOutfit ? (
             <div
               style={{
                 borderRadius: "24px",
-                background: "#f0ede6",
-                padding: "60px 20px",
+                background: "linear-gradient(180deg, rgba(243,241,252,0.92) 0%, rgba(237,234,249,0.95) 100%)",
+                padding: "18px",
+                minHeight: "360px",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              <div style={{ position: "absolute", inset: 0, opacity: 0.55 }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <SkeletonBlock width="120px" height="14px" style={{ marginBottom: "14px" }} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "14px" }}>
+                  <SkeletonBlock height="140px" radius="18px" />
+                  <SkeletonBlock height="140px" radius="18px" />
+                  <SkeletonBlock height="140px" radius="18px" />
+                  <SkeletonBlock height="140px" radius="18px" />
+                </div>
+                <SkeletonBlock width="180px" height="14px" style={{ margin: "0 auto 16px" }} />
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                  <SkeletonBlock width="110px" height="38px" />
+                  <SkeletonBlock width="104px" height="38px" />
+                </div>
+              </div>
+            </div>
+          ) : suggestedImages.length > 0 ? (
+            <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
+              <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
+              <FlatLayCard
+                images={suggestedImages.slice(0, 4)}
+                caption={suggestionVibe}
+                pulsing={regenerating}
+                compact
+              >
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "12px" }}>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                    style={{
+                      border: "none",
+                      background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
+                      color: "white",
+                      borderRadius: "100px",
+                      padding: "9px 20px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+                    }}
+                  >
+                    Get Styled
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
+                    disabled={regenerating}
+                    style={{
+                      border: "1.5px solid #7C6FE0",
+                      background: "transparent",
+                      color: "#7C6FE0",
+                      borderRadius: "100px",
+                      padding: "9px 18px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: regenerating ? "default" : "pointer",
+                      opacity: regenerating ? 0.6 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "opacity 0.2s",
+                    }}
+                  >
+                    <span style={{ display: "inline-block", transform: regenerating ? "none" : "scaleX(-1)", fontSize: "14px" }}>↻</span>
+                    {regenerating ? "Styling..." : "New Look"}
+                  </button>
+                </div>
+              </FlatLayCard>
+            </div>
+          ) : (
+            <div
+              style={{
+                borderRadius: "24px",
+                background: "linear-gradient(160deg, #f8f7fc 0%, #eeeaf8 100%)",
+                padding: "40px 20px",
                 textAlign: "center",
               }}
             >
-              <p style={{ margin: 0, color: "#999", fontSize: "14px" }}>Styling your daily look...</p>
-            </div>
-          ) : suggestedImages.length > 0 ? (
-            <FlatLayCard
-              images={suggestedImages}
-              caption={suggestionVibe}
-              pulsing={regenerating}
-            >
-              <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#888", lineHeight: "1.4" }}>
-                {suggestionCaption}
+              <p style={{ margin: "10px 0 0", fontSize: "15px", fontWeight: 600, color: "#1a1a2e" }}>
+                {itemCount === 0
+                  ? "Add items to your closet to get daily suggestions"
+                  : "Add more items to your closet to get daily suggestions ✦"}
               </p>
-              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "14px" }}>
+              <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>
+                {itemCount === 0
+                  ? "Upload your first clothing items to get started."
+                  : `You have ${itemCount} item${itemCount !== 1 ? "s" : ""} — try adding a few more for better outfits.`}
+              </p>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
                 <button
                   type="button"
-                  onClick={() => navigate("/chat")}
+                  onClick={() => navigate("/upload")}
                   style={{
                     border: "none",
                     background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
@@ -600,94 +1543,324 @@ WHY: [one short sentence about the look]`;
                     boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
                   }}
                 >
-                  Get Styled
+                  Upload Items
                 </button>
-                <button
-                  type="button"
-                  onClick={handleNewLook}
-                  disabled={regenerating}
-                  style={{
-                    border: "1.5px solid #7C6FE0",
-                    background: "transparent",
-                    color: "#7C6FE0",
-                    borderRadius: "100px",
-                    padding: "10px 20px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: regenerating ? "default" : "pointer",
-                    opacity: regenerating ? 0.6 : 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    transition: "opacity 0.2s",
-                  }}
-                >
-                  <span style={{ display: "inline-block", transform: regenerating ? "none" : "scaleX(-1)", fontSize: "14px" }}>↻</span>
-                  {regenerating ? "Styling..." : "New Look"}
-                </button>
+                {itemCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setLoadingOutfit(true);
+                      try {
+                        await refreshSuggestedOutfit();
+                      } catch (err) { console.error("[HomeScreen] Retry error:", err); }
+                      setLoadingOutfit(false);
+                    }}
+                    style={{
+                      border: "1.5px solid #7C6FE0",
+                      background: "transparent",
+                      color: "#7C6FE0",
+                      borderRadius: "100px",
+                      padding: "10px 20px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Try Again
+                  </button>
+                )}
               </div>
-            </FlatLayCard>
-          ) : (
-            <div
-              style={{
-                borderRadius: "24px",
-                background: "#f0ede6",
-                padding: "40px 20px",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ margin: 0, fontSize: "14px", color: "#888" }}>
-                {itemCount === 0 ? "Upload items to get daily outfit suggestions." : "Couldn't generate a suggestion right now."}
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate(itemCount === 0 ? "/upload" : "/chat")}
-                style={{
-                  marginTop: "14px",
-                  border: "none",
-                  background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
-                  color: "white",
-                  borderRadius: "100px",
-                  padding: "10px 28px",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                {itemCount === 0 ? "Upload First Item" : "Get Styled"}
-              </button>
             </div>
           )}
         </div>
 
-        {/* Stats row */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "20px 24px 0" }}>
-          <span
-            style={{
-              background: "rgba(255,255,255,0.75)",
-              backdropFilter: "blur(6px)",
-              borderRadius: "100px",
-              padding: "8px 18px",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#3d355b",
-            }}
-          >
-            {itemCount} Item{itemCount !== 1 ? "s" : ""}
-          </span>
-        </div>
       </div>
-
-      <BottomNav />
       <style>{`
         @keyframes flatLayPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
         }
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 0.45; }
+          50% { transform: translateY(-4px) scale(1.02); opacity: 0.62; }
+        }
+        .hero-accent {
+          position: absolute;
+          inset: 10px 10px auto;
+          height: 88px;
+          border-radius: 999px;
+          filter: blur(18px);
+          pointer-events: none;
+          animation: heroFloat 9s ease-in-out infinite;
+          z-index: 0;
+        }
+        .hero-accent-sun {
+          background: linear-gradient(90deg, rgba(255, 197, 120, 0.28), rgba(124, 111, 224, 0.14));
+        }
+        .hero-accent-rain {
+          background: linear-gradient(90deg, rgba(120, 178, 255, 0.24), rgba(124, 111, 224, 0.18));
+        }
+        .hero-accent-wind {
+          background: linear-gradient(90deg, rgba(177, 245, 228, 0.22), rgba(124, 111, 224, 0.14));
+        }
+        .hero-accent-cool {
+          background: linear-gradient(90deg, rgba(197, 216, 255, 0.22), rgba(124, 111, 224, 0.16));
+        }
+        .hero-accent-move {
+          background: linear-gradient(90deg, rgba(214, 203, 255, 0.18), rgba(124, 111, 224, 0.12));
+        }
         .flatlayPulse {
           animation: flatLayPulse 1.2s ease-in-out infinite;
         }
       `}</style>
+
+      {/* Profile Edit Bottom Sheet */}
+      {profileSheetOpen && (
+        <>
+          <div
+            onClick={() => setProfileSheetOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              bottom: SHEET_BOTTOM_OFFSET,
+              left: 0,
+              right: 0,
+              maxWidth: "390px",
+              margin: "0 auto",
+              background: "white",
+              borderRadius: "24px 24px 0 0",
+              padding: "20px 20px 32px",
+              zIndex: 101,
+              maxHeight: SHEET_MAX_HEIGHT,
+              overflowY: "auto",
+            }}
+          >
+            {/* Drag handle */}
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#e0e0e0", margin: "0 auto 16px" }} />
+
+            {/* Section 1: Your name */}
+            <p style={{ margin: "0 0 8px", fontSize: "13px", fontWeight: 700, color: "#1a1a2e", textTransform: "uppercase", letterSpacing: "0.04em" }}>Your name</p>
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="First name"
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1.5px solid #e0e0e0",
+                fontSize: "15px",
+                color: "#1a1a2e",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "20px",
+              }}
+            />
+
+            {/* Section 3: Style preference */}
+            <p style={{ margin: "0 0 10px", fontSize: "13px", fontWeight: 700, color: "#1a1a2e", textTransform: "uppercase", letterSpacing: "0.04em" }}>How do you want to be styled?</p>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+              {[
+                { value: "womens", label: "Women's" },
+                { value: "mens", label: "Men's" },
+                { value: "fluid", label: "Gender Fluid" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setEditStyleGender(opt.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 8px",
+                    borderRadius: "100px",
+                    border: editStyleGender === opt.value ? "2px solid #7C6FE0" : "1.5px solid #e0e0e0",
+                    background: editStyleGender === opt.value ? "#7C6FE0" : "white",
+                    color: editStyleGender === opt.value ? "white" : "#555",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Save button */}
+            <button
+              type="button"
+              onClick={async () => {
+                const updates = {};
+                if (nameInput.trim()) updates.first_name = nameInput.trim();
+                updates.style_gender = editStyleGender;
+                const { error } = await supabase.auth.updateUser({ data: updates });
+                if (!error) {
+                  if (nameInput.trim()) setUserName(nameInput.trim().charAt(0).toUpperCase() + nameInput.trim().slice(1));
+                  styleGenderRef.current = editStyleGender;
+                }
+                setProfileSheetOpen(false);
+              }}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "100px",
+                border: "none",
+                background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
+                color: "white",
+                fontWeight: 600,
+                fontSize: "15px",
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </>
+      )}
+
+      {locationSheetOpen && (
+        <>
+          <div
+            onClick={() => setLocationSheetOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              bottom: SHEET_BOTTOM_OFFSET,
+              left: 0,
+              right: 0,
+              maxWidth: "390px",
+              margin: "0 auto",
+              background: "white",
+              borderRadius: "24px 24px 0 0",
+              padding: "20px 20px 32px",
+              zIndex: 101,
+              maxHeight: SHEET_MAX_HEIGHT,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#e0e0e0", margin: "0 auto 16px" }} />
+            <p style={{ margin: "0 0 8px", fontSize: "13px", fontWeight: 700, color: "#1a1a2e", textTransform: "uppercase", letterSpacing: "0.04em" }}>Plan for a location</p>
+            <p style={{ margin: "0 0 12px", fontSize: "14px", color: "#6b6578", lineHeight: 1.5 }}>
+              Pick a city, island, or trip spot. We’ll use that weather and location to style the outfit.
+            </p>
+            <input
+              type="text"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              placeholder="e.g. Honolulu, Hawaii"
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1.5px solid #e0e0e0",
+                fontSize: "15px",
+                color: "#1a1a2e",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "12px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  setLocationSaving(true);
+                  try {
+                    setLocationSheetOpen(false);
+                    await loadWeatherForCurrentLocation();
+                    await refreshSuggestedOutfit();
+                  } catch {
+                    setLocationSheetOpen(false);
+                  }
+                  setLocationSaving(false);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: "100px",
+                  border: "1.5px solid #e0e0e0",
+                  background: "white",
+                  color: "#1a1a2e",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Use current location
+              </button>
+              <button
+                type="button"
+                disabled={locationSaving || !locationInput.trim()}
+                onClick={async () => {
+                  setLocationSaving(true);
+                  try {
+                    await loadWeatherForDestination(locationInput);
+                    await refreshSuggestedOutfit();
+                    setLocationSheetOpen(false);
+                  } catch {
+                    // Leave the sheet open if the destination lookup fails.
+                  }
+                  setLocationSaving(false);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: "100px",
+                  border: "none",
+                  background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: locationSaving || !locationInput.trim() ? "default" : "pointer",
+                  boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+                  opacity: locationSaving || !locationInput.trim() ? 0.7 : 1,
+                }}
+              >
+                {locationSaving ? "Saving..." : "Save location"}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLocationSheetOpen(false)}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: "100px",
+                border: "1.5px solid #e0e0e0",
+                background: "white",
+                color: "#6b6578",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+
+      {outfitModalOpen && suggestedImages.length > 0 && (
+        <OutfitDetailModal
+          images={suggestedImages}
+          vibe={suggestionVibe}
+          caption={suggestionCaption}
+          onClose={() => setOutfitModalOpen(false)}
+          onNavigateChat={() => navigate("/chat")}
+          onGetStyled={() => navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } })}
+        />
+      )}
     </div>
   );
 }
@@ -697,13 +1870,203 @@ function ClosetScreen() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("View All");
-  const [activeCardId, setActiveCardId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("recent");
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState("");
   const [reanalyzeDone, setReanalyzeDone] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [contextMenuVisible, setContextMenuVisible] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const longPressTimerRef = useRef(null);
+  const closeMenuTimerRef = useRef(null);
+  const longPressTriggeredRef = useRef(false);
 
-  const categories = ["View All", "Apparel", "Tops", "Bottoms", "Dresses", "Skirts", "Shoes", "Bags", "Accessories", "Activewear"];
+  // Filter state
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterSubCategory, setFilterSubCategory] = useState(null);
+  const [filterSeasons, setFilterSeasons] = useState([]); // multi-select
+  const [filterColors, setFilterColors] = useState([]); // multi-select
+
+  const primaryCategories = ["All", "Apparel", "Shoes", "Bags", "Accessories"];
+  const subCategoryMap = {
+    Apparel: ["Tops", "Bottoms", "Dresses", "Skirts", "Outerwear", "Activewear"],
+    Shoes: ["Heels", "Sneakers", "Boots", "Sandals", "Flats"],
+    Bags: ["Handbag", "Crossbody", "Tote", "Clutch", "Backpack"],
+    Accessories: ["Jewelry", "Belts", "Hats", "Sunglasses", "Scarves"],
+  };
+  const primaryCategoryMap = {
+    Apparel: ["Tops", "Bottoms", "Dresses", "Skirts", "Outerwear", "Activewear", "Apparel"],
+    Shoes: ["Shoes", "Heels", "Sneakers", "Boots", "Sandals", "Flats"],
+    Bags: ["Bags", "Handbag", "Crossbody", "Tote", "Clutch", "Backpack"],
+    Accessories: ["Accessories", "Jewelry", "Belts", "Hats", "Sunglasses", "Scarves"],
+  };
+  const seasonOptions = ["Spring", "Summer", "Fall", "Winter"];
+  const colorOptions = [
+    { label: "Neutrals", color: "#c4b69c" },
+    { label: "Black", color: "#222" },
+    { label: "White", color: "#f5f5f5" },
+    { label: "Blue", color: "#4a7cbc" },
+    { label: "Pink", color: "#e891a8" },
+    { label: "Green", color: "#6aaa6a" },
+    { label: "Red", color: "#cc4444" },
+    { label: "Print/Pattern", color: null },
+  ];
+
+  function getColorFamily(item) {
+    const text = [item.name, ...(Array.isArray(item.tags) ? item.tags : [])].join(" ").toLowerCase();
+    if (/\bblack\b/.test(text)) return "Black";
+    if (/\b(white|cream|ivory)\b/.test(text)) return "White";
+    if (/\b(beige|tan|khaki|brown|gray|grey|nude|camel|taupe)\b/.test(text)) return "Neutrals";
+    if (/\b(blue|navy|denim|indigo|teal|cobalt|cyan)\b/.test(text)) return "Blue";
+    if (/\b(pink|rose|magenta|fuchsia|blush|coral|mauve)\b/.test(text)) return "Pink";
+    if (/\b(red|burgundy|maroon|wine|crimson|scarlet)\b/.test(text)) return "Red";
+    if (/\b(green|olive|sage|emerald|mint|forest|lime)\b/.test(text)) return "Green";
+    if (/\b(print|floral|stripe|plaid|check|pattern|leopard|animal|camo)\b/.test(text)) return "Print/Pattern";
+    return "Other";
+  }
+
+  function getItemSeason(item) {
+    // Use season column if available
+    if (item.season) {
+      const s = item.season.toLowerCase();
+      if (s.includes("spring")) return ["Spring"];
+      if (s.includes("summer")) return ["Summer"];
+      if (s.includes("fall") || s.includes("autumn")) return ["Fall"];
+      if (s.includes("winter")) return ["Winter"];
+      if (s.includes("spring/summer") || s.includes("spring, summer")) return ["Spring", "Summer"];
+      if (s.includes("fall/winter") || s.includes("fall, winter")) return ["Fall", "Winter"];
+    }
+    // Fallback: detect from tags/name
+    const text = [item.name, ...(Array.isArray(item.tags) ? item.tags : [])].join(" ").toLowerCase();
+    const seasons = [];
+    if (/\b(summer|linen|tank|shorts|sandal|sleeveless|lightweight)\b/.test(text)) seasons.push("Summer");
+    if (/\b(winter|wool|knit|puffer|coat|fleece|heavy|thermal)\b/.test(text)) seasons.push("Winter");
+    if (/\b(spring|pastel|rain|trench)\b/.test(text)) seasons.push("Spring");
+    if (/\b(fall|autumn|corduroy|suede|sweater)\b/.test(text)) seasons.push("Fall");
+    return seasons.length ? seasons : ["All Season"];
+  }
+
+  const activeFilterCount =
+    (filterCategory !== "All" ? 1 : 0) +
+    (filterSubCategory ? 1 : 0) +
+    filterSeasons.length +
+    filterColors.length;
+
+  function clearAllFilters() {
+    setFilterCategory("All");
+    setFilterSubCategory(null);
+    setFilterSeasons([]);
+    setFilterColors([]);
+  }
+
+  function toggleSeason(s) {
+    setFilterSeasons((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
+  }
+  function toggleColor(c) {
+    setFilterColors((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+  }
+
+  function clearLongPressTimer() {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }
+
+  function clearCloseMenuTimer() {
+    if (closeMenuTimerRef.current) {
+      window.clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+  }
+
+  function closeContextMenu() {
+    clearLongPressTimer();
+    clearCloseMenuTimer();
+    setContextMenuVisible(false);
+    setDeleteConfirmOpen(false);
+    closeMenuTimerRef.current = window.setTimeout(() => {
+      setContextMenu(null);
+    }, 180);
+  }
+
+  function openContextMenu(item, element) {
+    clearCloseMenuTimer();
+    const rect = element.getBoundingClientRect();
+    const menuWidth = 220;
+    const padding = 20;
+    const left = Math.min(
+      window.innerWidth - padding - menuWidth / 2,
+      Math.max(padding + menuWidth / 2, rect.left + rect.width / 2)
+    );
+    const top = Math.min(window.innerHeight - 140, Math.max(100, rect.top + rect.height / 2));
+
+    setDeleteConfirmOpen(false);
+    setContextMenu({
+      item,
+      position: { left, top },
+    });
+    window.requestAnimationFrame(() => setContextMenuVisible(true));
+  }
+
+  function startLongPress(item, element) {
+    clearLongPressTimer();
+    longPressTriggeredRef.current = false;
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      openContextMenu(item, element);
+    }, 500);
+  }
+
+  function endLongPress() {
+    clearLongPressTimer();
+  }
+
+  async function handleFavoriteItem(item) {
+    const { error } = await supabase
+      .from("clothing_items")
+      .update({ is_favorited: true })
+      .eq("id", item.id);
+
+    if (error) {
+      alert(`Could not save to Lookbook: ${error.message}`);
+      return;
+    }
+
+    setItems((prev) => prev.map((entry) => (
+      entry.id === item.id ? { ...entry, is_favorited: true } : entry
+    )));
+    closeContextMenu();
+  }
+
+  function handleStyleItem(item) {
+    closeContextMenu();
+    navigate("/chat", { state: { styleItemMessage: `Show me 3 outfit options using my ${item.name || "item"}` } });
+  }
+
+  function handleEditItem(item) {
+    closeContextMenu();
+    navigate(`/closet/${item.id}`);
+  }
+
+  async function handleDeleteItem(item) {
+    const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
+    if (error) {
+      alert(`Delete failed: ${error.message}`);
+      return;
+    }
+
+    setItems((prev) => prev.filter((entry) => entry.id !== item.id));
+    closeContextMenu();
+  }
+
+  useEffect(() => () => {
+    clearLongPressTimer();
+    clearCloseMenuTimer();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -716,11 +2079,23 @@ function ClosetScreen() {
         return;
       }
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("clothing_items")
-        .select("id, image_url, public_id, name, category, tags, is_favorited")
+        .select("id, image_url, name, category, tags, is_favorited, rotation, season")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      // Fallback if rotation/season columns don't exist yet
+      if (error && error.message && /column|relation|rotation|season/i.test(error.message)) {
+        console.warn("[ClosetScreen] Retrying without rotation/season columns");
+        const fallback = await supabase
+          .from("clothing_items")
+          .select("id, image_url, name, category, tags, is_favorited")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        data = fallback.data;
+        error = fallback.error;
+      }
 
       if (isMounted) {
         setItems(error ? [] : (data || []).map((item) => ({
@@ -730,6 +2105,8 @@ function ClosetScreen() {
           category: item.category || "Apparel",
           tags: item.tags || ["Apparel"],
           is_favorited: !!item.is_favorited,
+          rotation: item.rotation || 0,
+          season: item.season || null,
         })));
         setIsLoadingItems(false);
       }
@@ -738,32 +2115,6 @@ function ClosetScreen() {
     loadItems();
     return () => { isMounted = false; };
   }, []);
-
-  async function handleDelete(itemId) {
-    if (!window.confirm("Remove this item from your closet?")) return;
-    const { error } = await supabase.from("clothing_items").delete().eq("id", itemId);
-    if (error) {
-      alert(`Delete failed: ${error.message}`);
-      return;
-    }
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
-    setActiveCardId(null);
-  }
-
-  async function handleToggleFavorite(itemId) {
-    const item = items.find((i) => i.id === itemId);
-    if (!item) return;
-    const newValue = !item.is_favorited;
-    setItems((prev) => prev.map((i) => i.id === itemId ? { ...i, is_favorited: newValue } : i));
-    const { error } = await supabase
-      .from("clothing_items")
-      .update({ is_favorited: newValue })
-      .eq("id", itemId);
-    if (error) {
-      setItems((prev) => prev.map((i) => i.id === itemId ? { ...i, is_favorited: !newValue } : i));
-      alert(`Failed to update favorite: ${error.message}`);
-    }
-  }
 
   const needsReanalysis = items.some((i) => !i._hasDbName);
 
@@ -777,12 +2128,12 @@ function ClosetScreen() {
       const meta = await analyzeClothingImage(item.image_url);
       const { error } = await supabase
         .from("clothing_items")
-        .update({ name: meta.name, category: meta.category, tags: meta.tags })
+        .update({ name: meta.name, category: meta.category, tags: meta.tags, season: meta.season })
         .eq("id", item.id);
       if (!error) {
         setItems((prev) =>
           prev.map((i) =>
-            i.id === item.id ? { ...i, name: meta.name, category: meta.category, tags: meta.tags, _hasDbName: true } : i
+            i.id === item.id ? { ...i, name: meta.name, category: meta.category, tags: meta.tags, season: meta.season, _hasDbName: true } : i
           )
         );
       }
@@ -792,9 +2143,60 @@ function ClosetScreen() {
     setReanalyzeDone(true);
   }
 
-  const filteredItems = activeCategory === "View All"
-    ? items
-    : items.filter((item) => item.category === activeCategory);
+  const filteredItems = items.filter((item) => {
+    // Primary category
+    if (filterCategory !== "All") {
+      const allowed = primaryCategoryMap[filterCategory] || [];
+      const matchesPrimary = allowed.some((c) => c.toLowerCase() === item.category.toLowerCase());
+      if (!matchesPrimary) return false;
+    }
+    // Sub-category
+    if (filterSubCategory) {
+      const sub = filterSubCategory.toLowerCase();
+      const itemCat = item.category.toLowerCase();
+      const itemTags = (Array.isArray(item.tags) ? item.tags : []).join(" ").toLowerCase();
+      if (itemCat !== sub && !itemTags.includes(sub)) return false;
+    }
+    // Season filter (multi-select, OR logic)
+    if (filterSeasons.length > 0) {
+      const itemSeasons = getItemSeason(item);
+      if (!filterSeasons.some((s) => itemSeasons.includes(s))) return false;
+    }
+    // Color filter (multi-select, OR logic)
+    if (filterColors.length > 0) {
+      const itemColor = getColorFamily(item);
+      if (!filterColors.includes(itemColor)) return false;
+    }
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const tagsStr = (Array.isArray(item.tags) ? item.tags : []).join(" ").toLowerCase();
+      if (
+        !item.name.toLowerCase().includes(q) &&
+        !item.category.toLowerCase().includes(q) &&
+        !tagsStr.includes(q)
+      ) return false;
+    }
+    return true;
+  });
+
+  const isGroupedSort = ["category", "color", "season"].includes(sortBy);
+
+  function buildGroups() {
+    const groups = {};
+    for (const item of filteredItems) {
+      let key;
+      if (sortBy === "category") key = item.category;
+      else if (sortBy === "color") key = getColorFamily(item);
+      else if (sortBy === "season") key = getItemSeason(item)[0] || "All Season";
+      else key = "all";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    }
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }
+
+  const groupedItems = isGroupedSort ? buildGroups() : [["all", filteredItems]];
 
   return (
     <div
@@ -810,36 +2212,8 @@ function ClosetScreen() {
     >
       {/* Header */}
       <div style={{ padding: "20px 16px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>My Wardrobe</h1>
-          <span style={{ fontSize: "18px" }}>🔔</span>
-        </div>
-        <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-          <span
-            style={{
-              background: "#f3f1fc",
-              color: "#7C6FE0",
-              borderRadius: "100px",
-              padding: "5px 14px",
-              fontSize: "12px",
-              fontWeight: 600,
-            }}
-          >
-            {items.length} item{items.length !== 1 ? "s" : ""}
-          </span>
-          <span
-            style={{
-              background: "#f3f1fc",
-              color: "#7C6FE0",
-              borderRadius: "100px",
-              padding: "5px 14px",
-              fontSize: "12px",
-              fontWeight: 600,
-            }}
-          >
-            0 outfits
-          </span>
-        </div>
+        <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>My Wardrobe</h1>
+        <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
 
         {/* Re-analyze button */}
         {!isLoadingItems && needsReanalysis && !reanalyzeDone && (
@@ -864,84 +2238,113 @@ function ClosetScreen() {
             {reanalyzing ? reanalyzeProgress : "Re-analyze Closet — auto-name & categorize all items"}
           </button>
         )}
-      </div>
 
-      {/* Category chips */}
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          padding: "14px 16px",
-          overflowX: "auto",
-          scrollbarWidth: "none",
-        }}
-      >
-        {categories.map((cat) => (
+        {/* Filter + Sort buttons */}
+        <div style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
           <button
-            key={cat}
             type="button"
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => setFilterSheetOpen(true)}
             style={{
-              flexShrink: 0,
-              border: activeCategory === cat ? "none" : "1px solid #e0e0e0",
-              borderRadius: "100px",
-              padding: "7px 16px",
-              fontSize: "12px",
-              fontWeight: 500,
-              background: activeCategory === cat ? "#7C6FE0" : "white",
-              color: activeCategory === cat ? "white" : "#555",
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "10px 0",
+              borderRadius: "12px",
+              border: activeFilterCount > 0 ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+              background: activeFilterCount > 0 ? "#f9f8ff" : "white",
+              color: activeFilterCount > 0 ? "#7C6FE0" : "#555",
+              fontSize: "13px",
+              fontWeight: 600,
               cursor: "pointer",
-              transition: "all 0.15s",
             }}
           >
-            {cat}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+            Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={() => setSortSheetOpen(true)}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "10px 0",
+              borderRadius: "12px",
+              border: sortBy !== "recent" ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+              background: sortBy !== "recent" ? "#f9f8ff" : "white",
+              color: sortBy !== "recent" ? "#7C6FE0" : "#555",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="17 11 12 6 7 11" /><polyline points="17 18 12 13 7 18" />
+            </svg>
+            Sort By
+          </button>
+        </div>
       </div>
 
-      {/* Filters + Sort */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 16px 10px",
-        }}
-      >
-        <button
-          type="button"
-          style={{
-            border: "1px solid #e0e0e0",
-            borderRadius: "8px",
-            padding: "6px 14px",
-            fontSize: "12px",
-            background: "white",
-            color: "#555",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          <span style={{ fontSize: "11px" }}>☰</span> Filters
-        </button>
-        <button
-          type="button"
-          style={{
-            border: "1px solid #e0e0e0",
-            borderRadius: "8px",
-            padding: "6px 14px",
-            fontSize: "12px",
-            background: "white",
-            color: "#555",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          Sort By <span style={{ fontSize: "10px" }}>▼</span>
-        </button>
+      {/* Search bar */}
+      <div style={{ padding: "12px 16px 10px", position: "relative" }}>
+        <div style={{ position: "relative" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search your closet..."
+            style={{
+              width: "100%",
+              padding: "10px 36px 10px 36px",
+              borderRadius: "100px",
+              border: "1px solid #e0e0e0",
+              fontSize: "13px",
+              color: "#1a1a2e",
+              background: "#fafafa",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(0,0,0,0.1)",
+                border: "none",
+                borderRadius: "50%",
+                width: "20px",
+                height: "20px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                color: "#666",
+                padding: 0,
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grid */}
@@ -956,150 +2359,97 @@ function ClosetScreen() {
           <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "40px" }}>Loading your wardrobe...</p>
         ) : filteredItems.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "40px", color: "#999" }}>
-            <p style={{ fontSize: "14px" }}>{items.length === 0 ? "Your closet is empty. Tap + to add items." : "No items in this category."}</p>
+            {items.length === 0 ? (
+              <p style={{ fontSize: "14px" }}>Your closet is empty. Tap + to add items.</p>
+            ) : searchQuery.trim() ? (
+              <p style={{ fontSize: "14px" }}>No items found for &lsquo;{searchQuery.trim()}&rsquo; — try a different search</p>
+            ) : (
+              <p style={{ fontSize: "14px" }}>No items in this category.</p>
+            )}
           </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: "12px",
-            }}
-          >
-            {filteredItems.map((item) => (
+          groupedItems.map(([groupKey, groupItems]) => (
+            <div key={groupKey} style={{ marginBottom: isGroupedSort ? "20px" : 0 }}>
+              {isGroupedSort && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", paddingTop: "4px" }}>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>{groupKey}</p>
+                  <span style={{ fontSize: "12px", color: "#999" }}>({groupItems.length})</span>
+                  <div style={{ flex: 1, height: "1px", background: "#eee" }} />
+                </div>
+              )}
               <div
-                key={item.id}
-                style={{ position: "relative", cursor: "pointer", minWidth: 0, overflow: "hidden" }}
-                onClick={() => setActiveCardId(activeCardId === item.id ? null : item.id)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: "12px",
+                }}
               >
-                {/* Overlay controls */}
-                {activeCardId === item.id && (
+                {groupItems.map((item) => (
                   <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 0,
-                      paddingBottom: "100%",
-                      zIndex: 2,
-                      borderRadius: "16px",
-                      background: "rgba(0,0,0,0.3)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "12px",
+                    key={item.id}
+                    style={{ cursor: "pointer", minWidth: 0, overflow: "hidden" }}
+                    onClick={() => {
+                      if (longPressTriggeredRef.current) {
+                        longPressTriggeredRef.current = false;
+                        return;
+                      }
+                      navigate(`/closet/${item.id}`);
                     }}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
+                      startLongPress(item, e.currentTarget);
+                    }}
+                    onMouseUp={endLongPress}
+                    onMouseLeave={endLongPress}
+                    onTouchStart={(e) => startLongPress(item, e.currentTarget)}
+                    onTouchEnd={endLongPress}
+                    onTouchCancel={endLongPress}
+                    onContextMenu={(e) => e.preventDefault()}
                   >
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleToggleFavorite(item.id); }}
+                    <div
                       style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "calc(50% - 30px)",
-                        transform: "translateY(-50%)",
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        border: "none",
-                        background: "rgba(255,255,255,0.95)",
-                        fontSize: "18px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: item.is_favorited ? "#7C6FE0" : "#888",
+                        aspectRatio: "1",
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        background: "#f5f5f7",
+                        border: "1px solid #eee",
                       }}
                     >
-                      {item.is_favorited ? "★" : "☆"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          transform: item.rotation ? `rotate(${item.rotation}deg)` : "none",
+                        }}
+                      />
+                    </div>
+                    <p
                       style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "calc(50% + 18px)",
-                        transform: "translateY(-50%)",
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        border: "none",
-                        background: "rgba(255,255,255,0.95)",
-                        fontSize: "16px",
-                        cursor: "pointer",
-                        color: "#e53e3e",
+                        margin: "8px 0 0",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "#1a1a2e",
+                        lineHeight: "1.3",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
+                        gap: "6px",
                       }}
                     >
-                      ✕
-                    </button>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</span>
+                      {item.is_favorited && <span style={{ color: "#7C6FE0", fontSize: "12px", flexShrink: 0 }}>♥</span>}
+                    </p>
                   </div>
-                )}
-
-                {/* Image */}
-                <div
-                  style={{
-                    aspectRatio: "1",
-                    borderRadius: "16px",
-                    overflow: "hidden",
-                    background: "#f5f5f7",
-                    border: "1px solid #eee",
-                  }}
-                >
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
-
-                {/* Name */}
-                <p
-                  style={{
-                    margin: "8px 0 4px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#1a1a2e",
-                    lineHeight: "1.3",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.name}
-                </p>
-
-                {/* Outfit photo badge */}
-                {(Array.isArray(item.tags) ? item.tags : (item.tags || "").split(",")).some((t) => t.replace(/["\[\]]/g, "").trim() === "outfit_photo") && (
-                  <p style={{ margin: "0 0 4px", fontSize: "10px", color: "#999" }}>📸 From outfit photo</p>
-                )}
-
-                {/* Tags */}
-                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                  {(typeof item.tags === 'string' ? item.tags.split(',') : item.tags || []).filter((t) => t.replace(/["\[\]]/g, "").trim() !== "outfit_photo").map((tag) => (
-                    <span
-                      key={tag}
-                      style={{
-                        background: "#f3f1fc",
-                        color: "#7C6FE0",
-                        borderRadius: "100px",
-                        padding: "2px 8px",
-                        fontSize: "10px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {tag.replace(/["\[\]]/g, '').trim()}
-                    </span>
-                  ))}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
       </div>
 
@@ -1130,7 +2480,938 @@ function ClosetScreen() {
         +
       </button>
 
-      <BottomNav />
+      {/* Filter bottom sheet */}
+      {filterSheetOpen && (
+        <>
+          <div onClick={() => setFilterSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100 }} />
+          <div style={{
+            position: "fixed",
+            bottom: SHEET_BOTTOM_OFFSET,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "390px",
+            background: "white",
+            borderRadius: "24px 24px 0 0",
+            padding: "20px 20px 16px",
+            zIndex: 101,
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+            maxHeight: SHEET_MAX_HEIGHT,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}>
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd", margin: "0 auto 12px" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexShrink: 0 }}>
+              <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#1a1a2e" }}>Filters</h3>
+              {activeFilterCount > 0 && (
+                <button type="button" onClick={clearAllFilters} style={{ background: "none", border: "none", color: "#7C6FE0", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "2px" }}>
+              {/* Category section */}
+              <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Category</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+                {primaryCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => { setFilterCategory(cat); setFilterSubCategory(null); }}
+                    style={{
+                      padding: "7px 16px",
+                      borderRadius: "100px",
+                      border: filterCategory === cat ? "none" : "1px solid #e0e0e0",
+                      background: filterCategory === cat ? "#7C6FE0" : "white",
+                      color: filterCategory === cat ? "white" : "#555",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              {filterCategory !== "All" && subCategoryMap[filterCategory] && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+                  {subCategoryMap[filterCategory].map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => setFilterSubCategory(filterSubCategory === sub ? null : sub)}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: "100px",
+                        border: filterSubCategory === sub ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+                        background: filterSubCategory === sub ? "#f3f1fc" : "white",
+                        color: filterSubCategory === sub ? "#7C6FE0" : "#777",
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Season section */}
+              <p style={{ margin: "16px 0 8px", fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Season</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {seasonOptions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => toggleSeason(s)}
+                    style={{
+                      padding: "7px 16px",
+                      borderRadius: "100px",
+                      border: filterSeasons.includes(s) ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+                      background: filterSeasons.includes(s) ? "#f3f1fc" : "white",
+                      color: filterSeasons.includes(s) ? "#7C6FE0" : "#555",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              {/* Color section */}
+              <p style={{ margin: "16px 0 8px", fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Color</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {colorOptions.map(({ label, color }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => toggleColor(label)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "7px 14px",
+                      borderRadius: "100px",
+                      border: filterColors.includes(label) ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+                      background: filterColors.includes(label) ? "#f3f1fc" : "white",
+                      color: filterColors.includes(label) ? "#7C6FE0" : "#555",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {color && (
+                      <span style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        background: color,
+                        border: label === "White" ? "1px solid #ddd" : "none",
+                        flexShrink: 0,
+                      }} />
+                    )}
+                    {!color && <span style={{ fontSize: "10px" }}>◆</span>}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setFilterSheetOpen(false)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "100px",
+                border: "none",
+                background: "#7C6FE0",
+                color: "white",
+                fontWeight: 600,
+                fontSize: "15px",
+                cursor: "pointer",
+                marginTop: "16px",
+                flexShrink: 0,
+              }}
+            >
+              Apply Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Sort bottom sheet */}
+      {sortSheetOpen && (
+        <>
+          <div onClick={() => setSortSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100 }} />
+          <div style={{
+            position: "fixed",
+            bottom: SHEET_BOTTOM_OFFSET,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "390px",
+            background: "white",
+            borderRadius: "24px 24px 0 0",
+            padding: "20px 20px 16px",
+            zIndex: 101,
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+            maxHeight: SHEET_MAX_HEIGHT,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}>
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd", margin: "0 auto 12px" }} />
+            <h3 style={{ margin: "0 0 16px", fontSize: "17px", fontWeight: 700, color: "#1a1a2e", flexShrink: 0 }}>Sort By</h3>
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "2px" }}>
+              {[
+                { value: "recent", label: "Recently Added" },
+                { value: "category", label: "Category", desc: "Grouped with headers" },
+                { value: "season", label: "Season", desc: "Grouped by season" },
+                { value: "color", label: "Color Family", desc: "Grouped by color" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { setSortBy(opt.value); setSortSheetOpen(false); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "14px",
+                    border: "none",
+                    background: sortBy === opt.value ? "#f3f1fc" : "transparent",
+                    cursor: "pointer",
+                    marginBottom: "4px",
+                    textAlign: "left",
+                  }}
+                >
+                  <div>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: sortBy === opt.value ? "#7C6FE0" : "#1a1a2e" }}>{opt.label}</p>
+                    {opt.desc && <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#999" }}>{opt.desc}</p>}
+                  </div>
+                  {sortBy === opt.value && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {contextMenu && (
+        <>
+          <div
+            onClick={closeContextMenu}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.38)",
+              zIndex: 110,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              left: `${contextMenu.position.left}px`,
+              top: `${contextMenu.position.top}px`,
+              width: deleteConfirmOpen ? "228px" : "220px",
+              background: "rgba(255,255,255,0.98)",
+              borderRadius: "18px",
+              boxShadow: "0 18px 40px rgba(15,23,42,0.22)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              zIndex: 111,
+              overflow: "hidden",
+              opacity: contextMenuVisible ? 1 : 0,
+              transform: `translate(-50%, -50%) scale(${contextMenuVisible ? 1 : 0.9})`,
+              transformOrigin: "center",
+              transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease",
+              backdropFilter: "blur(14px)",
+            }}
+          >
+            {deleteConfirmOpen ? (
+              <div style={{ padding: "18px 16px 14px" }}>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e", textAlign: "center" }}>Delete this item?</p>
+                <p style={{ margin: "6px 0 14px", fontSize: "12px", color: "#777", textAlign: "center", lineHeight: 1.45 }}>
+                  This will remove {contextMenu.item.name || "this item"} from your closet.
+                </p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmOpen(false)}
+                    style={{
+                      flex: 1,
+                      border: "1px solid #e5e7eb",
+                      background: "white",
+                      color: "#555",
+                      borderRadius: "12px",
+                      padding: "11px 12px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteItem(contextMenu.item)}
+                    style={{
+                      flex: 1,
+                      border: "none",
+                      background: "#ef4444",
+                      color: "white",
+                      borderRadius: "12px",
+                      padding: "11px 12px",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: "8px" }}>
+                {[
+                  {
+                    key: "favorite",
+                    label: "Save to Lookbook",
+                    icon: "♥",
+                    onClick: () => handleFavoriteItem(contextMenu.item),
+                  },
+                  {
+                    key: "style",
+                    label: "Style this item",
+                    icon: "✦",
+                    onClick: () => handleStyleItem(contextMenu.item),
+                  },
+                  {
+                    key: "edit",
+                    label: "Edit item",
+                    icon: "✏",
+                    onClick: () => handleEditItem(contextMenu.item),
+                  },
+                  {
+                    key: "delete",
+                    label: "Delete",
+                    icon: "🗑",
+                    onClick: () => setDeleteConfirmOpen(true),
+                    danger: true,
+                  },
+                ].map((action, idx, arr) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    onClick={action.onClick}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      border: "none",
+                      background: "transparent",
+                      padding: "12px 14px",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: action.danger ? "#dc2626" : "#1a1a2e",
+                      textAlign: "left",
+                      borderBottom: idx === arr.length - 1 ? "none" : "1px solid #f1f1f4",
+                    }}
+                  >
+                    <span style={{ width: "18px", textAlign: "center", flexShrink: 0 }}>{action.icon}</span>
+                    <span>{action.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ItemDetailScreen() {
+  const { itemId } = useParams();
+  const navigate = useNavigate();
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editTags, setEditTags] = useState([]);
+  const [newTag, setNewTag] = useState("");
+  const [rotation, setRotation] = useState(0);
+  const [editSeason, setEditSeason] = useState("All Season");
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [mergeItems, setMergeItems] = useState([]);
+  const [merging, setMerging] = useState(false);
+  const [mergeSuccess, setMergeSuccess] = useState(false);
+
+  const categories = ["Tops", "Bottoms", "Dresses", "Skirts", "Shoes", "Bags", "Accessories", "Outerwear", "Activewear", "Apparel", "Co-ord Set",
+    "Heels", "Sneakers", "Boots", "Sandals", "Flats", "Handbag", "Crossbody", "Tote", "Clutch", "Backpack", "Jewelry", "Belts", "Hats", "Sunglasses", "Scarves"];
+  const seasonOptions = ["All Season", "Spring/Summer", "Fall/Winter", "Spring", "Summer", "Fall", "Winter"];
+
+  useEffect(() => {
+    async function load() {
+      let { data, error } = await supabase
+        .from("clothing_items")
+        .select("id, image_url, name, category, tags, is_favorited, rotation, season")
+        .eq("id", itemId)
+        .single();
+
+      // Fallback if rotation/season columns don't exist yet
+      if (error && /column|relation|rotation|season/i.test(error.message || "")) {
+        const fallback = await supabase
+          .from("clothing_items")
+          .select("id, image_url, name, category, tags, is_favorited")
+          .eq("id", itemId)
+          .single();
+        data = fallback.data;
+        error = fallback.error;
+      }
+
+      if (error || !data) {
+        setLoading(false);
+        return;
+      }
+      setItem(data);
+      setEditName(data.name || "");
+      setEditCategory(data.category || "Apparel");
+      const tags = Array.isArray(data.tags) ? data.tags : [];
+      setEditTags(tags.map((t) => (typeof t === "string" ? t.replace(/["\[\]]/g, "").trim() : t)).filter(Boolean));
+      setRotation(data.rotation || 0);
+      setEditSeason(data.season || "All Season");
+      setLoading(false);
+    }
+    load();
+  }, [itemId]);
+
+  async function handleSave() {
+    if (!item) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("clothing_items")
+      .update({ name: editName.trim() || "Clothing Item", category: editCategory, tags: editTags, rotation, season: editSeason })
+      .eq("id", item.id);
+    setSaving(false);
+    if (error) {
+      alert(`Save failed: ${error.message}`);
+    } else {
+      navigate("/closet");
+    }
+  }
+
+  async function handleDelete() {
+    if (!item) return;
+    if (!window.confirm("Remove this item from your closet?")) return;
+    const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
+    if (error) {
+      alert(`Delete failed: ${error.message}`);
+      return;
+    }
+    navigate("/closet");
+  }
+
+  function addTag() {
+    const tag = newTag.trim();
+    if (tag && !editTags.includes(tag)) {
+      setEditTags((prev) => [...prev, tag]);
+    }
+    setNewTag("");
+  }
+
+  async function openMergeModal() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("clothing_items")
+      .select("id, image_url, name, category, tags")
+      .eq("user_id", user.id)
+      .neq("id", item.id)
+      .order("created_at", { ascending: false });
+    setMergeItems(data || []);
+    setMergeModalOpen(true);
+  }
+
+  async function handleMerge(otherItem) {
+    setMerging(true);
+    try {
+      const otherTags = Array.isArray(otherItem.tags) ? otherItem.tags : [];
+      const combinedTags = [...new Set([...editTags, ...otherTags])].slice(0, 8);
+      const mergedName = `${(editName || "Item").replace(/ Co-ord Set$/i, "")} + ${(otherItem.name || "Item").replace(/ Co-ord Set$/i, "")} Co-ord Set`;
+
+      const { error: updateErr } = await supabase
+        .from("clothing_items")
+        .update({ name: mergedName, category: "Co-ord Set", tags: combinedTags })
+        .eq("id", item.id);
+      if (updateErr) throw new Error(updateErr.message);
+
+      const { error: deleteErr } = await supabase
+        .from("clothing_items")
+        .delete()
+        .eq("id", otherItem.id);
+      if (deleteErr) throw new Error(deleteErr.message);
+
+      setEditName(mergedName);
+      setEditCategory("Co-ord Set");
+      setEditTags(combinedTags);
+      setMergeModalOpen(false);
+      setMergeSuccess(true);
+      setTimeout(() => setMergeSuccess(false), 2500);
+    } catch (err) {
+      alert(`Merge failed: ${err.message}`);
+    }
+    setMerging(false);
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#999", fontSize: "14px" }}>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#999", fontSize: "14px" }}>Item not found.</p>
+        <button onClick={() => navigate("/closet")} style={{ marginTop: "12px", background: "none", border: "none", color: "#7C6FE0", fontWeight: 600, cursor: "pointer", fontSize: "14px" }}>Back to Closet</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 108px" }}>
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/closet")}
+          style={{
+            position: "absolute",
+            top: "16px",
+            left: "16px",
+            zIndex: 5,
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+            border: "none",
+            background: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(8px)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        {/* Item image */}
+        <div style={{ width: "100%", aspectRatio: "1", background: "#f5f5f7", overflow: "hidden" }}>
+          <img
+            src={item.image_url}
+            alt={editName}
+            style={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: rotation ? `rotate(${rotation}deg)` : "none",
+              transition: "transform 0.3s ease",
+            }}
+          />
+        </div>
+
+        {/* Rotation controls */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "12px 20px 0" }}>
+          <button
+            type="button"
+            onClick={() => setRotation((r) => (r - 90 + 360) % 360)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "8px 16px",
+              borderRadius: "100px",
+              border: "1px solid #e0e0e0",
+              background: "white",
+              color: "#555",
+              fontSize: "13px",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+            Rotate Left
+          </button>
+          <button
+            type="button"
+            onClick={() => setRotation((r) => (r + 90) % 360)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "8px 16px",
+              borderRadius: "100px",
+              border: "1px solid #e0e0e0",
+              background: "white",
+              color: "#555",
+              fontSize: "13px",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+            Rotate Right
+          </button>
+        </div>
+
+        <div style={{ padding: "12px 20px 20px" }}>
+          {/* Name */}
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Name</label>
+          <input
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: "12px",
+              border: "1px solid #e0e0e0",
+              fontSize: "15px",
+              color: "#1a1a2e",
+              marginTop: "6px",
+              marginBottom: "18px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+
+          {/* Category */}
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Category</label>
+          <select
+            value={editCategory}
+            onChange={(e) => setEditCategory(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: "12px",
+              border: "1px solid #e0e0e0",
+              fontSize: "15px",
+              color: "#1a1a2e",
+              marginTop: "6px",
+              marginBottom: "18px",
+              outline: "none",
+              background: "white",
+              boxSizing: "border-box",
+              WebkitAppearance: "none",
+              appearance: "none",
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 12px center",
+            }}
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          {/* Season */}
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Season</label>
+          <select
+            value={editSeason}
+            onChange={(e) => setEditSeason(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: "12px",
+              border: "1px solid #e0e0e0",
+              fontSize: "15px",
+              color: "#1a1a2e",
+              marginTop: "6px",
+              marginBottom: "18px",
+              outline: "none",
+              background: "white",
+              boxSizing: "border-box",
+              WebkitAppearance: "none",
+              appearance: "none",
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 12px center",
+            }}
+          >
+            {seasonOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+
+          {/* Tags */}
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Tags</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px", marginBottom: "10px" }}>
+            {editTags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  background: "#f3f1fc",
+                  color: "#7C6FE0",
+                  borderRadius: "100px",
+                  padding: "5px 10px",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                }}
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => setEditTags((prev) => prev.filter((t) => t !== tag))}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#7C6FE0",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: 0,
+                    lineHeight: 1,
+                    fontWeight: 700,
+                  }}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "28px" }}>
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+              placeholder="Add tag..."
+              style={{
+                flex: 1,
+                padding: "8px 12px",
+                borderRadius: "100px",
+                border: "1px solid #e0e0e0",
+                fontSize: "13px",
+                color: "#1a1a2e",
+                outline: "none",
+              }}
+            />
+            <button
+              type="button"
+              onClick={addTag}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "100px",
+                border: "none",
+                background: "#f3f1fc",
+                color: "#7C6FE0",
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              Add
+            </button>
+          </div>
+
+          {/* Save */}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "100px",
+              border: "none",
+              background: "#7C6FE0",
+              color: "white",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+              marginBottom: "12px",
+            }}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+
+          {/* Style this item */}
+          <button
+            onClick={() => navigate("/chat", { state: { styleItemMessage: `Show me 3 outfit options using my ${editName || item?.name || "item"}` } })}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "100px",
+              border: "1.5px solid #7C6FE0",
+              background: "linear-gradient(135deg, #f3f1fc 0%, #ebe8f8 100%)",
+              color: "#7C6FE0",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+              marginBottom: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <span style={{ fontSize: "15px" }}>✦</span> Style this item
+          </button>
+
+          {/* Merge */}
+          <button
+            onClick={openMergeModal}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "100px",
+              border: "1.5px solid #7C6FE0",
+              background: "white",
+              color: "#7C6FE0",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+              marginBottom: "12px",
+            }}
+          >
+            Merge with another item
+          </button>
+
+          {/* Delete */}
+          <button
+            onClick={handleDelete}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "100px",
+              border: "1px solid #e53e3e",
+              background: "white",
+              color: "#e53e3e",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+            }}
+          >
+            Delete Item
+          </button>
+        </div>
+      </div>
+
+      {/* Merge success toast */}
+      {mergeSuccess && (
+        <div style={{
+          position: "fixed",
+          top: "24px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "#1a1a2e",
+          color: "white",
+          padding: "12px 24px",
+          borderRadius: "100px",
+          fontSize: "14px",
+          fontWeight: 600,
+          zIndex: 200,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+        }}>
+          Items merged into one ✦
+        </div>
+      )}
+
+      {/* Merge modal */}
+      {mergeModalOpen && (
+        <>
+          <div
+            onClick={() => !merging && setMergeModalOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 100, maxWidth: "390px", margin: "0 auto" }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              bottom: SHEET_BOTTOM_OFFSET,
+              left: 0,
+              right: 0,
+              maxWidth: "390px",
+              margin: "0 auto",
+              background: "white",
+              borderRadius: "24px 24px 0 0",
+              padding: "20px 20px 32px",
+              zIndex: 101,
+              maxHeight: SHEET_MAX_HEIGHT,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#e0e0e0", margin: "0 auto 12px" }} />
+            <p style={{ margin: "0 0 4px", fontSize: "16px", fontWeight: 700, color: "#1a1a2e" }}>
+              {merging ? "Merging..." : "Select item to merge with"}
+            </p>
+            <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#888" }}>
+              The selected item will be combined with "{editName}" into a Co-ord Set
+            </p>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {mergeItems.length === 0 ? (
+                <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "24px" }}>No other items in your closet</p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                  {mergeItems.map((mi) => (
+                    <button
+                      key={mi.id}
+                      type="button"
+                      disabled={merging}
+                      onClick={() => handleMerge(mi)}
+                      style={{
+                        background: "#F3F1FA",
+                        border: "none",
+                        borderRadius: "14px",
+                        padding: "6px",
+                        cursor: merging ? "default" : "pointer",
+                        opacity: merging ? 0.5 : 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <div style={{ width: "100%", aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "white" }}>
+                        <img src={mi.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
+                      </div>
+                      <p style={{ margin: 0, fontSize: "10px", fontWeight: 600, color: "#1a1a2e", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
+                        {mi.name || "Item"}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1155,7 +3436,7 @@ async function analyzeClothingImage(imageUrl) {
               { type: "image", source: { type: "url", url: imageUrl } },
               {
                 type: "text",
-                text: "Look at this clothing item. Return ONLY a JSON object with these fields: name (specific item name like 'Floral Midi Skirt'), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Activewear), tags (array of 2-3 descriptive words). No other text.",
+                text: "Analyze this clothing image carefully. Return ONLY a JSON object with these fields: name (specific descriptive name including primary color, e.g. 'White Floral Midi Skirt', 'Black Leather Mini Skirt'. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set', 'Floral Matching Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if this appears to be a matching co-ord set or two-piece set, false otherwise). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item, not two separate pieces. Never split a co-ord set into separate items.",
               },
             ],
           },
@@ -1171,21 +3452,19 @@ async function analyzeClothingImage(imageUrl) {
     return {
       name: parsed.name || "Clothing Item",
       category: parsed.category || "Apparel",
-      tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : ["Apparel"],
+      tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : ["Apparel"],
+      season: parsed.season || "All Season",
     };
   } catch (err) {
     console.error("[analyzeClothingImage] Failed, using fallback:", err);
-    return { name: "Clothing Item", category: "Apparel", tags: ["Apparel"] };
+    return { name: "Clothing Item", category: "Apparel", tags: ["Apparel"], season: "All Season" };
   }
 }
 
 function UploadScreen() {
-  const [mode, setMode] = useState("single");
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [wornFile, setWornFile] = useState(null);
-  const [wornPreview, setWornPreview] = useState(null);
-  const [wornPhase, setWornPhase] = useState("pick"); // pick | analyzing | confirm | saving
+  const [phase, setPhase] = useState("pick"); // pick | removing_bg | analyzing | confirm | saving
+  const [uploadStatus, setUploadStatus] = useState("");
   const [detectedItems, setDetectedItems] = useState([]);
   const navigate = useNavigate();
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -1193,9 +3472,8 @@ function UploadScreen() {
   useEffect(() => {
     return () => {
       selectedFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
-      if (wornPreview) URL.revokeObjectURL(wornPreview);
     };
-  }, [selectedFiles, wornPreview]);
+  }, [selectedFiles]);
 
   async function uploadToCloudinary(file) {
     const formData = new FormData();
@@ -1210,104 +3488,102 @@ function UploadScreen() {
     return data;
   }
 
-  // Single item upload
-  async function uploadSingleImage(file, userId) {
-    const cloudinaryData = await uploadToCloudinary(file);
-    const meta = await analyzeClothingImage(cloudinaryData.secure_url);
-    const { error } = await supabase
-      .from("clothing_items")
-      .insert({
-        user_id: userId,
-        image_url: cloudinaryData.secure_url,
-        public_id: cloudinaryData.public_id,
-        name: meta.name,
-        category: meta.category,
-        tags: meta.tags,
-      })
-      .select();
-    if (error) throw new Error(error.message);
+  async function removeBackground(file) {
+    const formData = new FormData();
+    formData.append("image_file", file);
+    const res = await fetch("/api/photoroom", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Background removal failed");
+    const blob = await res.blob();
+    return new File([blob], file.name.replace(/\.[^.]+$/, ".png"), { type: "image/png" });
   }
 
-  async function handleUploadSelectedImages() {
-    if (!selectedFiles.length || uploading) return;
-    setUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { alert("Upload failed: not logged in."); return; }
-      for (const item of selectedFiles) {
-        await uploadSingleImage(item.file, user.id);
+  async function handleAnalyze() {
+    if (!selectedFiles.length) return;
+
+    // Step 1: Remove backgrounds
+    setPhase("removing_bg");
+    const processedFiles = [];
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const item = selectedFiles[i];
+      setUploadStatus(`Removing background... (${i + 1}/${selectedFiles.length})`);
+      try {
+        const bgRemoved = await removeBackground(item.file);
+        processedFiles.push({ ...item, file: bgRemoved, previewUrl: URL.createObjectURL(bgRemoved) });
+      } catch (err) {
+        console.warn("[Upload] Background removal failed, using original:", err.message);
+        processedFiles.push(item);
       }
-      navigate("/closet");
-    } catch (err) {
-      console.error("[handleUploadSelectedImages] Error:", err);
-      alert(`Upload failed: ${err.message}`);
-    } finally {
-      setUploading(false);
     }
-  }
 
-  // Worn photo flow
-  async function handleWornAnalyze() {
-    if (!wornFile) return;
-    setWornPhase("analyzing");
+    // Step 2: Upload to Cloudinary and analyze
+    setPhase("analyzing");
     try {
-      const cloudinaryData = await uploadToCloudinary(wornFile);
-      const imageUrl = cloudinaryData.secure_url;
+      const allDetected = [];
+      for (let i = 0; i < processedFiles.length; i++) {
+        const item = processedFiles[i];
+        setUploadStatus(`Uploading to your closet... (${i + 1}/${processedFiles.length})`);
+        const cloudinaryData = await uploadToCloudinary(item.file);
+        const imageUrl = cloudinaryData.secure_url;
 
-      const response = await fetch("/api/anthropic/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1024,
-          messages: [{
-            role: "user",
-            content: [
-              { type: "image", source: { type: "url", url: imageUrl } },
-              { type: "text", text: "Analyze this photo of a person wearing clothes. Identify every distinct clothing item and accessory you can see. For each item return a JSON array where each object has: name (specific item name like 'Black Leather Moto Jacket'), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear), tags (array of 2-3 descriptive words), confidence (high/medium/low). Return ONLY the JSON array, no other text." },
-            ],
-          }],
-        }),
-      });
+        const response = await fetch("/api/anthropic/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1024,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "image", source: { type: "url", url: imageUrl } },
+                { type: "text", text: "Analyze this photo and identify every distinct clothing item and accessory you can see. For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
+              ],
+            }],
+          }),
+        });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result?.error?.message || "Vision API failed");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result?.error?.message || "Vision API failed");
 
-      const text = result.content?.[0]?.text || "";
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON array in response");
+        const text = result.content?.[0]?.text || "";
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error("No JSON array in response");
 
-      const parsed = JSON.parse(jsonMatch[0]);
-      setDetectedItems(parsed.map((item, i) => ({
-        ...item,
-        id: i,
-        checked: true,
-        imageUrl: imageUrl,
-        publicId: cloudinaryData.public_id,
-      })));
-      setWornPhase("confirm");
+        const parsed = JSON.parse(jsonMatch[0]);
+        allDetected.push(...parsed.map((d, i) => ({
+          ...d,
+          id: `${allDetected.length + i}`,
+          checked: true,
+          imageUrl,
+          publicId: cloudinaryData.public_id,
+        })));
+      }
+      setDetectedItems(allDetected);
+      setPhase("confirm");
     } catch (err) {
-      console.error("[handleWornAnalyze] Error:", err);
+      console.error("[handleAnalyze] Error:", err);
       alert(`Analysis failed: ${err.message}`);
-      setWornPhase("pick");
+      setPhase("pick");
     }
   }
 
-  async function handleWornSave() {
+  async function handleSave() {
     const confirmed = detectedItems.filter((i) => i.checked);
     if (!confirmed.length) { alert("Select at least one item."); return; }
-    setWornPhase("saving");
+    setPhase("saving");
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { alert("Not logged in."); return; }
 
       for (const item of confirmed) {
-        const tags = [...(Array.isArray(item.tags) ? item.tags : []), "outfit_photo"];
+        const tags = Array.isArray(item.tags) ? item.tags : [];
         const { error } = await supabase
           .from("clothing_items")
           .insert({
@@ -1316,7 +3592,8 @@ function UploadScreen() {
             public_id: item.publicId,
             name: item.name || "Clothing Item",
             category: item.category || "Tops",
-            tags: tags,
+            tags,
+            season: item.season || "All Season",
           })
           .select();
         if (error) throw new Error(error.message);
@@ -1324,50 +3601,40 @@ function UploadScreen() {
       navigate("/closet");
     } catch (err) {
       alert(`Save failed: ${err.message}`);
-      setWornPhase("confirm");
+      setPhase("confirm");
     }
   }
 
-  const openFilePicker = (forWorn) => {
+  const openFilePicker = () => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = !forWorn;
+    input.multiple = true;
     input.accept = "image/*";
     input.onchange = (e) => {
       const files = Array.from(e.target.files || []);
-      if (forWorn && files[0]) {
-        setWornFile(files[0]);
-        setWornPreview(URL.createObjectURL(files[0]));
-      } else {
-        const previews = files.map((file) => ({
-          file,
-          id: Math.random().toString(36).slice(2),
-          previewUrl: URL.createObjectURL(file),
-        }));
-        setSelectedFiles((prev) => [...prev, ...previews]);
-      }
+      const previews = files.map((file) => ({
+        file,
+        id: Math.random().toString(36).slice(2),
+        previewUrl: URL.createObjectURL(file),
+      }));
+      setSelectedFiles((prev) => [...prev, ...previews]);
     };
     input.click();
   };
 
-  const openCamera = (forWorn) => {
+  const openCamera = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     input.capture = "environment";
     input.onchange = (e) => {
       const files = Array.from(e.target.files || []);
-      if (forWorn && files[0]) {
-        setWornFile(files[0]);
-        setWornPreview(URL.createObjectURL(files[0]));
-      } else {
-        const previews = files.map((file) => ({
-          file,
-          id: Math.random().toString(36).slice(2),
-          previewUrl: URL.createObjectURL(file),
-        }));
-        setSelectedFiles((prev) => [...prev, ...previews]);
-      }
+      const previews = files.map((file) => ({
+        file,
+        id: Math.random().toString(36).slice(2),
+        previewUrl: URL.createObjectURL(file),
+      }));
+      setSelectedFiles((prev) => [...prev, ...previews]);
     };
     input.click();
   };
@@ -1380,36 +3647,17 @@ function UploadScreen() {
     });
   };
 
-  const toggleStyle = { display: "flex", borderRadius: "100px", background: "#f3f1fc", padding: "3px", marginBottom: "20px" };
-  const tabStyle = (active) => ({
-    flex: 1,
-    padding: "10px 0",
-    borderRadius: "100px",
-    border: "none",
-    fontSize: "13px",
-    fontWeight: 600,
-    cursor: "pointer",
-    background: active ? "#7C6FE0" : "transparent",
-    color: active ? "white" : "#7C6FE0",
-    transition: "all 0.2s",
-  });
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "390px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 100px" }}>
-        {/* Mode toggle */}
-        <div style={toggleStyle}>
-          <button type="button" style={tabStyle(mode === "single")} onClick={() => setMode("single")}>Single Item</button>
-          <button type="button" style={tabStyle(mode === "worn")} onClick={() => setMode("worn")}>Worn Photo</button>
-        </div>
 
-        {mode === "single" && (
+        {phase === "pick" && (
           <>
-            <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "6px" }}>Photograph Your Item</h1>
-            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload a picture of your clothing on the floor, hanger, or wall.</p>
+            <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
+            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload any photo — a single item, outfit, or full look. We'll identify every piece.</p>
 
             <div
-              onClick={() => openFilePicker(false)}
+              onClick={openFilePicker}
               style={{
                 border: "2px dashed #C8C4F0",
                 borderRadius: "16px",
@@ -1421,12 +3669,12 @@ function UploadScreen() {
               }}
             >
               <div style={{ fontSize: "28px", marginBottom: "6px" }}>🖼</div>
-              <p style={{ fontSize: "13px", color: "#999" }}>Select file</p>
+              <p style={{ fontSize: "13px", color: "#999" }}>Select photos</p>
             </div>
 
             <p style={{ textAlign: "center", color: "#999", marginBottom: "14px", fontSize: "13px" }}>or</p>
 
-            <button onClick={() => openCamera(false)} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#EEECfA", border: "none", color: "#7C6FE0", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "18px" }}>
+            <button onClick={openCamera} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#EEECfA", border: "none", color: "#7C6FE0", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "18px" }}>
               📷 Open Camera
             </button>
 
@@ -1443,138 +3691,136 @@ function UploadScreen() {
           </>
         )}
 
-        {mode === "worn" && (
-          <>
-            <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "6px" }}>Upload Worn Photo</h1>
-            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload a photo of you wearing an outfit. We'll identify each piece.</p>
+        {(phase === "removing_bg" || phase === "analyzing") && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            {selectedFiles[0] && <img src={selectedFiles[0].previewUrl} alt="" style={{ width: "60%", borderRadius: "16px", marginBottom: "16px", opacity: 0.7 }} />}
+            <p style={{ color: "#7C6FE0", fontWeight: 600, fontSize: "14px" }}>
+              {phase === "removing_bg" ? "Removing backgrounds..." : "Analyzing your photos..."}
+            </p>
+            <p style={{ color: "#999", fontSize: "12px", marginTop: "4px" }}>{uploadStatus || "Preparing your items"}</p>
+          </div>
+        )}
 
-            {wornPhase === "pick" && (
-              <>
-                <div
-                  onClick={() => openFilePicker(true)}
+        {phase === "confirm" && (
+          <>
+            <p style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "12px" }}>
+              Found {detectedItems.length} item{detectedItems.length !== 1 ? "s" : ""} — deselect any that are wrong:
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {detectedItems.map((item) => (
+                <label
+                  key={item.id}
                   style={{
-                    border: "2px dashed #C8C4F0",
-                    borderRadius: "16px",
-                    padding: "36px 20px",
-                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "12px 14px",
+                    borderRadius: "14px",
+                    border: item.checked ? "1.5px solid #7C6FE0" : "1.5px solid #e0e0e0",
+                    background: item.checked ? "#f9f8ff" : "#fafafa",
                     cursor: "pointer",
-                    background: "#FAFAFA",
-                    marginBottom: "14px",
+                    transition: "all 0.15s",
                   }}
                 >
-                  {wornPreview ? (
-                    <img src={wornPreview} alt="Worn outfit" style={{ width: "100%", maxHeight: "300px", objectFit: "contain", borderRadius: "12px" }} />
-                  ) : (
-                    <>
-                      <div style={{ fontSize: "28px", marginBottom: "6px" }}>👤</div>
-                      <p style={{ fontSize: "13px", color: "#999" }}>Select outfit photo</p>
-                    </>
-                  )}
-                </div>
-
-                <p style={{ textAlign: "center", color: "#999", marginBottom: "14px", fontSize: "13px" }}>or</p>
-
-                <button onClick={() => openCamera(true)} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#EEECfA", border: "none", color: "#7C6FE0", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "18px" }}>
-                  📷 Take Photo
-                </button>
-              </>
-            )}
-
-            {wornPhase === "analyzing" && (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                {wornPreview && <img src={wornPreview} alt="" style={{ width: "60%", borderRadius: "16px", marginBottom: "16px", opacity: 0.7 }} />}
-                <p style={{ color: "#7C6FE0", fontWeight: 600, fontSize: "14px" }}>Analyzing your outfit...</p>
-                <p style={{ color: "#999", fontSize: "12px", marginTop: "4px" }}>Identifying each clothing piece</p>
-              </div>
-            )}
-
-            {wornPhase === "confirm" && (
-              <>
-                <p style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "12px" }}>
-                  Found {detectedItems.length} item{detectedItems.length !== 1 ? "s" : ""} — deselect any that are wrong:
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {detectedItems.map((item) => (
-                    <label
-                      key={item.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        padding: "12px 14px",
-                        borderRadius: "14px",
-                        border: item.checked ? "1.5px solid #7C6FE0" : "1.5px solid #e0e0e0",
-                        background: item.checked ? "#f9f8ff" : "#fafafa",
-                        cursor: "pointer",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        onChange={() => setDetectedItems((prev) => prev.map((d) => d.id === item.id ? { ...d, checked: !d.checked } : d))}
-                        style={{ accentColor: "#7C6FE0", width: "18px", height: "18px", flexShrink: 0 }}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>{item.name}</p>
-                        <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap", alignItems: "center" }}>
-                          <span style={{ background: "#f3f1fc", color: "#7C6FE0", borderRadius: "100px", padding: "2px 8px", fontSize: "10px", fontWeight: 500 }}>
-                            {item.category}
-                          </span>
-                          {(item.tags || []).map((tag) => (
-                            <span key={tag} style={{ background: "#f0f0f0", color: "#888", borderRadius: "100px", padding: "2px 8px", fontSize: "10px" }}>
-                              {tag}
-                            </span>
-                          ))}
-                          <span style={{ fontSize: "10px", color: item.confidence === "high" ? "#22c55e" : item.confidence === "medium" ? "#f59e0b" : "#ef4444" }}>
-                            {item.confidence}
-                          </span>
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {wornPhase === "saving" && (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <p style={{ color: "#7C6FE0", fontWeight: 600, fontSize: "14px" }}>Saving {detectedItems.filter((i) => i.checked).length} items to your closet...</p>
-              </div>
-            )}
+                  <input
+                    type="checkbox"
+                    checked={item.checked}
+                    onChange={() => setDetectedItems((prev) => prev.map((d) => d.id === item.id ? { ...d, checked: !d.checked } : d))}
+                    style={{ accentColor: "#7C6FE0", width: "18px", height: "18px", flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>{item.name}</p>
+                    <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ background: "#f3f1fc", color: "#7C6FE0", borderRadius: "100px", padding: "2px 8px", fontSize: "10px", fontWeight: 500 }}>
+                        {item.category}
+                      </span>
+                      {(item.tags || []).map((tag) => (
+                        <span key={tag} style={{ background: "#f0f0f0", color: "#888", borderRadius: "100px", padding: "2px 8px", fontSize: "10px" }}>
+                          {tag}
+                        </span>
+                      ))}
+                      <span style={{ fontSize: "10px", color: item.confidence === "high" ? "#22c55e" : item.confidence === "medium" ? "#f59e0b" : "#ef4444" }}>
+                        {item.confidence}
+                      </span>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
           </>
+        )}
+
+        {phase === "saving" && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <p style={{ color: "#7C6FE0", fontWeight: 600, fontSize: "14px" }}>Saving {detectedItems.filter((i) => i.checked).length} items to your closet...</p>
+          </div>
         )}
       </div>
 
       {/* Bottom CTA */}
       <div style={{ padding: "0 20px 20px" }}>
-        {mode === "single" && selectedFiles.length > 0 && (
-          <button onClick={handleUploadSelectedImages} disabled={uploading} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
-            {uploading ? "Analyzing & uploading..." : `Continue (${selectedFiles.length} item${selectedFiles.length !== 1 ? "s" : ""})`}
+        {phase === "pick" && selectedFiles.length > 0 && (
+          <button onClick={handleAnalyze} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
+            Continue ({selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""})
           </button>
         )}
-        {mode === "worn" && wornPhase === "pick" && wornFile && (
-          <button onClick={handleWornAnalyze} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
-            Analyze Outfit
-          </button>
-        )}
-        {mode === "worn" && wornPhase === "confirm" && (
-          <button onClick={handleWornSave} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
+        {phase === "confirm" && (
+          <button onClick={handleSave} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
             Save {detectedItems.filter((i) => i.checked).length} Item{detectedItems.filter((i) => i.checked).length !== 1 ? "s" : ""} to Closet
           </button>
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }
 
 function ChatScreen() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
-  const [phase, setPhase] = useState("initial");
-  const [userMessage, setUserMessage] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [savedMsgIds, setSavedMsgIds] = useState(new Set());
+  const [fadingMsgId, setFadingMsgId] = useState(null);
+  const [expandedMsgIds, setExpandedMsgIds] = useState(new Set());
+  const [preloadedOutfit, setPreloadedOutfit] = useState(null);
+  const [closetCount, setClosetCount] = useState(null);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Occasion sheet state for saving outfits
+  const [occasionSheet, setOccasionSheet] = useState(null); // null or { msgIndex }
+  const [outfitTitle, setOutfitTitle] = useState("");
+
+  // Conversation threading state
+  const [conversations, setConversations] = useState([]);
+  const [activeConvoId, setActiveConvoId] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const styleItemAutoSent = useRef(false);
+
+  // Handle preloaded outfit from HomeScreen navigation
+  useEffect(() => {
+    if (location.state?.preloadedOutfit) {
+      setPreloadedOutfit(location.state.preloadedOutfit);
+      window.history.replaceState({}, "");
+    }
+    if (location.state?.styleItemMessage && !styleItemAutoSent.current) {
+      styleItemAutoSent.current = true;
+      const msg = location.state.styleItemMessage;
+      window.history.replaceState({}, "");
+      // Auto-send after a short delay to allow ChatScreen to finish mounting
+      setTimeout(() => {
+        setInputValue(msg);
+        // Trigger send by setting input and clicking send
+        setTimeout(() => {
+          const sendBtn = document.querySelector("[data-send-btn]");
+          if (sendBtn) sendBtn.click();
+        }, 100);
+      }, 300);
+    }
+  }, [location.state]);
 
   const occasions = [
     "Wedding Guest",
@@ -1586,14 +3832,40 @@ function ChatScreen() {
     "Outdoor Picnic",
   ];
 
+  const styleGenderRef = useRef("womens");
+
+  // Load style_gender from user metadata on mount
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) styleGenderRef.current = user.user_metadata?.style_gender || "womens";
+    })();
+  }, []);
+
+  const CHAT_FORMAT_PROMPT = `
+
+Format every response with EXACTLY these sections:
+
+YOUR LOOK
+One line listing items separated by " + " with each item's image URL in parentheses right after the name. Example:
+Blue Striped Shirt (https://image-url) + Floral Midi Skirt (https://image-url) + White Sneakers (https://image-url)
+
+WHY IT WORKS
+Maximum 2 sentences. Reference a specific trend or aesthetic. Be opinionated and confident. No bullet points.
+
+COMPLETE THE LOOK
+Suggest 1-2 gap pieces ONLY if genuinely needed — can be anything: jacket, shoes, bag, top, jewelry, pants. Keep each suggestion to one line: item name + why, then the shopping link.
+Format links as: https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
+Only suggest items they don't already own. Skip this section entirely if the outfit is complete.`;
+
+  function getChatSystemPrompt() {
+    return getStyleSystemPrompt(styleGenderRef.current) + CHAT_FORMAT_PROMPT;
+  }
+
   function parseAiResponse(text) {
     const imageUrlRegex = /https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)/gi;
     const imageUrls = [...new Set(text.match(imageUrlRegex) || [])];
-    let description = text;
-    imageUrls.forEach((url) => {
-      description = description.replaceAll(url, "");
-    });
-    description = description
+    let clean = text
       .replace(/\*\*([^*]+)\*\*/g, "$1")
       .replace(/\*([^*]+)\*/g, "$1")
       .replace(/^#+\s+/gm, "")
@@ -1602,28 +3874,167 @@ function ChatScreen() {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
-    const shoppingLinkRegex = /(https:\/\/www\.google\.com\/search\?tbm=shop&q=[^\s)>\]]+)/gi;
-    const shoppingLinks = description.match(shoppingLinkRegex) || [];
+    let itemNames = "";
+    let whyText = "";
+    let shopText = "";
 
-    return { imageUrls, description, shoppingLinks };
+    const yourLookMatch = clean.match(/YOUR LOOK\s*\n([\s\S]*?)(?=\n\s*WHY IT WORKS|$)/i);
+    const whyMatch = clean.match(/WHY IT WORKS\s*\n([\s\S]*?)(?=\n\s*COMPLETE THE LOOK|$)/i);
+    const shopMatch = clean.match(/COMPLETE THE LOOK\s*\n([\s\S]*?)$/i);
+
+    if (yourLookMatch) {
+      itemNames = yourLookMatch[1].trim();
+      imageUrls.forEach((url) => { itemNames = itemNames.replaceAll(url, ""); });
+      itemNames = itemNames.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+    }
+    if (whyMatch) {
+      whyText = whyMatch[1].trim();
+      imageUrls.forEach((url) => { whyText = whyText.replaceAll(url, ""); });
+      whyText = whyText.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+    }
+    if (shopMatch) {
+      shopText = shopMatch[1].trim();
+      imageUrls.forEach((url) => { shopText = shopText.replaceAll(url, ""); });
+      shopText = shopText.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+    }
+
+    let description = clean;
+    imageUrls.forEach((url) => { description = description.replaceAll(url, ""); });
+    description = description.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+
+    return { imageUrls, itemNames, whyText, shopText, description };
+  }
+
+  function renderTextWithLinks(text) {
+    const linkRegex = /(https:\/\/www\.google\.com\/search\?tbm=shop&q=[^\s)>\]]+)/g;
+    const parts = text.split(linkRegex);
+    return parts.map((part, i) => {
+      if (linkRegex.test(part)) {
+        linkRegex.lastIndex = 0;
+        const queryMatch = part.match(/q=([^&\s]+)/);
+        const label = queryMatch ? decodeURIComponent(queryMatch[1].replace(/\+/g, " ")) : "Shop";
+        return (
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+            style={{ display: "inline-block", padding: "4px 10px", margin: "2px 4px 2px 0", borderRadius: "100px", background: "#f3f1fc", color: "#7C6FE0", fontSize: "12px", fontWeight: 600, textDecoration: "none", border: "1px solid #e0ddf5" }}>
+            Shop {label} ↗
+          </a>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  }
+
+  function formatConvoDate(dateStr) {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 86400000) return "Today";
+    if (diff < 172800000) return "Yesterday";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  // Load conversations list on mount
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setClosetCount(0);
+        setLoadingHistory(false);
+        return;
+      }
+
+      const [{ data: convos, error }, { data: closetItems, error: closetError }] = await Promise.all([
+        supabase
+          .from("conversations")
+          .select("id, title, is_starred, created_at, preview_images")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("clothing_items")
+          .select("id")
+          .eq("user_id", user.id),
+      ]);
+
+      if (!error && convos) setConversations(convos);
+      if (!closetError) setClosetCount((closetItems || []).length);
+      setLoadingHistory(false);
+    })();
+  }, []);
+
+  // Load messages when active conversation changes
+  useEffect(() => {
+    if (!activeConvoId) { setMessages([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("id, role, content, outfit_images, created_at")
+        .eq("conversation_id", activeConvoId)
+        .order("created_at", { ascending: true });
+      if (!cancelled && !error && data) {
+        setMessages(data.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          outfitImages: m.outfit_images || [],
+        })));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeConvoId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  function startNewChat() {
+    setActiveConvoId(null);
+    setMessages([]);
+    setSavedMsgIds(new Set());
+    setExpandedMsgIds(new Set());
+    setInputValue("");
+    setPreloadedOutfit(null);
+    setDrawerOpen(false);
+  }
+
+  function openConversation(convoId) {
+    setActiveConvoId(convoId);
+    setSavedMsgIds(new Set());
+    setExpandedMsgIds(new Set());
+    setDrawerOpen(false);
+  }
+
+  async function toggleStarConversation(convoId, currentStarred) {
+    const { error } = await supabase
+      .from("conversations")
+      .update({ is_starred: !currentStarred })
+      .eq("id", convoId);
+    if (error) return;
+    setConversations((prev) => prev.map((c) =>
+      c.id === convoId ? { ...c, is_starred: !currentStarred } : c
+    ));
+  }
+
+  async function deleteConversation(convoId) {
+    if (!window.confirm("Delete this conversation?")) return;
+    await supabase.from("chat_messages").delete().eq("conversation_id", convoId);
+    await supabase.from("conversations").delete().eq("id", convoId);
+    setConversations((prev) => prev.filter((c) => c.id !== convoId));
+    if (activeConvoId === convoId) startNewChat();
   }
 
   async function handleSend() {
     const trimmed = inputValue.trim();
-    if (!trimmed) return;
+    if (!trimmed || loading) return;
 
-    setUserMessage(trimmed);
     setInputValue("");
-    setPhase("loading");
-    setAiResponse("");
+    setLoading(true);
+    setPreloadedOutfit(null);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert("Please log in first.");
-        setPhase("initial");
-        return;
-      }
+      if (!user) { setLoading(false); return; }
 
       const { data: items, error: itemsError } = await supabase
         .from("clothing_items")
@@ -1632,10 +4043,37 @@ function ChatScreen() {
 
       if (itemsError) throw new Error(`Failed to fetch wardrobe: ${itemsError.message}`);
       if (!items || items.length === 0) {
-        alert("Your closet is empty! Upload some items first.");
-        setPhase("initial");
+        setClosetCount(0);
+        setLoading(false);
         return;
       }
+
+      setClosetCount(items.length);
+
+      // Create a new conversation if none is active
+      let convoId = activeConvoId;
+      if (!convoId) {
+        const { data: newConvo, error: convoErr } = await supabase
+          .from("conversations")
+          .insert({ user_id: user.id, title: trimmed, is_starred: false, preview_images: [] })
+          .select()
+          .single();
+        if (convoErr) throw new Error(convoErr.message);
+        convoId = newConvo.id;
+        setActiveConvoId(convoId);
+        setConversations((prev) => [newConvo, ...prev]);
+      }
+
+      // Save user message
+      const { data: savedUser, error: saveUserErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "user", content: trimmed, outfit_images: [], conversation_id: convoId })
+        .select()
+        .single();
+      if (saveUserErr) throw new Error(saveUserErr.message);
+
+      const userMsg = { id: savedUser.id, role: "user", content: trimmed, outfitImages: [] };
+      setMessages((prev) => [...prev, userMsg]);
 
       const imageBlocks = items.flatMap((item, i) => [
         { type: "text", text: `Item ${i + 1} (${item.image_url}):` },
@@ -1653,22 +4091,7 @@ function ChatScreen() {
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1024,
-          system: `You are the user's stylish best friend who lives and breathes fashion. You talk like a knowledgeable, trendy friend — not a generic AI. Reference current aesthetics when relevant: clean girl, quiet luxury, coastal grandmother, Y2K, old money, mob wife, coquette, Hailey Bieber street style, Gen Z minimalism, etc.
-
-Format every response with these sections:
-
-YOUR LOOK
-List each piece you're pulling from their closet. For each item, write the item name and include its image URL on the same line. Be specific about what you see in the image.
-
-WHY IT WORKS
-2-3 sentences max. Reference specific trends or aesthetics. Sound like you're hyping up a friend, not writing an essay.
-
-COMPLETE THE LOOK (optional)
-Suggest 1-2 specific items they could add to elevate the outfit — ONLY if there's a genuine gap. Frame these as optional additions, not replacements. For each suggestion include:
-- The specific item name and why it would elevate the look
-- A Google Shopping link formatted as: https://www.google.com/search?tbm=shop&q=item+name+here (use + for spaces in the query)
-
-Keep an anti-overconsumption angle — celebrate what they already own and only suggest purchases that genuinely fill a gap. Never suggest buying something they already have a version of.`,
+          system: getChatSystemPrompt(),
           messages: [
             {
               role: "user",
@@ -1683,18 +4106,266 @@ Keep an anti-overconsumption angle — celebrate what they already own and only 
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error?.message || `API error: ${response.status}`);
+      if (!response.ok) throw new Error(data?.error?.message || `API error: ${response.status}`);
+
+      const aiText = data.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      const { imageUrls } = parseAiResponse(aiText);
+
+      // Save assistant message
+      const { data: savedAssistant, error: saveAssistantErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "assistant", content: aiText, outfit_images: imageUrls, conversation_id: convoId })
+        .select()
+        .single();
+      if (saveAssistantErr) throw new Error(saveAssistantErr.message);
+
+      // Update conversation preview_images
+      if (imageUrls.length > 0) {
+        await supabase
+          .from("conversations")
+          .update({ preview_images: imageUrls.slice(0, 4) })
+          .eq("id", convoId);
+        setConversations((prev) => prev.map((c) =>
+          c.id === convoId ? { ...c, preview_images: imageUrls.slice(0, 4) } : c
+        ));
       }
 
-      const text = data.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
-      setAiResponse(text);
-      setPhase("result");
+      const assistantMsg = { id: savedAssistant.id, role: "assistant", content: aiText, outfitImages: imageUrls };
+      setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("[ChatScreen] Error:", err);
       alert(`Something went wrong: ${err.message}`);
-      setPhase("initial");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  function getOccasionForAssistantMsg(msgIndex) {
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (messages[i].role === "user") return messages[i].content;
+    }
+    return null;
+  }
+
+  async function handleAnotherOption(assistantMsgIndex) {
+    if (loading) return;
+    const occasion = getOccasionForAssistantMsg(assistantMsgIndex);
+    if (!occasion) return;
+
+    const prevContent = messages[assistantMsgIndex].content;
+    setFadingMsgId(messages[assistantMsgIndex].id);
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); setFadingMsgId(null); return; }
+
+      const { data: items, error: itemsError } = await supabase
+        .from("clothing_items")
+        .select("image_url")
+        .eq("user_id", user.id);
+      if (itemsError) throw new Error(itemsError.message);
+      if (!items || items.length === 0) {
+        setClosetCount(0);
+        setLoading(false);
+        setFadingMsgId(null);
+        return;
+      }
+      setClosetCount(items.length);
+
+      const imageBlocks = items.flatMap((item, i) => [
+        { type: "text", text: `Item ${i + 1} (${item.image_url}):` },
+        { type: "image", source: { type: "url", url: item.image_url } },
+      ]);
+
+      const response = await fetch("/api/anthropic/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1024,
+          system: getChatSystemPrompt(),
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Here are all the clothing items in my closet:" },
+                ...imageBlocks,
+                { type: "text", text: `I need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. For each item you pick, include its image URL (shown before each image as "Item N (url):").` },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error?.message || `API error: ${response.status}`);
+
+      const aiText = data.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      const { imageUrls } = parseAiResponse(aiText);
+
+      const oldMsgId = messages[assistantMsgIndex].id;
+      await supabase.from("chat_messages").delete().eq("id", oldMsgId);
+
+      const { data: savedNew, error: saveErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "assistant", content: aiText, outfit_images: imageUrls, conversation_id: activeConvoId })
+        .select()
+        .single();
+      if (saveErr) throw new Error(saveErr.message);
+
+      // Update preview
+      if (imageUrls.length > 0 && activeConvoId) {
+        await supabase.from("conversations").update({ preview_images: imageUrls.slice(0, 4) }).eq("id", activeConvoId);
+        setConversations((prev) => prev.map((c) =>
+          c.id === activeConvoId ? { ...c, preview_images: imageUrls.slice(0, 4) } : c
+        ));
+      }
+
+      const newMsg = { id: savedNew.id, role: "assistant", content: aiText, outfitImages: imageUrls };
+      setMessages((prev) => prev.map((m, i) => i === assistantMsgIndex ? newMsg : m));
+    } catch (err) {
+      console.error("[ChatScreen] Another Option Error:", err);
+      alert(`Something went wrong: ${err.message}`);
+    } finally {
+      setLoading(false);
+      setFadingMsgId(null);
+    }
+  }
+
+  function handleSaveOutfit(assistantMsgIndex) {
+    setOutfitTitle("");
+    setOccasionSheet({ msgIndex: assistantMsgIndex });
+  }
+
+  async function confirmSaveOutfit(occasion) {
+    if (!occasionSheet) return;
+    const msg = messages[occasionSheet.msgIndex];
+    const { imageUrls, description } = parseAiResponse(msg.content);
+    const previousUserMessage = [...messages.slice(0, occasionSheet.msgIndex)].reverse().find((entry) => entry.role === "user");
+    const rawTitle = outfitTitle.trim() || previousUserMessage?.content || activeConvo?.title || occasion;
+    const savedTitle = summarizeLookbookTitle(rawTitle) || rawTitle;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("saved_outfits")
+        .insert({
+          user_id: user.id,
+          occasion,
+          title: savedTitle,
+          outfit_images: imageUrls,
+          description,
+        });
+      if (error) throw new Error(error.message);
+
+      setSavedMsgIds((prev) => new Set(prev).add(msg.id));
+    } catch (err) {
+      console.error("[ChatScreen] Save Outfit Error:", err);
+      alert(`Failed to save: ${err.message}`);
+    }
+    setOccasionSheet(null);
+  }
+
+  const hasMessages = messages.length > 0;
+  const starred = conversations.filter((c) => c.is_starred);
+  const recent = conversations.filter((c) => !c.is_starred);
+  const activeConvo = conversations.find((c) => c.id === activeConvoId);
+  const hasCloset = closetCount === null ? null : closetCount > 0;
+
+  // Conversation drawer content (reused in both drawer and empty state)
+  function ConversationList({ inline = false }) {
+    const containerStyle = inline
+      ? {}
+      : { flex: 1, overflowY: "auto", padding: "0 16px 16px" };
+
+    return (
+      <div style={containerStyle}>
+        {starred.length > 0 && (
+          <>
+            <p style={{ margin: "16px 0 8px", fontSize: "11px", fontWeight: 700, color: "#7C6FE0", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Starred
+            </p>
+            {starred.map((c) => (
+              <ConvoRow key={c.id} convo={c} />
+            ))}
+          </>
+        )}
+        {recent.length > 0 && (
+          <>
+            <p style={{ margin: "16px 0 8px", fontSize: "11px", fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Recent
+            </p>
+            {recent.map((c) => (
+              <ConvoRow key={c.id} convo={c} />
+            ))}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  function ConvoRow({ convo }) {
+    const isActive = convo.id === activeConvoId;
+    const previews = convo.preview_images || [];
+    return (
+      <div
+        onClick={() => openConversation(convo.id)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "10px 8px",
+          borderRadius: "12px",
+          background: isActive ? "#f3f1fc" : "transparent",
+          cursor: "pointer",
+          marginBottom: "2px",
+        }}
+      >
+        {/* Preview thumbnails */}
+        <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
+          {previews.slice(0, 2).map((url, i) => (
+            <div key={i} style={{ width: "28px", height: "28px", borderRadius: "6px", overflow: "hidden", background: "#eee" }}>
+              <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+          ))}
+          {previews.length === 0 && (
+            <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#f0eef8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", color: "#7C6FE0" }}>✦</div>
+          )}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#1a1a2e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {convo.title}
+          </p>
+          <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#999" }}>
+            {formatConvoDate(convo.created_at)}
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); toggleStarConversation(convo.id, convo.is_starred); }}
+            style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", fontSize: "14px", color: convo.is_starred ? "#7C6FE0" : "#ccc" }}
+          >
+            {convo.is_starred ? "★" : "☆"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); deleteConversation(convo.id); }}
+            style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", fontSize: "12px", color: "#ccc" }}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -1707,334 +4378,655 @@ Keep an anti-overconsumption angle — celebrate what they already own and only 
         margin: "0 auto",
         background: "white",
         position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Slide-in drawer overlay */}
+      {drawerOpen && (
+        <div
+          onClick={() => setDrawerOpen(false)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 40,
+          }}
+        />
+      )}
+
+      {/* Slide-in drawer */}
       <div
         style={{
-          padding: "16px",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: "300px",
+          background: "white",
+          zIndex: 50,
+          transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.3s ease",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: drawerOpen ? "4px 0 20px rgba(0,0,0,0.1)" : "none",
+        }}
+      >
+        <div style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
+          <strong style={{ fontSize: "15px", color: "#1a1a2e" }}>Conversations</strong>
+          <button type="button" onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", fontSize: "18px", color: "#999", cursor: "pointer" }}>✕</button>
+        </div>
+        <button
+          type="button"
+          onClick={startNewChat}
+          style={{
+            margin: "12px 16px 4px",
+            padding: "10px",
+            borderRadius: "100px",
+            border: "1px solid #e0ddf5",
+            background: "white",
+            color: "#7C6FE0",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          ✦ New Chat
+        </button>
+        <ConversationList />
+      </div>
+
+      {/* Header */}
+      <div
+        style={{
+          padding: `calc(env(safe-area-inset-top) + 16px) 16px 16px`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          borderBottom: "1px solid #f0f0f0",
         }}
       >
-        <strong>Stylist Chat</strong>
-        <span aria-label="Notifications" role="img">
-          🔔
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            style={{ background: "none", border: "none", fontSize: "18px", cursor: "pointer", padding: "0 4px", color: "#1a1a2e" }}
+            aria-label="Open conversations"
+          >
+            ☰
+          </button>
+          <strong style={{ fontSize: "15px", color: "#1a1a2e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>
+            {activeConvo ? activeConvo.title : "New Chat"}
+          </strong>
+        </div>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {activeConvo && (
+            <button
+              type="button"
+              onClick={() => toggleStarConversation(activeConvo.id, activeConvo.is_starred)}
+              style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer", color: activeConvo.is_starred ? "#7C6FE0" : "#ccc" }}
+            >
+              {activeConvo.is_starred ? "★" : "☆"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={startNewChat}
+            aria-label="New chat"
+            title="New chat"
+            style={{
+              background: "rgba(124,111,224,0.10)",
+              border: "1px solid rgba(124,111,224,0.14)",
+              color: "#7C6FE0",
+              width: "34px",
+              height: "34px",
+              borderRadius: "999px",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "inset 0 0 0 1px rgba(124,111,224,0.04)",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Main content area */}
       <div
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px",
+          padding: "16px 16px 156px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
         }}
       >
-        {phase === "initial" && (
+        {loadingHistory ? (
+          <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "40px" }}>Loading...</p>
+        ) : !activeConvoId && !loading ? (
           <>
-            <div
-              style={{
-                background: "#EEEcFA",
-                borderRadius: "16px",
-                padding: "12px 16px",
-                color: "#3d355b",
-                fontSize: "14px",
-                lineHeight: "1.4",
-              }}
-            >
-              <span style={{ color: "#7C6FE0", marginRight: "6px" }}>✦</span>
-              Hiya! I'm your style assistant. I'll peek in your closet and suggest outfits!
-            </div>
-
-            <div style={{ flex: 1 }} />
-
-            <div
-              style={{
-                border: "1px solid #eee",
-                borderRadius: "16px",
-                padding: "14px",
-                background: "white",
-              }}
-            >
-              <p style={{ margin: 0, fontSize: "14px", color: "#4b3db2", fontWeight: 500 }}>
-                ✦ Need outfit ideas? Here are some occasions...
-              </p>
+            {hasCloset === false ? (
               <div
                 style={{
-                  marginTop: "12px",
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
+                  border: "1px solid #eee",
+                  borderRadius: "18px",
+                  padding: "18px 16px",
+                  background: "linear-gradient(180deg, #F8F7FC 0%, #EEEAF8 100%)",
+                  color: "#3d355b",
                 }}
               >
-                {occasions.map((occasion) => (
+                <p style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>
+                  Your closet is empty
+                </p>
+                <p style={{ margin: 0, fontSize: "13px", lineHeight: "1.5", color: "#6b6578" }}>
+                  Upload a few items first so I can build looks from what you own.
+                </p>
+                <div style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
                   <button
-                    key={occasion}
                     type="button"
-                    onClick={() => setInputValue(occasion)}
+                    onClick={() => navigate("/upload")}
                     style={{
-                      border: "1px solid #ddd",
+                      flex: 1,
+                      border: "none",
+                      background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
+                      color: "white",
                       borderRadius: "100px",
-                      padding: "6px 14px",
+                      padding: "10px 14px",
                       fontSize: "13px",
-                      background: "white",
+                      fontWeight: 600,
                       cursor: "pointer",
                     }}
                   >
-                    {occasion}
+                    Upload items
                   </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {(phase === "loading" || phase === "result") && (
-          <>
-            <div
-              style={{
-                marginLeft: "auto",
-                maxWidth: "85%",
-                background: "white",
-                border: "1px solid #eee",
-                borderRadius: "16px 16px 4px 16px",
-                padding: "10px 14px",
-                fontSize: "14px",
-              }}
-            >
-              {userMessage}
-            </div>
-
-            {phase === "loading" && (
-              <>
-                <p style={{ margin: 0, color: "#7C6FE0", fontWeight: 500, fontSize: "14px" }}>
-                  ✦ Checking your wardrobe for the perfect outfit!
-                </p>
-                <div
-                  style={{
-                    borderRadius: "16px",
-                    padding: "18px",
-                    background: "linear-gradient(180deg, #C8C4F0 0%, #A8A4E0 100%)",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <span className="hanger-fade hanger-1" style={{ fontSize: "24px" }}>
-                    🪝
-                  </span>
-                  <span className="hanger-fade hanger-2" style={{ fontSize: "24px" }}>
-                    🪝
-                  </span>
-                  <span className="hanger-fade hanger-3" style={{ fontSize: "24px" }}>
-                    🪝
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/closet")}
+                    style={{
+                      flex: 1,
+                      border: "1.5px solid #7C6FE0",
+                      background: "white",
+                      color: "#7C6FE0",
+                      borderRadius: "100px",
+                      padding: "10px 14px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Open closet
+                  </button>
                 </div>
-              </>
-            )}
-
-            {phase === "result" && (() => {
-              const { imageUrls, description } = parseAiResponse(aiResponse);
-
-              function renderTextWithLinks(text) {
-                const linkRegex = /(https:\/\/www\.google\.com\/search\?tbm=shop&q=[^\s)>\]]+)/g;
-                const parts = text.split(linkRegex);
-                return parts.map((part, i) => {
-                  if (linkRegex.test(part)) {
-                    const queryMatch = part.match(/q=([^&\s]+)/);
-                    const label = queryMatch ? decodeURIComponent(queryMatch[1].replace(/\+/g, " ")) : "Shop";
-                    return (
-                      <a
-                        key={i}
-                        href={part}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          color: "#7C6FE0",
-                          fontWeight: 500,
-                          textDecoration: "none",
-                          borderBottom: "1px solid #c4bef0",
-                        }}
-                      >
-                        Shop {label} &rarr;
-                      </a>
-                    );
-                  }
-                  return <span key={i}>{part}</span>;
-                });
-              }
-
-              return (
-                <>
-                  <p style={{ margin: 0, color: "#7C6FE0", fontWeight: 600, fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                    ✦ Your Look
+              </div>
+            ) : preloadedOutfit ? (
+              <>
+                {/* Preloaded outfit from HomeScreen */}
+                <div>
+                  <p style={{ margin: "0 0 8px", color: "#7C6FE0", fontWeight: 600, fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                    ✦ Today's Look — {preloadedOutfit.vibe}
                   </p>
-
-                  {imageUrls.length > 0 && (
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "8px",
-                        padding: "12px",
-                        borderRadius: "20px",
-                        background: "linear-gradient(160deg, #f8f7fc 0%, #eeeaf8 100%)",
-                      }}
-                    >
-                      {imageUrls.map((url, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            position: "relative",
-                            aspectRatio: "1",
-                            borderRadius: "14px",
-                            overflow: "hidden",
-                            background: "#fff",
-                            boxShadow: "0 2px 12px rgba(124,111,224,0.08)",
-                          }}
-                        >
-                          <img
-                            src={url}
-                            alt={`Outfit item ${i + 1}`}
-                            style={{
-                              display: "block",
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
+                  {preloadedOutfit.images.length > 0 && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
+                      {preloadedOutfit.images.slice(0, 4).map((url, i) => (
+                        <div key={i} style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#F3F1FA" }}>
+                          <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
                         </div>
                       ))}
                     </div>
                   )}
+                  {preloadedOutfit.description && (
+                    <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#555", lineHeight: "1.5" }}>
+                      {preloadedOutfit.description}
+                    </p>
+                  )}
+                </div>
+                <div
+                  style={{
+                    background: "#EEEcFA",
+                    borderRadius: "16px",
+                    padding: "12px 16px",
+                    color: "#3d355b",
+                    fontSize: "14px",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  <span style={{ color: "#7C6FE0", marginRight: "6px" }}>✦</span>
+                  Here's your look for today — want me to style it differently or find something for a specific occasion?
+                </div>
+              </>
+            ) : (
+              <div
+                style={{
+                  background: "#EEEcFA",
+                  borderRadius: "16px",
+                  padding: "12px 16px",
+                  color: "#3d355b",
+                  fontSize: "14px",
+                  lineHeight: "1.4",
+                }}
+              >
+                <span style={{ color: "#7C6FE0", marginRight: "6px" }}>✦</span>
+                Hiya! I'm your style assistant. I'll peek in your closet and suggest outfits!
+              </div>
+            )}
 
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #eee",
-                      borderRadius: "16px",
-                      padding: "14px 16px",
-                      fontSize: "14px",
-                      lineHeight: "1.65",
-                      color: "#3d355b",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {renderTextWithLinks(description)}
-                  </div>
+            {/* Show conversation history inline when no active chat */}
+            {!preloadedOutfit && conversations.length > 0 && (
+              <div style={{ marginTop: "4px" }}>
+                <ConversationList inline />
+              </div>
+            )}
 
-                  <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ flex: 1 }} />
+
+            {hasCloset !== false && (
+              <div
+                style={{
+                  border: "1px solid #eee",
+                  borderRadius: "16px",
+                  padding: "14px",
+                  background: "white",
+                }}
+              >
+                <p style={{ margin: 0, fontSize: "14px", color: "#4b3db2", fontWeight: 500 }}>
+                  ✦ {preloadedOutfit ? "Want something different? Pick an occasion." : "What are you dressing for?"}
+                </p>
+                <div
+                  style={{
+                    marginTop: "12px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                  }}
+                >
+                  {occasions.map((occasion) => (
                     <button
+                      key={occasion}
                       type="button"
                       onClick={() => {
-                        setInputValue(userMessage);
-                        handleSend();
+                        setInputValue(occasion);
+                        setTimeout(() => inputRef.current?.focus(), 0);
                       }}
                       style={{
-                        flex: 1,
-                        border: "none",
-                        background: "linear-gradient(135deg, #7C6FE0 0%, #9B8FFF 100%)",
-                        color: "white",
+                        border: "1px solid #ddd",
                         borderRadius: "100px",
-                        padding: "12px 14px",
+                        padding: "6px 14px",
                         fontSize: "13px",
-                        fontWeight: 600,
+                        background: "white",
                         cursor: "pointer",
-                        letterSpacing: "0.02em",
                       }}
                     >
-                      Try Another Look
+                      {occasion}
                     </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {messages.map((msg, msgIndex) => (
+              <div key={msg.id}>
+                {msg.role === "user" ? (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      maxWidth: "85%",
+                      background: "white",
+                      border: "1px solid #eee",
+                      borderRadius: "16px 16px 4px 16px",
+                      padding: "10px 14px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {msg.content}
                   </div>
-                </>
-              );
-            })()}
+                ) : (() => {
+                  const { imageUrls, itemNames, whyText, shopText } = parseAiResponse(msg.content);
+                  const isFading = fadingMsgId === msg.id;
+                  const isSaved = savedMsgIds.has(msg.id);
+                  const isExpanded = expandedMsgIds.has(msg.id);
+                  return (
+                    <div className={isFading ? "chat-fade-out" : "chat-fade-in"}>
+                      <p style={{ margin: 0, color: "#7C6FE0", fontWeight: 600, fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                        ✦ Your Look
+                      </p>
+
+                      {itemNames && (
+                        <p style={{ margin: "6px 0 0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e", lineHeight: "1.5" }}>
+                          {itemNames}
+                        </p>
+                      )}
+
+                      {imageUrls.length > 0 && (
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "8px",
+                            padding: "12px",
+                            borderRadius: "20px",
+                            background: "linear-gradient(160deg, #f8f7fc 0%, #eeeaf8 100%)",
+                            marginTop: "8px",
+                          }}
+                        >
+                          {imageUrls.map((url, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                position: "relative",
+                                aspectRatio: "1",
+                                borderRadius: "14px",
+                                overflow: "hidden",
+                                background: "#fff",
+                                boxShadow: "0 2px 12px rgba(124,111,224,0.08)",
+                              }}
+                            >
+                              <img src={url} alt={`Outfit item ${i + 1}`}
+                                style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleAnotherOption(msgIndex)}
+                          disabled={loading}
+                          style={{
+                            flex: 1,
+                            padding: "10px 14px",
+                            borderRadius: "100px",
+                            border: "1px solid #e0ddf5",
+                            background: "white",
+                            color: "#7C6FE0",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            cursor: loading ? "default" : "pointer",
+                            opacity: loading ? 0.5 : 1,
+                          }}
+                        >
+                          ✦ Another Option
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveOutfit(msgIndex)}
+                          disabled={isSaved}
+                          style={{
+                            flex: 1,
+                            padding: "10px 14px",
+                            borderRadius: "100px",
+                            border: "none",
+                            background: isSaved ? "#e8e5f8" : "#7C6FE0",
+                            color: isSaved ? "#7C6FE0" : "white",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            cursor: isSaved ? "default" : "pointer",
+                          }}
+                        >
+                          {isSaved ? "Saved ♥" : "♡ Save Outfit"}
+                        </button>
+                      </div>
+
+                      {shopText && (
+                        <div style={{ marginTop: "8px", fontSize: "13px", color: "#3d355b", lineHeight: "1.5" }}>
+                          {renderTextWithLinks(shopText)}
+                        </div>
+                      )}
+
+                      {whyText && (
+                        <div style={{ marginTop: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedMsgIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id);
+                              return next;
+                            })}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                              color: "#7C6FE0",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {isExpanded ? "Hide ↑" : "See why ↓"}
+                          </button>
+                          <div
+                            style={{
+                              maxHeight: isExpanded ? "200px" : "0px",
+                              opacity: isExpanded ? 1 : 0,
+                              overflow: "hidden",
+                              transition: "max-height 0.35s ease, opacity 0.3s ease",
+                            }}
+                          >
+                            <p style={{
+                              margin: "6px 0 0",
+                              fontSize: "13px",
+                              lineHeight: "1.55",
+                              color: "#5a5370",
+                            }}>
+                              {whyText}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            ))}
+
+            {loading && (
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px 0" }}>
+                <div className="sparkle-loader">
+                  <span className="sparkle s1">✦</span>
+                  <span className="sparkle s2">✦</span>
+                  <span className="sparkle s3">✦</span>
+                </div>
+                <span style={{ color: "#7C6FE0", fontSize: "14px", fontWeight: 500 }}>
+                  Styling your look…
+                </span>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </>
         )}
       </div>
+
+      {/* Input bar */}
       <div
         style={{
+          position: "fixed",
+          left: "50%",
+          transform: "translateX(-50%)",
+          bottom: SHEET_BOTTOM_OFFSET,
+          width: "100%",
+          maxWidth: "390px",
           padding: "12px 16px",
           borderTop: "1px solid #eee",
           display: "flex",
           gap: "8px",
           alignItems: "center",
           background: "white",
+          zIndex: 11000,
+          boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
         }}
       >
         <div style={{ position: "relative", flex: 1 }}>
           <input
+            ref={inputRef}
             type="text"
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
             placeholder="Outfit For Today..."
             style={{
               width: "100%",
               borderRadius: "100px",
               border: "1px solid #ddd",
-              padding: "10px 38px 10px 16px",
+              padding: "10px 16px",
               fontSize: "14px",
               outline: "none",
             }}
           />
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              right: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#8b8b8b",
-              fontSize: "15px",
-            }}
-          >
-            🎤
-          </span>
         </div>
         <button
           type="button"
           onClick={handleSend}
+          disabled={loading}
           style={{
             width: "44px",
             height: "44px",
             borderRadius: "50%",
             background: "#7C6FE0",
             border: "none",
-            cursor: "pointer",
+            cursor: loading ? "default" : "pointer",
             color: "white",
+            opacity: loading ? 0.6 : 1,
           }}
           aria-label="Send message"
+          data-send-btn="true"
         >
           ➤
         </button>
       </div>
-      <BottomNav />
+      {/* Occasion bottom sheet */}
+      {occasionSheet && (
+        <>
+          <div
+            onClick={() => setOccasionSheet(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.4)",
+              zIndex: 100,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              bottom: SHEET_BOTTOM_OFFSET,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "100%",
+              maxWidth: "390px",
+              background: "white",
+              borderRadius: "24px 24px 0 0",
+              padding: "24px 20px 32px",
+              zIndex: 101,
+              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+              maxHeight: SHEET_MAX_HEIGHT,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd", margin: "0 auto 16px" }} />
+            <h3 style={{ margin: "0 0 6px", fontSize: "17px", fontWeight: 700, color: "#1a1a2e" }}>Save this look</h3>
+            <p style={{ margin: "0 0 14px", fontSize: "13px", color: "#888" }}>Give it a name and pick the occasion</p>
+
+            <input
+              type="text"
+              value={outfitTitle}
+              onChange={(e) => setOutfitTitle(e.target.value)}
+              placeholder="e.g. Concert look, Monday office..."
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                borderRadius: "12px",
+                border: "1px solid #e0e0e0",
+                fontSize: "14px",
+                color: "#1a1a2e",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "16px",
+              }}
+            />
+
+            <p style={{ margin: "0 0 10px", fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>What's this look for?</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {["Going Out", "Work", "Casual", "Date Night", "Event", "Travel", "Other"].map((occ) => (
+                <button
+                  key={occ}
+                  type="button"
+                  onClick={() => confirmSaveOutfit(occ)}
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: "100px",
+                    border: "1.5px solid #e0ddf5",
+                    background: "white",
+                    color: "#3d355b",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {occ}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
       <style>{`
-        @keyframes hangerFadeIn {
-          0% { opacity: 0.2; transform: translateY(4px); }
-          100% { opacity: 1; transform: translateY(0); }
+        @keyframes sparkleBounce {
+          0%, 100% { opacity: 0.3; transform: translateY(0) scale(0.8); }
+          50% { opacity: 1; transform: translateY(-6px) scale(1.2); }
         }
-        .hanger-fade {
-          opacity: 0.2;
-          animation: hangerFadeIn 0.6s ease forwards;
+        .sparkle-loader {
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
-        .hanger-1 { animation-delay: 0s; }
-        .hanger-2 { animation-delay: 0.2s; }
-        .hanger-3 { animation-delay: 0.4s; }
+        .sparkle {
+          color: #7C6FE0;
+          font-size: 16px;
+          animation: sparkleBounce 1.2s ease-in-out infinite;
+        }
+        .s1 { animation-delay: 0s; }
+        .s2 { animation-delay: 0.2s; }
+        .s3 { animation-delay: 0.4s; }
+        @keyframes chatFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes chatFadeOut {
+          from { opacity: 1; }
+          to { opacity: 0.3; }
+        }
+        .chat-fade-in {
+          animation: chatFadeIn 0.4s ease-out;
+        }
+        .chat-fade-out {
+          animation: chatFadeOut 0.3s ease-out forwards;
+        }
       `}</style>
     </div>
   );
 }
 
 function FavoritesScreen() {
-  const [items, setItems] = useState([]);
+  const [savedOutfits, setSavedOutfits] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [sortSheetOpen, setSortSheetOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("recent");
+  const [filterOccasions, setFilterOccasions] = useState([]);
+  const [detailOutfit, setDetailOutfit] = useState(null);
+  const navigate = useNavigate();
+
+  const occasions = ["All", "Going Out", "Work", "Casual", "Date Night", "Event", "Travel", "Other"];
 
   useEffect(() => {
     let isMounted = true;
@@ -2042,18 +5034,23 @@ function FavoritesScreen() {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { if (isMounted) setIsLoading(false); return; }
-      const { data, error } = await supabase
-        .from("clothing_items")
-        .select("id, image_url, name, category, tags, is_favorited")
-        .eq("user_id", user.id)
-        .eq("is_favorited", true)
-        .order("created_at", { ascending: false });
+
+      const [{ data, error }, { data: convoData }] = await Promise.all([
+        supabase
+          .from("saved_outfits")
+          .select("id, occasion, title, outfit_images, description, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("conversations")
+          .select("id, title, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
+
       if (isMounted) {
-        setItems(error ? [] : (data || []).map((item) => ({
-          ...item,
-          name: item.name || "Clothing Item",
-          tags: item.tags || [],
-        })));
+        setSavedOutfits(error ? [] : (data || []));
+        setConversations(convoData || []);
         setIsLoading(false);
       }
     }
@@ -2061,20 +5058,61 @@ function FavoritesScreen() {
     return () => { isMounted = false; };
   }, []);
 
-  async function handleUnfavorite(itemId) {
-    const { error } = await supabase
-      .from("clothing_items")
-      .update({ is_favorited: false })
-      .eq("id", itemId);
-    if (error) { alert(`Failed: ${error.message}`); return; }
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
+  function clearAllFilters() {
+    setFilterOccasions([]);
   }
 
-  // Group favorited items into "outfits" of 3 for flat lay display
-  const outfitGroups = [];
-  for (let i = 0; i < items.length; i += 3) {
-    outfitGroups.push(items.slice(i, i + 3));
+  function toggleOccasionFilter(occasion) {
+    setFilterOccasions((prev) => (
+      prev.includes(occasion)
+        ? prev.filter((value) => value !== occasion)
+        : [...prev, occasion]
+    ));
   }
+
+  async function handleRemoveOutfit(outfitId) {
+    if (!window.confirm("Remove this outfit from your lookbook?")) return;
+    const { error } = await supabase.from("saved_outfits").delete().eq("id", outfitId);
+    if (error) { alert(`Failed: ${error.message}`); return; }
+    setSavedOutfits((prev) => prev.filter((o) => o.id !== outfitId));
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  function getConversationTitleForOutfit(outfitCreatedAt) {
+    if (!outfitCreatedAt || conversations.length === 0) return "";
+    const outfitTime = new Date(outfitCreatedAt).getTime();
+    const matchingConvo = conversations.find((convo) => new Date(convo.created_at).getTime() <= outfitTime);
+    return matchingConvo?.title || conversations[0]?.title || "";
+  }
+
+  const filteredOutfits = filterOccasions.length > 0
+    ? savedOutfits.filter((o) => filterOccasions.includes(o.occasion || "Other"))
+    : savedOutfits;
+
+  const sortedOutfits = [...filteredOutfits].sort((a, b) => {
+    if (sortBy === "title") return (a.title || a.occasion || "").localeCompare(b.title || b.occasion || "");
+    if (sortBy === "occasion") return (a.occasion || "Other").localeCompare(b.occasion || "Other") || new Date(b.created_at) - new Date(a.created_at);
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+
+  const activeFilterCount = filterOccasions.length;
+
+  function buildGroups() {
+    const groups = {};
+    for (const outfit of sortedOutfits) {
+      const key = outfit.occasion || "Other";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(outfit);
+    }
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }
+
+  const groupedOutfits = sortBy === "occasion" ? buildGroups() : [["all", sortedOutfits]];
 
   return (
     <div
@@ -2088,89 +5126,331 @@ function FavoritesScreen() {
         position: "relative",
       }}
     >
-      <div style={{ padding: "20px 16px 0" }}>
-        <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>Favorites</h1>
-        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>
-          {items.length} saved piece{items.length !== 1 ? "s" : ""}
+      <div style={{ padding: `calc(env(safe-area-inset-top) + 18px) 16px 0` }}>
+        <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>Lookbook</h1>
+        <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
+          {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
         </p>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 100px" }}>
+      <div style={{ display: "flex", gap: "8px", marginTop: "14px", padding: "0 16px" }}>
+        <button
+          type="button"
+          onClick={() => setFilterSheetOpen(true)}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            padding: "10px 0",
+            borderRadius: "12px",
+            border: activeFilterCount > 0 ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+            background: activeFilterCount > 0 ? "#f9f8ff" : "white",
+            color: activeFilterCount > 0 ? "#7C6FE0" : "#555",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+          </svg>
+          Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+        </button>
+        <button
+          type="button"
+          onClick={() => setSortSheetOpen(true)}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            padding: "10px 0",
+            borderRadius: "12px",
+            border: sortBy !== "recent" ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+            background: sortBy !== "recent" ? "#f9f8ff" : "white",
+            color: sortBy !== "recent" ? "#7C6FE0" : "#555",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="17 11 12 6 7 11" /><polyline points="17 18 12 13 7 18" />
+          </svg>
+          Sort By
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px 100px" }}>
         {isLoading ? (
-          <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "40px" }}>Loading favorites...</p>
-        ) : items.length === 0 ? (
+          <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ borderRadius: "22px", border: "1px solid #EEEAF8", padding: "10px", boxShadow: "0 6px 20px rgba(124,111,224,0.04)" }}>
+              <SkeletonBlock height="232px" radius="18px" />
+              <div style={{ padding: "12px 4px 2px" }}>
+                <SkeletonBlock width="62%" height="14px" style={{ marginBottom: "10px" }} />
+                <SkeletonBlock width="92px" height="12px" />
+              </div>
+            </div>
+            <div style={{ borderRadius: "22px", border: "1px solid #EEEAF8", padding: "10px", boxShadow: "0 6px 20px rgba(124,111,224,0.04)" }}>
+              <SkeletonBlock height="232px" radius="18px" />
+              <div style={{ padding: "12px 4px 2px" }}>
+                <SkeletonBlock width="70%" height="14px" style={{ marginBottom: "10px" }} />
+                <SkeletonBlock width="96px" height="12px" />
+              </div>
+            </div>
+          </div>
+        ) : sortedOutfits.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "60px", color: "#999" }}>
-            <p style={{ fontSize: "32px", marginBottom: "8px" }}>☆</p>
-            <p style={{ fontSize: "14px" }}>No favorites yet. Tap the star on items in your closet to save them here.</p>
+            <p style={{ fontSize: "32px", marginBottom: "8px" }}>♡</p>
+            <p style={{ fontSize: "14px" }}>
+              {savedOutfits.length === 0
+                ? "No saved looks yet. Save outfits from the Stylist Chat!"
+                : "No looks match these filters."}
+            </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {outfitGroups.map((group, gi) => {
-              const groupImages = group.map((item) => item.image_url);
-              const label = group.map((item) => item.name).join(" + ");
-              const categoryLabel = group[0]?.category || "Outfit";
-              return (
-                <div key={gi} style={{ position: "relative" }}>
-                  {/* Unfavorite buttons */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "10px",
-                      right: "10px",
-                      zIndex: 10,
-                      display: "flex",
-                      gap: "4px",
-                    }}
-                  >
-                    {group.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleUnfavorite(item.id)}
-                        style={{
-                          width: "30px",
-                          height: "30px",
-                          borderRadius: "50%",
-                          border: "none",
-                          background: "rgba(255,255,255,0.9)",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                          color: "#7C6FE0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                        }}
-                      >
-                        ★
-                      </button>
-                    ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            {groupedOutfits.map(([groupKey, groupItems]) => (
+              <div key={groupKey} style={{ marginBottom: sortBy === "occasion" ? "6px" : 0 }}>
+                {sortBy === "occasion" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>{groupKey}</p>
+                    <span style={{ fontSize: "12px", color: "#999" }}>({groupItems.length})</span>
+                    <div style={{ flex: 1, height: "1px", background: "#eee" }} />
                   </div>
-                  <FlatLayCard
-                    images={groupImages}
-                    caption={categoryLabel}
-                  >
-                    <p
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                  {groupItems.map((outfit) => (
+                    <div
+                      key={outfit.id}
                       style={{
-                        margin: "4px 0 0",
-                        fontSize: "11px",
-                        color: "#888",
-                        lineHeight: "1.3",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        borderRadius: "22px",
+                        background: "linear-gradient(180deg, #FFFFFF 0%, #FAF8FF 100%)",
+                        border: "1px solid #EEEAF8",
+                        boxShadow: "0 6px 20px rgba(124,111,224,0.06)",
+                        padding: "10px",
                       }}
                     >
-                      {label}
-                    </p>
-                  </FlatLayCard>
+                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer" }}>
+                        <FlatLayCard images={outfit.outfit_images || []} />
+                      </div>
+
+                      <div style={{ padding: "10px 4px 2px" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))}
+                            </p>
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                padding: "3px 9px",
+                                borderRadius: "999px",
+                                background: "rgba(124,111,224,0.08)",
+                                color: "#5F52D3",
+                                fontSize: "10px",
+                                fontWeight: 700,
+                                letterSpacing: "0.05em",
+                                textTransform: "uppercase",
+                                marginTop: "6px",
+                              }}
+                            >
+                              {getLookbookContextTag(outfit, getConversationTitleForOutfit(outfit.created_at))}
+                            </span>
+                            <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#8A8798", whiteSpace: "nowrap" }}>Saved {formatDate(outfit.created_at)}</p>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveOutfit(outfit.id)}
+                            aria-label="Remove look"
+                            title="Remove"
+                            style={{
+                              width: "34px",
+                              height: "34px",
+                              borderRadius: "50%",
+                              border: "1px solid #F5D8D8",
+                              background: "#FFF7F7",
+                              color: "#DC2626",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
-      <BottomNav />
+      {filterSheetOpen && (
+        <>
+          <div onClick={() => setFilterSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100 }} />
+          <div style={{
+            position: "fixed",
+            bottom: SHEET_BOTTOM_OFFSET,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "390px",
+            background: "white",
+            borderRadius: "24px 24px 0 0",
+            padding: "20px 20px 16px",
+            zIndex: 101,
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+            maxHeight: SHEET_MAX_HEIGHT,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}>
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd", margin: "0 auto 12px" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexShrink: 0 }}>
+              <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#1a1a2e" }}>Filters</h3>
+              {activeFilterCount > 0 && (
+                <button type="button" onClick={clearAllFilters} style={{ background: "none", border: "none", color: "#7C6FE0", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "2px" }}>
+              <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>Occasion</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {occasions.filter((occ) => occ !== "All").map((occ) => (
+                  <button
+                    key={occ}
+                    type="button"
+                    onClick={() => toggleOccasionFilter(occ)}
+                    style={{
+                      padding: "7px 16px",
+                      borderRadius: "100px",
+                      border: filterOccasions.includes(occ) ? "1.5px solid #7C6FE0" : "1px solid #e0e0e0",
+                      background: filterOccasions.includes(occ) ? "#f3f1fc" : "white",
+                      color: filterOccasions.includes(occ) ? "#7C6FE0" : "#555",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {occ}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setFilterSheetOpen(false)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "100px",
+                border: "none",
+                background: "#7C6FE0",
+                color: "white",
+                fontWeight: 600,
+                fontSize: "15px",
+                cursor: "pointer",
+                marginTop: "16px",
+                flexShrink: 0,
+              }}
+            >
+              Apply Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+            </button>
+          </div>
+        </>
+      )}
+
+      {sortSheetOpen && (
+        <>
+          <div onClick={() => setSortSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100 }} />
+          <div style={{
+            position: "fixed",
+            bottom: SHEET_BOTTOM_OFFSET,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "390px",
+            background: "white",
+            borderRadius: "24px 24px 0 0",
+            padding: "20px 20px 16px",
+            zIndex: 101,
+            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+            maxHeight: SHEET_MAX_HEIGHT,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}>
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd", margin: "0 auto 12px" }} />
+            <h3 style={{ margin: "0 0 16px", fontSize: "17px", fontWeight: 700, color: "#1a1a2e", flexShrink: 0 }}>Sort By</h3>
+            <div style={{ flex: 1, overflowY: "auto", paddingRight: "2px" }}>
+              {[
+                { value: "recent", label: "Recently Added" },
+                { value: "occasion", label: "Occasion", desc: "Grouped with headers" },
+                { value: "title", label: "Title", desc: "Alphabetical" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { setSortBy(opt.value); setSortSheetOpen(false); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "14px",
+                    border: "none",
+                    background: sortBy === opt.value ? "#f3f1fc" : "transparent",
+                    cursor: "pointer",
+                    marginBottom: "4px",
+                    textAlign: "left",
+                  }}
+                >
+                  <div>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: sortBy === opt.value ? "#7C6FE0" : "#1a1a2e" }}>{opt.label}</p>
+                    {opt.desc && <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#999" }}>{opt.desc}</p>}
+                  </div>
+                  {sortBy === opt.value && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {detailOutfit && (
+        <OutfitDetailModal
+          images={detailOutfit.outfit_images || []}
+          vibe={getLookbookDisplayTitle(detailOutfit, getConversationTitleForOutfit(detailOutfit.created_at))}
+          caption=""
+          onClose={() => setDetailOutfit(null)}
+          onNavigateChat={() => navigate("/chat")}
+        />
+      )}
     </div>
   );
 }
@@ -2222,17 +5502,25 @@ function AppRouter() {
 
   return (
     <div className={`min-h-screen ${isOnboarding ? "bg-gradient-to-b from-[#FFF0E8] to-[#E8E4F8]" : "bg-[#f4f4f8]"}`}>
+      <style>{`
+        @keyframes deShimmer {
+          0% { background-position: 100% 0; }
+          100% { background-position: 0 0; }
+        }
+      `}</style>
       <Routes>
         <Route path="/" element={publicElement(<OnboardingSplash />)} />
         <Route path="/signup" element={publicElement(<SignUpScreen />)} />
         <Route path="/login" element={publicElement(<LogInScreen />)} />
         <Route path="/home" element={protectedElement(<HomeScreen />)} />
         <Route path="/closet" element={protectedElement(<ClosetScreen />)} />
+        <Route path="/closet/:itemId" element={protectedElement(<ItemDetailScreen />)} />
         <Route path="/upload" element={protectedElement(<UploadScreen />)} />
         <Route path="/chat" element={protectedElement(<ChatScreen />)} />
         <Route path="/favorites" element={protectedElement(<FavoritesScreen />)} />
         <Route path="*" element={<Navigate to={session ? "/home" : "/"} replace />} />
       </Routes>
+      {session && !isOnboarding && <BottomNav />}
     </div>
   );
 }
