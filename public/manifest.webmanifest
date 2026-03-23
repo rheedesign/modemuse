@@ -7,10 +7,6 @@
   "background_color": "#FFFFFF",
   "theme_color": "#7C6FE0",
   "icons": [
-    {
-      "src": "/styliner-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
+    { "src": "/branding/Monogram.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

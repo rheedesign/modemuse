@@ -3,6 +3,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const aiEnabled = process.env.AI_ENABLED ?? process.env.VITE_AI_ENABLED;
+  if (String(aiEnabled) === "false") {
+    return res.status(503).json({ error: { message: "AI recommendations are temporarily paused." } });
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });

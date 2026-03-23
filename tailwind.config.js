@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#7C6FE0",
+        primary: "#B08A4A",
       },
       fontFamily: {
         sans: ["DM Sans", "sans-serif"],
@@ -13,4 +13,3 @@ export default {
   },
   plugins: [],
 }
-
