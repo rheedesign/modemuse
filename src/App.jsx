@@ -3513,10 +3513,99 @@ async function analyzeClothingImage(imageUrl) {
   }
 }
 
+const LOADING_MESSAGES = [
+  "Hanging up your pieces... \u{1F9F5}",
+  "Teaching AI your style... \u2726",
+  "Organizing your closet... \u{1F457}",
+  "Almost ready to style you... \u{1F4AB}",
+  "Adding to your wardrobe... \u{1F9E5}",
+];
+
+function UploadLoadingOverlay({ progress, fading, phase }) {
+  const [msgIndex, setMsgIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 13000,
+        background: "linear-gradient(180deg, #FFF0E8 0%, #f3eefa 50%, #E8E4F8 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: fading ? 0 : 1,
+        transition: "opacity 0.5s ease-out",
+      }}
+    >
+      {/* Progress bar */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "3px", background: "rgba(124, 111, 224, 0.15)" }}>
+        <div
+          style={{
+            height: "100%",
+            width: `${Math.min(progress * 100, 100)}%`,
+            background: "linear-gradient(90deg, #7C6FE0, #a78bfa)",
+            borderRadius: "0 2px 2px 0",
+            transition: "width 0.4s ease-out",
+          }}
+        />
+      </div>
+
+      {/* Swinging hanger */}
+      <div style={{ marginBottom: "32px" }}>
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 64 64"
+          fill="none"
+          style={{
+            animation: "deHangerSwing 2s ease-in-out infinite",
+            transformOrigin: "32px 8px",
+          }}
+        >
+          <circle cx="32" cy="8" r="4" stroke="#7C6FE0" strokeWidth="2.5" fill="none" />
+          <path d="M32 12 L32 20" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M32 20 L8 44" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M32 20 L56 44" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M8 44 Q8 50 14 50 L50 50 Q56 50 56 44" stroke="#7C6FE0" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        </svg>
+      </div>
+
+      {/* Cycling message */}
+      <p
+        key={msgIndex}
+        style={{
+          fontSize: "16px",
+          fontWeight: 600,
+          color: "#3d355b",
+          animation: "deFadeInUp 0.35s ease-out",
+          textAlign: "center",
+          padding: "0 24px",
+        }}
+      >
+        {LOADING_MESSAGES[msgIndex]}
+      </p>
+
+      <p style={{ fontSize: "12px", color: "#999", marginTop: "8px" }}>
+        {phase === "saving" ? "Saving to your closet" : "This may take a moment"}
+      </p>
+    </div>
+  );
+}
+
 function UploadScreen() {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [phase, setPhase] = useState("pick"); // pick | removing_bg | analyzing | confirm | saving
-  const [uploadStatus, setUploadStatus] = useState("");
+  const [phase, setPhase] = useState("pick"); // pick | analyzing | confirm | saving
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [overlayFading, setOverlayFading] = useState(false);
   const [detectedItems, setDetectedItems] = useState([]);
   const navigate = useNavigate();
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -3560,46 +3649,24 @@ function UploadScreen() {
     });
   }
 
-  async function removeBackground(file) {
-    const compressed = await compressImage(file);
-    const formData = new FormData();
-    formData.append("image_file", compressed, file.name);
-    const res = await fetch("/api/photoroom", {
-      method: "POST",
-      body: formData,
-    });
-    if (!res.ok) throw new Error("Background removal failed");
-    const blob = await res.blob();
-    return new File([blob], file.name.replace(/\.[^.]+$/, ".png"), { type: "image/png" });
-  }
-
   async function handleAnalyze() {
     if (!selectedFiles.length) return;
 
-    // Step 1: Remove backgrounds
-    setPhase("removing_bg");
-    const processedFiles = [];
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const item = selectedFiles[i];
-      setUploadStatus(`Removing background... (${i + 1}/${selectedFiles.length})`);
-      try {
-        const bgRemoved = await removeBackground(item.file);
-        processedFiles.push({ ...item, file: bgRemoved, previewUrl: URL.createObjectURL(bgRemoved) });
-      } catch (err) {
-        console.warn("[Upload] Background removal failed, using original:", err.message);
-        processedFiles.push(item);
-      }
-    }
-
-    // Step 2: Upload to Cloudinary and analyze
     setPhase("analyzing");
+    setLoadingProgress(0);
+    setOverlayFading(false);
     try {
       const allDetected = [];
-      for (let i = 0; i < processedFiles.length; i++) {
-        const item = processedFiles[i];
-        setUploadStatus(`Uploading to your closet... (${i + 1}/${processedFiles.length})`);
-        const cloudinaryData = await uploadToCloudinary(item.file);
+      const total = selectedFiles.length;
+      for (let i = 0; i < total; i++) {
+        const item = selectedFiles[i];
+        setLoadingProgress(((i) / total) * 0.3);
+        const compressed = await compressImage(item.file);
+        const compressedFile = new File([compressed], item.file.name, { type: "image/jpeg" });
+        setLoadingProgress(((i) / total) * 0.3 + 0.1);
+        const cloudinaryData = await uploadToCloudinary(compressedFile);
         const imageUrl = cloudinaryData.secure_url;
+        setLoadingProgress(((i + 0.5) / total) * 0.7 + 0.3);
 
         const response = await fetch("/api/anthropic/v1/messages", {
           method: "POST",
@@ -3630,14 +3697,16 @@ function UploadScreen() {
         if (!jsonMatch) throw new Error("No JSON array in response");
 
         const parsed = JSON.parse(jsonMatch[0]);
-        allDetected.push(...parsed.map((d, i) => ({
+        allDetected.push(...parsed.map((d, idx) => ({
           ...d,
-          id: `${allDetected.length + i}`,
+          id: `${allDetected.length + idx}`,
           checked: true,
           imageUrl,
           publicId: cloudinaryData.public_id,
         })));
+        setLoadingProgress(((i + 1) / total) * 0.7 + 0.3);
       }
+      setLoadingProgress(1);
       setDetectedItems(allDetected);
       setPhase("confirm");
     } catch (err) {
@@ -3651,11 +3720,14 @@ function UploadScreen() {
     const confirmed = detectedItems.filter((i) => i.checked);
     if (!confirmed.length) { alert("Select at least one item."); return; }
     setPhase("saving");
+    setLoadingProgress(0);
+    setOverlayFading(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { alert("Not logged in."); return; }
 
-      for (const item of confirmed) {
+      for (let i = 0; i < confirmed.length; i++) {
+        const item = confirmed[i];
         const tags = Array.isArray(item.tags) ? item.tags : [];
         const { error } = await supabase
           .from("clothing_items")
@@ -3670,7 +3742,11 @@ function UploadScreen() {
           })
           .select();
         if (error) throw new Error(error.message);
+        setLoadingProgress((i + 1) / confirmed.length);
       }
+      setLoadingProgress(1);
+      setOverlayFading(true);
+      await new Promise((r) => setTimeout(r, 600));
       navigate("/closet");
     } catch (err) {
       alert(`Save failed: ${err.message}`);
@@ -3764,14 +3840,8 @@ function UploadScreen() {
           </>
         )}
 
-        {(phase === "removing_bg" || phase === "analyzing") && (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            {selectedFiles[0] && <img src={selectedFiles[0].previewUrl} alt="" style={{ width: "60%", borderRadius: "16px", marginBottom: "16px", opacity: 0.7 }} />}
-            <p style={{ color: "#7C6FE0", fontWeight: 600, fontSize: "14px" }}>
-              {phase === "removing_bg" ? "Removing backgrounds..." : "Analyzing your photos..."}
-            </p>
-            <p style={{ color: "#999", fontSize: "12px", marginTop: "4px" }}>{uploadStatus || "Preparing your items"}</p>
-          </div>
+        {(phase === "analyzing" || phase === "saving") && (
+          <UploadLoadingOverlay progress={loadingProgress} fading={overlayFading} phase={phase} />
         )}
 
         {phase === "confirm" && (
@@ -5579,6 +5649,14 @@ function AppRouter() {
         @keyframes deShimmer {
           0% { background-position: 100% 0; }
           100% { background-position: 0 0; }
+        }
+        @keyframes deHangerSwing {
+          0%, 100% { transform: rotate(-12deg); }
+          50% { transform: rotate(12deg); }
+        }
+        @keyframes deFadeInUp {
+          0% { opacity: 0; transform: translateY(8px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
       `}</style>
       <Routes>
