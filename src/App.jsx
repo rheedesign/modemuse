@@ -3798,7 +3798,7 @@ function UploadScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 80px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 160px" }}>
 
         {phase === "pick" && (
           <>
@@ -3900,19 +3900,29 @@ function UploadScreen() {
         )}
       </div>
 
-      {/* Bottom CTA */}
-      <div style={{ padding: "0 20px 20px" }}>
-        {phase === "pick" && selectedFiles.length > 0 && (
-          <button onClick={handleAnalyze} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
-            Continue ({selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""})
-          </button>
-        )}
-        {phase === "confirm" && (
-          <button onClick={handleSave} style={{ width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none", color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer" }}>
-            Save {detectedItems.filter((i) => i.checked).length} Item{detectedItems.filter((i) => i.checked).length !== 1 ? "s" : ""} to Closet
-          </button>
-        )}
-      </div>
+      {/* Bottom CTA — fixed */}
+      {phase === "pick" && selectedFiles.length > 0 && (
+        <button onClick={handleAnalyze} style={{
+          position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)",
+          width: "calc(100% - 40px)", maxWidth: "390px", zIndex: 50,
+          padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none",
+          color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+        }}>
+          Continue ({selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""})
+        </button>
+      )}
+      {phase === "confirm" && (
+        <button onClick={handleSave} style={{
+          position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)",
+          width: "calc(100% - 40px)", maxWidth: "390px", zIndex: 50,
+          padding: "14px", borderRadius: "100px", background: "#7C6FE0", border: "none",
+          color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(124,111,224,0.3)",
+        }}>
+          Save {detectedItems.filter((i) => i.checked).length} Item{detectedItems.filter((i) => i.checked).length !== 1 ? "s" : ""} to Closet
+        </button>
+      )}
     </div>
   );
 }
