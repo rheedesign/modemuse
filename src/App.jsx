@@ -1760,6 +1760,10 @@ function HomeScreen() {
   const [suggestionVibe, setSuggestionVibe] = useState("Today's Look");
   const [loadingOutfit, setLoadingOutfit] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [dailyLookCount, setDailyLookCount] = useState(0);
+  const [limitReached, setLimitReached] = useState(false);
+  const [countdownText, setCountdownText] = useState("");
+  const DAILY_LOOK_LIMIT = 10;
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [editStyleGender, setEditStyleGender] = useState("womens");
@@ -1823,6 +1827,55 @@ function HomeScreen() {
     if (tempF !== null && tempF <= 65) return 5;
     return 4;
   }
+
+  const isAdmin = userEmail === "cnrhee@gmail.com";
+
+  function getDailyLookCount() {
+    try {
+      const raw = localStorage.getItem("styliner_daily_look_count");
+      if (!raw) return 0;
+      const parsed = JSON.parse(raw);
+      const today = new Date().toDateString();
+      return parsed.date === today ? (parsed.count || 0) : 0;
+    } catch { return 0; }
+  }
+
+  function incrementDailyLookCount() {
+    const today = new Date().toDateString();
+    const current = getDailyLookCount();
+    const next = current + 1;
+    localStorage.setItem("styliner_daily_look_count", JSON.stringify({ date: today, count: next }));
+    setDailyLookCount(next);
+    if (!isAdmin && next >= DAILY_LOOK_LIMIT) setLimitReached(true);
+    return next;
+  }
+
+  function getCountdownToMidnight() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  }
+
+  // Countdown timer
+  useEffect(() => {
+    if (!limitReached || isAdmin) return;
+    setCountdownText(getCountdownToMidnight());
+    const interval = setInterval(() => {
+      setCountdownText(getCountdownToMidnight());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [limitReached, isAdmin]);
+
+  // Initialize daily count on mount
+  useEffect(() => {
+    const count = getDailyLookCount();
+    setDailyLookCount(count);
+    if (count >= DAILY_LOOK_LIMIT) setLimitReached(true);
+  }, []);
 
   function getRotationMap(items) {
     return Object.fromEntries((items || []).map((item) => [item.image_url, item.rotation || 0]));
@@ -2137,9 +2190,15 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
   }
 
   async function refreshSuggestedOutfit(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
+    if (!isAdmin && getDailyLookCount() >= DAILY_LOOK_LIMIT) {
+      setLimitReached(true);
+      setCountdownText(getCountdownToMidnight());
+      return null;
+    }
     const result = await fetchOutfitSuggestion(extraInstruction, temperature, feature, currentUser);
     if (!result) return null;
     applyOutfitResult(result);
+    if (!isAdmin) incrementDailyLookCount();
     return result;
   }
 
@@ -2184,8 +2243,10 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
       setItemCount(count || 0);
       closetDataRef.current = validItems;
       if (validItems.length === 0) { setLoadingOutfit(false); return; }
-      if (hasFetchedOutfit.current) { setLoadingOutfit(false); return; }
+      const isAdmin = user.email === "cnrhee@gmail.com";
+      if (!isAdmin && hasFetchedOutfit.current) { setLoadingOutfit(false); return; }
       hasFetchedOutfit.current = true;
+      if (isAdmin) outfitHistoryRef.current = [];
 
       try {
         const result = await refreshSuggestedOutfit(undefined, 0.85, "home_daily_outfit", user);
@@ -2203,6 +2264,11 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
 
   async function handleNewLook() {
     if (regenerating || loadingOutfit) return;
+    if (!isAdmin && getDailyLookCount() >= DAILY_LOOK_LIMIT) {
+      setLimitReached(true);
+      setCountdownText(getCountdownToMidnight());
+      return;
+    }
     setRegenerating(true);
     setLoadingOutfit(true);
     try {
@@ -2466,30 +2532,50 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                   >
                     Get Styled
                   </button>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
-                    disabled={regenerating}
-                    style={{
-                      border: "1.5px solid #B08A4A",
-                      background: "transparent",
-                      color: "#B08A4A",
+                  {limitReached && !isAdmin ? (
+                    <div style={{
+                      border: "1.5px solid #e0ddf5",
+                      background: "rgba(255,255,255,0.5)",
                       borderRadius: "100px",
                       padding: "10px 18px",
                       fontSize: "12px",
                       fontWeight: 600,
-                      cursor: regenerating ? "default" : "pointer",
-                      opacity: regenerating ? 0.6 : 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      transition: "opacity 0.2s",
-                    }}
-                  >
-                    <span style={{ display: "inline-block", transform: regenerating ? "none" : "scaleX(-1)", fontSize: "14px" }}>↻</span>
-                    {regenerating ? "Styling..." : "New Look"}
-                  </button>
+                      color: "#999",
+                      textAlign: "center",
+                    }}>
+                      {"\u2726"} Back in {countdownText}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
+                      disabled={regenerating}
+                      style={{
+                        border: "1.5px solid #B08A4A",
+                        background: "transparent",
+                        color: "#B08A4A",
+                        borderRadius: "100px",
+                        padding: "10px 18px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: regenerating ? "default" : "pointer",
+                        opacity: regenerating ? 0.6 : 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        transition: "opacity 0.2s",
+                      }}
+                    >
+                      <span style={{ display: "inline-block", transform: regenerating ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
+                      {regenerating ? "Styling..." : "New Look"}
+                    </button>
+                  )}
                 </div>
+                {!isAdmin && !limitReached && dailyLookCount > 0 && (
+                  <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#bbb", textAlign: "center" }}>
+                    {DAILY_LOOK_LIMIT - dailyLookCount} of {DAILY_LOOK_LIMIT} looks remaining today
+                  </p>
+                )}
               </FlatLayCard>
             </div>
           ) : (
