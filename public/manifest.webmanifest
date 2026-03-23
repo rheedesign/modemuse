@@ -1,6 +1,6 @@
 {
-  "name": "Daily Edit",
-  "short_name": "Daily Edit",
+  "name": "Styliner",
+  "short_name": "Styliner",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -8,7 +8,7 @@
   "theme_color": "#7C6FE0",
   "icons": [
     {
-      "src": "/daily-edit-icon.svg",
+      "src": "/styliner-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

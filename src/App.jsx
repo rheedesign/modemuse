@@ -87,10 +87,10 @@ function LogoWordmark({ compact = false, centered = false }) {
       <LogoMark size={compact ? 38 : 44} />
       <div style={{ textAlign: centered ? "center" : "left" }}>
         <div style={{ fontSize: compact ? "20px" : "24px", fontWeight: 800, letterSpacing: "-0.05em", color: "#161625", lineHeight: 1 }}>
-          Daily Edit
+          Styliner
         </div>
         <div style={{ marginTop: "4px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#7C6FE0" }}>
-          Your style, curated
+          Style smarter, not harder
         </div>
       </div>
     </div>
@@ -486,7 +486,7 @@ function OnboardingSplash() {
       <div className="flex min-h-[80vh] flex-col justify-between">
         <div className="pt-14 text-center">
           <LogoWordmark centered />
-          <h1 className="mt-4 text-4xl font-bold leading-tight text-gray-900">Your AI wardrobe stylist</h1>
+          <h1 className="mt-4 text-4xl font-bold leading-tight text-gray-900">Your AI style assistant</h1>
           <p className="mt-4 text-sm text-gray-600">Upload your closet, mix looks, and get instant outfit ideas.</p>
         </div>
         <div className="space-y-3 pb-10">
@@ -656,7 +656,7 @@ function LogInScreen() {
           <LogoWordmark compact centered />
         </div>
         <h2 className="text-center text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-1 text-center text-sm text-gray-600">Log in to continue with Daily Edit.</p>
+        <p className="mt-1 text-center text-sm text-gray-600">Log in to continue with Styliner</p>
         <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
           <Field
             label="Email"
@@ -1026,12 +1026,12 @@ function HomeScreen() {
   const [nameInput, setNameInput] = useState("");
   const [editStyleGender, setEditStyleGender] = useState("womens");
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
-  const [locationMode, setLocationMode] = useState(() => localStorage.getItem("modemuse_weather_location_mode") || "current");
-  const [locationQuery, setLocationQuery] = useState(() => localStorage.getItem("modemuse_weather_location_query") || "");
-  const [locationLabel, setLocationLabel] = useState(() => localStorage.getItem("modemuse_weather_location_label") || "");
-  const [locationInput, setLocationInput] = useState(() => localStorage.getItem("modemuse_weather_location_query") || "");
+  const [locationMode, setLocationMode] = useState(() => localStorage.getItem("styliner_weather_location_mode") || "current");
+  const [locationQuery, setLocationQuery] = useState(() => localStorage.getItem("styliner_weather_location_query") || "");
+  const [locationLabel, setLocationLabel] = useState(() => localStorage.getItem("styliner_weather_location_label") || "");
+  const [locationInput, setLocationInput] = useState(() => localStorage.getItem("styliner_weather_location_query") || "");
   const [locationSaving, setLocationSaving] = useState(false);
-  const [useCelsius, setUseCelsius] = useState(() => localStorage.getItem("modemuse_tempUnit") === "C");
+  const [useCelsius, setUseCelsius] = useState(() => localStorage.getItem("styliner_tempUnit") === "C");
   const [outfitModalOpen, setOutfitModalOpen] = useState(false);
   const closetDataRef = useRef([]);
   const weatherRef = useRef({ tempF: null, cityName: "", weatherCode: null, windSpeed: null });
@@ -1043,7 +1043,7 @@ function HomeScreen() {
   function toggleTempUnit() {
     const newVal = !useCelsius;
     setUseCelsius(newVal);
-    localStorage.setItem("modemuse_tempUnit", newVal ? "C" : "F");
+    localStorage.setItem("styliner_tempUnit", newVal ? "C" : "F");
   }
 
   function formatTemp(tempF) {
@@ -1113,9 +1113,9 @@ function HomeScreen() {
     setLocationMode(mode);
     setLocationQuery(query);
     setLocationLabel(label);
-    localStorage.setItem("modemuse_weather_location_mode", mode);
-    localStorage.setItem("modemuse_weather_location_query", query);
-    localStorage.setItem("modemuse_weather_location_label", label);
+    localStorage.setItem("styliner_weather_location_mode", mode);
+    localStorage.setItem("styliner_weather_location_query", query);
+    localStorage.setItem("styliner_weather_location_label", label);
   }
 
   async function loadWeatherFromCoordinates(latitude, longitude, fallbackLabel = "") {
@@ -1138,7 +1138,7 @@ function HomeScreen() {
     weatherRef.current = { tempF, cityName, weatherCode, windSpeed };
     setWeather(true);
     setLocationLabel(cityName);
-    localStorage.setItem("modemuse_weather_location_label", cityName);
+    localStorage.setItem("styliner_weather_location_label", cityName);
     return cityName;
   }
 
@@ -1940,12 +1940,9 @@ function ClosetScreen() {
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState("");
   const [reanalyzeDone, setReanalyzeDone] = useState(false);
-  const [contextMenu, setContextMenu] = useState(null);
-  const [contextMenuVisible, setContextMenuVisible] = useState(false);
+  const [actionSheetItem, setActionSheetItem] = useState(null);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const longPressTimerRef = useRef(null);
-  const closeMenuTimerRef = useRef(null);
-  const longPressTriggeredRef = useRef(false);
 
   // Filter state
   const [filterCategory, setFilterCategory] = useState("All");
@@ -2032,60 +2029,16 @@ function ClosetScreen() {
     setFilterColors((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
   }
 
-  function clearLongPressTimer() {
-    if (longPressTimerRef.current) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }
-
-  function clearCloseMenuTimer() {
-    if (closeMenuTimerRef.current) {
-      window.clearTimeout(closeMenuTimerRef.current);
-      closeMenuTimerRef.current = null;
-    }
-  }
-
-  function closeContextMenu() {
-    clearLongPressTimer();
-    clearCloseMenuTimer();
-    setContextMenuVisible(false);
+  function openActionSheet(item) {
     setDeleteConfirmOpen(false);
-    closeMenuTimerRef.current = window.setTimeout(() => {
-      setContextMenu(null);
-    }, 180);
+    setActionSheetItem(item);
+    window.requestAnimationFrame(() => setActionSheetVisible(true));
   }
 
-  function openContextMenu(item, element) {
-    clearCloseMenuTimer();
-    const rect = element.getBoundingClientRect();
-    const menuWidth = 220;
-    const padding = 20;
-    const left = Math.min(
-      window.innerWidth - padding - menuWidth / 2,
-      Math.max(padding + menuWidth / 2, rect.left + rect.width / 2)
-    );
-    const top = Math.min(window.innerHeight - 140, Math.max(100, rect.top + rect.height / 2));
-
+  function closeActionSheet() {
+    setActionSheetVisible(false);
     setDeleteConfirmOpen(false);
-    setContextMenu({
-      item,
-      position: { left, top },
-    });
-    window.requestAnimationFrame(() => setContextMenuVisible(true));
-  }
-
-  function startLongPress(item, element) {
-    clearLongPressTimer();
-    longPressTriggeredRef.current = false;
-    longPressTimerRef.current = window.setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      openContextMenu(item, element);
-    }, 500);
-  }
-
-  function endLongPress() {
-    clearLongPressTimer();
+    setTimeout(() => setActionSheetItem(null), 250);
   }
 
   async function handleFavoriteItem(item) {
@@ -2102,16 +2055,16 @@ function ClosetScreen() {
     setItems((prev) => prev.map((entry) => (
       entry.id === item.id ? { ...entry, is_favorited: true } : entry
     )));
-    closeContextMenu();
+    closeActionSheet();
   }
 
   function handleStyleItem(item) {
-    closeContextMenu();
+    closeActionSheet();
     navigate("/chat", { state: { styleItemMessage: `Show me 3 outfit options using my ${item.name || "item"}` } });
   }
 
   function handleEditItem(item) {
-    closeContextMenu();
+    closeActionSheet();
     navigate(`/closet/${item.id}`);
   }
 
@@ -2123,13 +2076,24 @@ function ClosetScreen() {
     }
 
     setItems((prev) => prev.filter((entry) => entry.id !== item.id));
-    closeContextMenu();
+    closeActionSheet();
   }
 
-  useEffect(() => () => {
-    clearLongPressTimer();
-    clearCloseMenuTimer();
-  }, []);
+  async function handleRotateItem(item) {
+    const newRotation = ((item.rotation || 0) + 90) % 360;
+    const { error } = await supabase
+      .from("clothing_items")
+      .update({ rotation: newRotation })
+      .eq("id", item.id);
+    if (!error) {
+      setItems((prev) => prev.map((entry) =>
+        entry.id === item.id ? { ...entry, rotation: newRotation } : entry
+      ));
+    }
+    closeActionSheet();
+  }
+
+  useEffect(() => () => {}, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -2457,28 +2421,24 @@ function ClosetScreen() {
                 }}
               >
                 {groupItems.map((item) => (
-                  <div
-                    key={item.id}
-                    style={{ cursor: "pointer", minWidth: 0, overflow: "hidden" }}
-                    onClick={() => {
-                      if (longPressTriggeredRef.current) {
-                        longPressTriggeredRef.current = false;
-                        return;
-                      }
-                      navigate(`/closet/${item.id}`);
-                    }}
-                    onMouseDown={(e) => {
-                      if (e.button !== 0) return;
-                      startLongPress(item, e.currentTarget);
-                    }}
-                    onMouseUp={endLongPress}
-                    onMouseLeave={endLongPress}
-                    onTouchStart={(e) => startLongPress(item, e.currentTarget)}
-                    onTouchEnd={endLongPress}
-                    onTouchCancel={endLongPress}
-                    onContextMenu={(e) => e.preventDefault()}
-                  >
-                    <ClosetItemImage url={item.image_url} name={item.name} rotation={item.rotation} />
+                  <div key={item.id} style={{ cursor: "pointer", minWidth: 0, overflow: "hidden", position: "relative" }}>
+                    <div onClick={() => navigate(`/closet/${item.id}`)}>
+                      <ClosetItemImage url={item.image_url} name={item.name} rotation={item.rotation} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openActionSheet(item); }}
+                      style={{
+                        position: "absolute", top: "6px", right: "6px",
+                        width: "28px", height: "28px", borderRadius: "50%",
+                        background: "rgba(255,255,255,0.9)", border: "none",
+                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)", zIndex: 2,
+                        fontSize: "14px", color: "#555", letterSpacing: "1px", lineHeight: 1, padding: 0,
+                      }}
+                    >
+                      •••
+                    </button>
                     <p
                       style={{
                         margin: "8px 0 0",
@@ -2761,73 +2721,67 @@ function ClosetScreen() {
         </>
       )}
 
-      {contextMenu && (
+      {actionSheetItem && (
         <>
+          {/* Backdrop */}
           <div
-            onClick={closeContextMenu}
+            onClick={closeActionSheet}
             style={{
               position: "fixed",
               inset: 0,
-              background: "rgba(0,0,0,0.38)",
+              background: actionSheetVisible ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0)",
               zIndex: 110,
+              transition: "background 0.25s ease",
             }}
           />
+          {/* Bottom sheet */}
           <div
             style={{
               position: "fixed",
-              left: `${contextMenu.position.left}px`,
-              top: `${contextMenu.position.top}px`,
-              width: deleteConfirmOpen ? "228px" : "220px",
-              background: "rgba(255,255,255,0.98)",
-              borderRadius: "18px",
-              boxShadow: "0 18px 40px rgba(15,23,42,0.22)",
-              border: "1px solid rgba(255,255,255,0.7)",
+              bottom: 0,
+              left: "50%",
+              transform: `translateX(-50%) translateY(${actionSheetVisible ? "0" : "100%"})`,
+              width: "100%",
+              maxWidth: "430px",
+              background: "white",
+              borderRadius: "20px 20px 0 0",
+              boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
               zIndex: 111,
-              overflow: "hidden",
-              opacity: contextMenuVisible ? 1 : 0,
-              transform: `translate(-50%, -50%) scale(${contextMenuVisible ? 1 : 0.9})`,
-              transformOrigin: "center",
-              transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease",
-              backdropFilter: "blur(14px)",
+              transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
             }}
           >
+            {/* Handle */}
+            <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}>
+              <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "#ddd" }} />
+            </div>
+            {/* Item name */}
+            <p style={{ margin: 0, padding: "4px 20px 12px", fontSize: "14px", fontWeight: 700, color: "#1a1a2e", textAlign: "center" }}>
+              {actionSheetItem.name}
+            </p>
             {deleteConfirmOpen ? (
-              <div style={{ padding: "18px 16px 14px" }}>
-                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e", textAlign: "center" }}>Delete this item?</p>
-                <p style={{ margin: "6px 0 14px", fontSize: "12px", color: "#777", textAlign: "center", lineHeight: 1.45 }}>
-                  This will remove {contextMenu.item.name || "this item"} from your closet.
+              <div style={{ padding: "8px 20px 16px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: 700, color: "#1a1a2e", textAlign: "center" }}>Delete this item?</p>
+                <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#777", textAlign: "center" }}>
+                  This will remove {actionSheetItem.name || "this item"} from your closet.
                 </p>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "10px" }}>
                   <button
                     type="button"
                     onClick={() => setDeleteConfirmOpen(false)}
                     style={{
-                      flex: 1,
-                      border: "1px solid #e5e7eb",
-                      background: "white",
-                      color: "#555",
-                      borderRadius: "12px",
-                      padding: "11px 12px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      cursor: "pointer",
+                      flex: 1, border: "1px solid #e5e7eb", background: "white", color: "#555",
+                      borderRadius: "14px", padding: "14px", fontSize: "14px", fontWeight: 600, cursor: "pointer",
                     }}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDeleteItem(contextMenu.item)}
+                    onClick={() => handleDeleteItem(actionSheetItem)}
                     style={{
-                      flex: 1,
-                      border: "none",
-                      background: "#ef4444",
-                      color: "white",
-                      borderRadius: "12px",
-                      padding: "11px 12px",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      cursor: "pointer",
+                      flex: 1, border: "none", background: "#ef4444", color: "white",
+                      borderRadius: "14px", padding: "14px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
                     }}
                   >
                     Delete
@@ -2835,34 +2789,14 @@ function ClosetScreen() {
                 </div>
               </div>
             ) : (
-              <div style={{ padding: "8px" }}>
+              <div>
                 {[
-                  {
-                    key: "favorite",
-                    label: "Save to Lookbook",
-                    icon: "♥",
-                    onClick: () => handleFavoriteItem(contextMenu.item),
-                  },
-                  {
-                    key: "style",
-                    label: "Style this item",
-                    icon: "✦",
-                    onClick: () => handleStyleItem(contextMenu.item),
-                  },
-                  {
-                    key: "edit",
-                    label: "Edit item",
-                    icon: "✏",
-                    onClick: () => handleEditItem(contextMenu.item),
-                  },
-                  {
-                    key: "delete",
-                    label: "Delete",
-                    icon: "🗑",
-                    onClick: () => setDeleteConfirmOpen(true),
-                    danger: true,
-                  },
-                ].map((action, idx, arr) => (
+                  { key: "favorite", label: "Save to Lookbook", icon: "\u2665", onClick: () => handleFavoriteItem(actionSheetItem) },
+                  { key: "style", label: "Style this item", icon: "\u2726", onClick: () => handleStyleItem(actionSheetItem) },
+                  { key: "rotate", label: "Rotate image", icon: "\u21BA", onClick: () => handleRotateItem(actionSheetItem) },
+                  { key: "edit", label: "Edit item", icon: "\u270F", onClick: () => handleEditItem(actionSheetItem) },
+                  { key: "delete", label: "Delete item", icon: "\uD83D\uDDD1", onClick: () => setDeleteConfirmOpen(true), danger: true },
+                ].map((action) => (
                   <button
                     key={action.key}
                     type="button"
@@ -2871,23 +2805,41 @@ function ClosetScreen() {
                       width: "100%",
                       display: "flex",
                       alignItems: "center",
-                      gap: "10px",
+                      gap: "14px",
                       border: "none",
                       background: "transparent",
-                      padding: "12px 14px",
-                      borderRadius: "12px",
+                      padding: "15px 20px",
                       cursor: "pointer",
-                      fontSize: "14px",
-                      fontWeight: 600,
+                      fontSize: "15px",
+                      fontWeight: 500,
                       color: action.danger ? "#dc2626" : "#1a1a2e",
                       textAlign: "left",
-                      borderBottom: idx === arr.length - 1 ? "none" : "1px solid #f1f1f4",
+                      borderTop: "1px solid #f3f3f5",
                     }}
                   >
-                    <span style={{ width: "18px", textAlign: "center", flexShrink: 0 }}>{action.icon}</span>
+                    <span style={{ width: "22px", textAlign: "center", flexShrink: 0, fontSize: "16px" }}>{action.icon}</span>
                     <span>{action.label}</span>
                   </button>
                 ))}
+                {/* Cancel */}
+                <button
+                  type="button"
+                  onClick={closeActionSheet}
+                  style={{
+                    width: "100%",
+                    padding: "15px 20px",
+                    border: "none",
+                    borderTop: "1px solid #f3f3f5",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    color: "#999",
+                    textAlign: "center",
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             )}
           </div>
@@ -3602,13 +3554,19 @@ function UploadLoadingOverlay({ progress, fading, phase }) {
 }
 
 function UploadScreen() {
+  const seenTips = localStorage.getItem("de_upload_tips_seen") === "1";
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [phase, setPhase] = useState("pick"); // pick | analyzing | confirm | saving
+  const [phase, setPhase] = useState(seenTips ? "pick" : "tips"); // tips | pick | analyzing | confirm | saving
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [overlayFading, setOverlayFading] = useState(false);
   const [detectedItems, setDetectedItems] = useState([]);
   const navigate = useNavigate();
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  function dismissTips() {
+    localStorage.setItem("de_upload_tips_seen", "1");
+    setPhase("pick");
+  }
 
   useEffect(() => {
     return () => {
@@ -3629,21 +3587,21 @@ function UploadScreen() {
     return data;
   }
 
-  async function compressImage(file, maxSizeMB = 3) {
+  async function compressImage(file) {
     return new Promise((resolve) => {
       const canvas = document.createElement("canvas");
       const img = new Image();
       img.onload = () => {
         let w = img.width, h = img.height;
-        const maxPx = 1500;
+        const maxPx = 1200;
         if (w > maxPx || h > maxPx) {
-          if (w > h) { h = h * maxPx / w; w = maxPx; }
-          else { w = w * maxPx / h; h = maxPx; }
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
         }
         canvas.width = w;
         canvas.height = h;
         canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        canvas.toBlob(resolve, "image/jpeg", 0.8);
+        canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })), "image/jpeg", 0.82);
       };
       img.src = URL.createObjectURL(file);
     });
@@ -3661,8 +3619,7 @@ function UploadScreen() {
       for (let i = 0; i < total; i++) {
         const item = selectedFiles[i];
         setLoadingProgress(((i) / total) * 0.3);
-        const compressed = await compressImage(item.file);
-        const compressedFile = new File([compressed], item.file.name, { type: "image/jpeg" });
+        const compressedFile = await compressImage(item.file);
         setLoadingProgress(((i) / total) * 0.3 + 0.1);
         const cloudinaryData = await uploadToCloudinary(compressedFile);
         const imageUrl = cloudinaryData.secure_url;
@@ -3683,7 +3640,7 @@ function UploadScreen() {
               role: "user",
               content: [
                 { type: "image", source: { type: "url", url: imageUrl } },
-                { type: "text", text: "Analyze this photo and identify every distinct clothing item and accessory you can see. For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
+                { type: "text", text: "Analyze this photo and identify clothing items. Focus only on the most prominent clothing item — the one that is largest, most centered, or most in focus in the frame. Ignore partial items at the edges, background items, or items that appear incidentally. If one item clearly dominates the frame, return only that item. Only return multiple items if they are equally prominent and clearly intentional (like a flat lay of multiple pieces). For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
               ],
             }],
           }),
@@ -3700,7 +3657,7 @@ function UploadScreen() {
         allDetected.push(...parsed.map((d, idx) => ({
           ...d,
           id: `${allDetected.length + idx}`,
-          checked: true,
+          checked: idx === 0,
           imageUrl,
           publicId: cloudinaryData.public_id,
         })));
@@ -3800,10 +3757,89 @@ function UploadScreen() {
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 160px" }}>
 
+        {phase === "tips" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 24px)", fontWeight: 800, color: "#1a1a2e" }}>Get the best results <span style={{ color: "#7C6FE0" }}>{"\u2726"}</span></h1>
+                <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>Here's how to take great photos for your closet</p>
+              </div>
+              <button type="button" onClick={dismissTips} style={{ background: "none", border: "none", color: "#999", fontSize: "13px", cursor: "pointer", padding: "4px 0", whiteSpace: "nowrap" }}>Skip tips</button>
+            </div>
+
+            {/* Tip 1 */}
+            <div style={{ background: "white", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "64px", height: "64px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <circle cx="28" cy="14" r="7" fill="#E8E4F8" />
+                    <path d="M18 44V28c0-2 1-4 3-5l7-3 7 3c2 1 3 3 3 5v16" stroke="#7C6FE0" strokeWidth="2" strokeLinecap="round" fill="none" />
+                    <rect x="22" y="26" width="12" height="14" rx="2" fill="#E8E4F8" stroke="#7C6FE0" strokeWidth="1.5" />
+                    <circle cx="44" cy="34" r="10" fill="none" stroke="#7C6FE0" strokeWidth="1.5" strokeDasharray="3 2" />
+                    <path d="M40 28l4-4m0 0l-2-2m2 2l2-2" stroke="#7C6FE0" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}><span style={{ color: "#7C6FE0", marginRight: "6px" }}>1</span>Zoom in on the item</p>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888", lineHeight: "1.4" }}>If you're wearing it, focus the camera on the piece — not your full outfit</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 2 */}
+            <div style={{ background: "white", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "64px", height: "64px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <rect x="8" y="12" width="40" height="32" rx="4" fill="#F7F5FB" stroke="#E8E4F8" strokeWidth="1.5" />
+                    <path d="M20 18h16v4l-3 2h-10l-3-2v-4z" fill="#E8E4F8" stroke="#7C6FE0" strokeWidth="1.5" strokeLinejoin="round" />
+                    <path d="M18 24h20v14H18z" fill="#E8E4F8" stroke="#7C6FE0" strokeWidth="1.5" strokeLinejoin="round" />
+                    <line x1="28" y1="18" x2="28" y2="14" stroke="#7C6FE0" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}><span style={{ color: "#7C6FE0", marginRight: "6px" }}>2</span>Lay it flat</p>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888", lineHeight: "1.4" }}>Place items on a white floor, bed, or wall for the clearest photo</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 3 */}
+            <div style={{ background: "white", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "64px", height: "64px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <rect x="4" y="14" width="20" height="28" rx="3" fill="#E8E4F8" stroke="#7C6FE0" strokeWidth="1.5" />
+                    <circle cx="14" cy="10" r="4" fill="#22c55e" stroke="white" strokeWidth="1.5" />
+                    <path d="M10 10l2.5 2.5L18 8" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="32" y="14" width="10" height="12" rx="2" fill="#f0f0f0" stroke="#ccc" strokeWidth="1" />
+                    <rect x="44" y="20" width="8" height="10" rx="2" fill="#f0f0f0" stroke="#ccc" strokeWidth="1" />
+                    <rect x="34" y="30" width="12" height="10" rx="2" fill="#f0f0f0" stroke="#ccc" strokeWidth="1" />
+                    <circle cx="42" cy="10" r="4" fill="#ef4444" stroke="white" strokeWidth="1.5" />
+                    <path d="M39.5 7.5l5 5m0-5l-5 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}><span style={{ color: "#7C6FE0", marginRight: "6px" }}>3</span>One item per photo</p>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888", lineHeight: "1.4" }}>You can upload multiple photos at once — just make sure each photo focuses on one piece for accurate tagging</p>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" onClick={dismissTips} style={{
+              width: "100%", padding: "14px", borderRadius: "100px", background: "#7C6FE0",
+              border: "none", color: "white", fontWeight: 600, fontSize: "15px", cursor: "pointer",
+              marginTop: "8px",
+            }}>
+              Got it
+            </button>
+          </div>
+        )}
+
         {phase === "pick" && (
           <>
             <h1 style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
-            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload any photo — a single item, outfit, or full look. We'll identify every piece.</p>
+            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload multiple photos at once — we'll identify and tag each item automatically</p>
 
             <div
               onClick={openFilePicker}
@@ -3844,54 +3880,69 @@ function UploadScreen() {
           <UploadLoadingOverlay progress={loadingProgress} fading={overlayFading} phase={phase} />
         )}
 
-        {phase === "confirm" && (
-          <>
-            <p style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "12px" }}>
-              Found {detectedItems.length} item{detectedItems.length !== 1 ? "s" : ""} — deselect any that are wrong:
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {detectedItems.map((item) => (
-                <label
-                  key={item.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "12px 14px",
-                    borderRadius: "14px",
-                    border: item.checked ? "1.5px solid #7C6FE0" : "1.5px solid #e0e0e0",
-                    background: item.checked ? "#f9f8ff" : "#fafafa",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={() => setDetectedItems((prev) => prev.map((d) => d.id === item.id ? { ...d, checked: !d.checked } : d))}
-                    style={{ accentColor: "#7C6FE0", width: "18px", height: "18px", flexShrink: 0 }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>{item.name}</p>
-                    <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap", alignItems: "center" }}>
-                      <span style={{ background: "#f3f1fc", color: "#7C6FE0", borderRadius: "100px", padding: "2px 8px", fontSize: "10px", fontWeight: 500 }}>
-                        {item.category}
-                      </span>
-                      {(item.tags || []).map((tag) => (
-                        <span key={tag} style={{ background: "#f0f0f0", color: "#888", borderRadius: "100px", padding: "2px 8px", fontSize: "10px" }}>
-                          {tag}
-                        </span>
-                      ))}
-                      <span style={{ fontSize: "10px", color: item.confidence === "high" ? "#22c55e" : item.confidence === "medium" ? "#f59e0b" : "#ef4444" }}>
-                        {item.confidence}
-                      </span>
-                    </div>
+        {phase === "confirm" && (() => {
+          const primary = detectedItems.filter((d) => d.checked);
+          const extras = detectedItems.filter((d) => !d.checked);
+          const renderItem = (item) => (
+            <label
+              key={item.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "12px 14px",
+                borderRadius: "14px",
+                border: item.checked ? "1.5px solid #7C6FE0" : "1.5px solid #e0e0e0",
+                background: item.checked ? "#f9f8ff" : "#fafafa",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={item.checked}
+                onChange={() => setDetectedItems((prev) => prev.map((d) => d.id === item.id ? { ...d, checked: !d.checked } : d))}
+                style={{ accentColor: "#7C6FE0", width: "18px", height: "18px", flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>{item.name}</p>
+                <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={{ background: "#f3f1fc", color: "#7C6FE0", borderRadius: "100px", padding: "2px 8px", fontSize: "10px", fontWeight: 500 }}>
+                    {item.category}
+                  </span>
+                  {(item.tags || []).map((tag) => (
+                    <span key={tag} style={{ background: "#f0f0f0", color: "#888", borderRadius: "100px", padding: "2px 8px", fontSize: "10px" }}>
+                      {tag}
+                    </span>
+                  ))}
+                  <span style={{ fontSize: "10px", color: item.confidence === "high" ? "#22c55e" : item.confidence === "medium" ? "#f59e0b" : "#ef4444" }}>
+                    {item.confidence}
+                  </span>
+                </div>
+              </div>
+            </label>
+          );
+          return (
+            <>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "12px" }}>
+                {primary.length === 1 ? "We found your item:" : `We found ${primary.length} items:`}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {primary.map(renderItem)}
+              </div>
+              {extras.length > 0 && (
+                <>
+                  <p style={{ fontSize: "13px", fontWeight: 600, color: "#999", marginTop: "20px", marginBottom: "8px" }}>
+                    Also detected — add these too?
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {extras.map(renderItem)}
                   </div>
-                </label>
-              ))}
-            </div>
-          </>
-        )}
+                </>
+              )}
+            </>
+          );
+        })()}
 
         {phase === "saving" && (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
@@ -4444,7 +4495,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
         {starred.length > 0 && (
           <>
             <p style={{ margin: "16px 0 8px", fontSize: "11px", fontWeight: 700, color: "#7C6FE0", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Starred
+              Favorites
             </p>
             {starred.map((c) => (
               <ConvoRow key={c.id} convo={c} />
@@ -4507,7 +4558,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
             onClick={(e) => { e.stopPropagation(); toggleStarConversation(convo.id, convo.is_starred); }}
             style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", fontSize: "14px", color: convo.is_starred ? "#7C6FE0" : "#ccc" }}
           >
-            {convo.is_starred ? "★" : "☆"}
+            {convo.is_starred ? "♥" : "♡"}
           </button>
           <button
             type="button"
@@ -4618,7 +4669,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
               onClick={() => toggleStarConversation(activeConvo.id, activeConvo.is_starred)}
               style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer", color: activeConvo.is_starred ? "#7C6FE0" : "#ccc" }}
             >
-              {activeConvo.is_starred ? "★" : "☆"}
+              {activeConvo.is_starred ? "♥" : "♡"}
             </button>
           )}
           <button
