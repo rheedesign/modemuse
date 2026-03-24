@@ -3,6 +3,11 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import supabase from "./supabase";
 
+function toHttps(url) {
+  if (!url) return url;
+  return url.replace(/^http:\/\//i, 'https://');
+}
+
 function IconShirt({ active }) {
   return (
     <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2884,7 +2889,7 @@ function HomeScreen() {
       }
 
       const itemsText = itemsList
-        .map((item, i) => `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${item.image_url}`)
+        .map((item, i) => `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`)
         .join("\n");
 
       const { tempF, cityName } = weatherRef.current;
@@ -5795,7 +5800,7 @@ async function analyzeClothingImage(imageUrl, user = null) {
           {
             role: "user",
             content: [
-              { type: "image", source: { type: "url", url: imageUrl } },
+              { type: "image", source: { type: "url", url: toHttps(imageUrl) } },
               {
                 type: "text",
                 text: "Analyze this clothing image carefully. Return ONLY a JSON object with these fields: name (specific descriptive name including primary color, e.g. 'White Floral Midi Skirt', 'Black Leather Mini Skirt'. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set', 'Floral Matching Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if this appears to be a matching co-ord set or two-piece set, false otherwise). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item, not two separate pieces. Never split a co-ord set into separate items.",
@@ -6047,7 +6052,7 @@ function UploadScreen() {
             messages: [{
               role: "user",
               content: [
-                { type: "image", source: { type: "url", url: imageUrl } },
+                { type: "image", source: { type: "url", url: toHttps(imageUrl) } },
                 { type: "text", text: "Analyze this photo and identify clothing items. Focus only on the most prominent clothing item — the one that is largest, most centered, or most in focus in the frame. Ignore partial items at the edges, background items, or items that appear incidentally. If one item clearly dominates the frame, return only that item. Only return multiple items if they are equally prominent and clearly intentional (like a flat lay of multiple pieces). For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
               ],
             }],
@@ -7039,8 +7044,8 @@ Only suggest items they don't already own. Skip this section entirely if the out
       setMessages((prev) => [...prev, userMsg]);
 
       const imageBlocks = items.flatMap((item, i) => [
-        { type: "text", text: `Item ${i + 1} (${item.image_url}):` },
-        { type: "image", source: { type: "url", url: item.image_url } },
+        { type: "text", text: `Item ${i + 1} (${toHttps(item.image_url)}):` },
+        { type: "image", source: { type: "url", url: toHttps(item.image_url) } },
       ]);
 
       const result = await runTrackedAnthropicRequest({
@@ -7150,8 +7155,8 @@ Only suggest items they don't already own. Skip this section entirely if the out
       setClosetCount(items.length);
 
       const imageBlocks = items.flatMap((item, i) => [
-        { type: "text", text: `Item ${i + 1} (${item.image_url}):` },
-        { type: "image", source: { type: "url", url: item.image_url } },
+        { type: "text", text: `Item ${i + 1} (${toHttps(item.image_url)}):` },
+        { type: "image", source: { type: "url", url: toHttps(item.image_url) } },
       ]);
 
       const result = await runTrackedAnthropicRequest({
