@@ -1,11 +1,14 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
-  const aiEnabled = process.env.AI_ENABLED ?? process.env.VITE_AI_ENABLED;
-  if (String(aiEnabled) === "false") {
-    return res.status(503).json({ error: { message: "AI recommendations are temporarily paused." } });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
@@ -14,16 +17,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Log the body to find http:// URLs
     const bodyStr = JSON.stringify(req.body);
-    const httpMatches = bodyStr.match(/http:\/\/[^"]+/g);
-    if (httpMatches) {
-      console.error("[PROXY] Found http:// URLs:", httpMatches);
-    }
-
-    // Force all http:// to https:// in the body
+    const allUrls = bodyStr.match(/https?:\/\/[^"\\]+/g) || [];
+    console.log("[PROXY] URLs:", allUrls);
     const sanitizedBody = JSON.parse(bodyStr.replace(/http:\/\//g, 'https://'));
-
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -33,10 +30,11 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(sanitizedBody),
     });
-
     const data = await response.json();
+    if (!response.ok) console.error("[PROXY] Error:", JSON.stringify(data));
     return res.status(response.status).json(data);
   } catch (err) {
+    console.error("[PROXY] Catch:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
