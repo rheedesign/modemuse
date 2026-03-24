@@ -77,7 +77,7 @@ function LogoMark({ size = 44 }) {
       aria-hidden="true"
     >
       <img
-        src="/branding/Monogram.svg"
+        src="/branding/AppLogo_1024.svg"
         alt=""
         aria-hidden="true"
         style={{
@@ -557,42 +557,57 @@ const STYLE_INSPO_OPTIONS = [
   "Preppy",
 ];
 
+// Shared basics (unisex)
+const STARTER_SHARED_ITEMS = [
+  { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/starter/white tshirt.png" },
+  { name: "Black T-Shirt", category: "Tops", tags: ["black", "cotton", "basic", "casual"], season: "All Season", image_url: "/starter/Black Tshirt.png" },
+  { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/starter/Group 12.png" },
+  { name: "Suit Jacket", category: "Outerwear", tags: ["navy", "tailored", "structured", "polished"], season: "All Season", image_url: "/starter/Group 14.png" },
+  { name: "Black Slacks", category: "Bottoms", tags: ["black", "tailored", "minimal", "polished"], season: "All Season", image_url: "/starter/Slacks.png" },
+  { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "casual", "clean"], season: "All Season", image_url: "/starter/white sneakers.png" },
+];
+
+// Women's specific items
+const STARTER_WOMENS_ONLY = [
+  { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "romantic", "spring"], season: "Spring/Summer", image_url: "/starter/womens floral dress.png" },
+  { name: "Statement Bag", category: "Bags", tags: ["black", "structured", "bag", "elevated"], season: "All Season", image_url: "/starter/womens statement bag.png" },
+  { name: "Black Pumps", category: "Shoes", tags: ["black", "pumps", "heels", "elevated"], season: "All Season", image_url: "/starter/Womens Pumps.png" },
+  { name: "Pleated Skirt", category: "Skirts", tags: ["tan", "pleated", "mini", "polished"], season: "All Season", image_url: "/starter/Womens Skirt.png" },
+  { name: "Silver Bracelet", category: "Accessories", tags: ["silver", "bracelet", "jewelry", "delicate"], season: "All Season", image_url: "/starter/Womens Bracelet.png" },
+];
+
+// Men's specific items
+const STARTER_MENS_ONLY = [
+  { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens shirt.png" },
+  { name: "Statement Bag", category: "Bags", tags: ["black", "structured", "bag", "elevated"], season: "All Season", image_url: "/starter/mens statement bag.png" },
+  { name: "Brown Loafers", category: "Shoes", tags: ["brown", "loafer", "leather", "classic"], season: "All Season", image_url: "/starter/Mens Loafers.png" },
+  { name: "Chino Pants", category: "Bottoms", tags: ["tan", "chino", "classic", "tailored"], season: "All Season", image_url: "/starter/Mens Chino.png" },
+  { name: "Leather Watch", category: "Accessories", tags: ["watch", "classic", "leather", "menswear"], season: "All Season", image_url: "/starter/Mens Watch.png" },
+];
+
+const DEMO_ITEMS_WOMENS = [...STARTER_SHARED_ITEMS, ...STARTER_WOMENS_ONLY];
+const DEMO_ITEMS_MENS = [...STARTER_SHARED_ITEMS, ...STARTER_MENS_ONLY];
+const DEMO_ITEMS_ALL = [...STARTER_SHARED_ITEMS, ...STARTER_WOMENS_ONLY, ...STARTER_MENS_ONLY];
+
+function getDemoItemsForGender(styleGender) {
+  if (styleGender === "mens" || styleGender === "male") return DEMO_ITEMS_MENS;
+  if (styleGender === "fluid" || styleGender === "gender-fluid") return DEMO_ITEMS_ALL;
+  return DEMO_ITEMS_WOMENS;
+}
+
 const STARTER_CLOSET_PRESETS = {
-  womens: [
-    { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/Group 13.png" },
-    { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
-    { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
-    { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-dress.png" },
-    { name: "Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-bag.png" },
-  ],
-  mens: [
-    { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/Group 13.png" },
-    { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
-    { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
-    { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-pattern-shirt.png" },
-    { name: "Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/mens-statement-bag.png" },
-  ],
-  fluid: [
-    { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/Group 13.png" },
-    { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
-    { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
-    { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-dress.png" },
-    { name: "Women Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-bag.png" },
-    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-pattern-shirt.png" },
-    { name: "Men Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/mens-statement-bag.png" },
-  ],
+  womens: DEMO_ITEMS_WOMENS,
+  mens: DEMO_ITEMS_MENS,
+  fluid: DEMO_ITEMS_ALL,
 };
 
 const STARTER_CLOSET_CHOICES = [
-  { value: "womens", label: "Women's", preview: "White tee, jeans, sneakers" },
-  { value: "mens", label: "Men's", preview: "Tee, jeans, loafers" },
-  { value: "fluid", label: "Gender Fluid", preview: "Basics, blazer, dress" },
+  { value: "womens", label: "Women's", count: `${DEMO_ITEMS_WOMENS.length} items`, preview: "Tee, jeans, blazer, pumps, dress" },
+  { value: "mens", label: "Men's", count: `${DEMO_ITEMS_MENS.length} items`, preview: "Tee, jeans, jacket, loafers, watch" },
+  { value: "fluid", label: "Gender Fluid", count: `${DEMO_ITEMS_ALL.length} items`, preview: "Women's + men's combined" },
 ];
 
-const DEMO_CLOSET_STYLE_GENDER = "fluid";
+const DEMO_CLOSET_STYLE_GENDER = "womens";
 
 function createDemoClosetItems() {
   return getStarterClosetPreset(DEMO_CLOSET_STYLE_GENDER).map((item, index) => ({
@@ -902,18 +917,34 @@ function getStarterSampleOutfitCaption(styleGender, styleInspo = []) {
 }
 
 async function seedStarterClosetForUser(user, styleGender) {
-  const preset = getStarterClosetPreset(styleGender);
   const { count } = await supabase
     .from("clothing_items")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  if ((count || 0) === 0) {
+  const { data: starterRows, error: starterFetchError } = await supabase
+    .from("clothing_items")
+    .select("id")
+    .eq("user_id", user.id)
+    .ilike("public_id", "starter-%");
+
+  if (starterFetchError) throw starterFetchError;
+
+  const preset = getStarterClosetPreset(styleGender);
+
+  if ((count || 0) === 0 || (starterRows || []).length > 0) {
+    if ((starterRows || []).length > 0) {
+      const { error: deleteError } = await supabase
+        .from("clothing_items")
+        .delete()
+        .eq("user_id", user.id)
+        .ilike("public_id", "starter-%");
+      if (deleteError) throw deleteError;
+    }
+
     const starterItems = buildStarterClosetItems(styleGender, user.id);
     const { error } = await supabase.from("clothing_items").insert(starterItems);
     if (error) throw error;
-    await refreshStoredClosetItemCount(user.id);
-    return preset;
   }
 
   await refreshStoredClosetItemCount(user.id);
@@ -1709,8 +1740,8 @@ function StarterWardrobeScreen() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
                 {[...Array(6)].map((_, index) => (
-                  <div key={index} style={{ borderRadius: "18px", background: "#FBF8F1", padding: "10px" }}>
-                    <SkeletonBlock height="110px" radius="14px" />
+                  <div key={index} style={{ borderRadius: "18px", background: "#FBF8F1", padding: "8px" }}>
+                    <SkeletonBlock height="92px" radius="14px" />
                     <SkeletonBlock width="78%" height="12px" style={{ marginTop: "10px" }} />
                     <SkeletonBlock width="54%" height="10px" style={{ marginTop: "6px" }} />
                   </div>
@@ -1740,16 +1771,16 @@ function StarterWardrobeScreen() {
                   <div
                     key={item.public_id || item.image_url}
                     style={{
-                      borderRadius: "18px",
+                      borderRadius: "16px",
                       background: "#FBF8F1",
                       border: "1px solid rgba(176,138,74,0.10)",
-                      padding: "10px",
+                      padding: "8px",
                     }}
                   >
-                    <div style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#fff" }}>
-                      <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    <div style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#fff", padding: "6px", boxSizing: "border-box" }}>
+                      <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
                     </div>
-                    <p style={{ margin: "10px 0 2px", fontSize: "12px", fontWeight: 700, color: "#111111", lineHeight: 1.2 }}>
+                    <p style={{ margin: "8px 0 2px", fontSize: "12px", fontWeight: 700, color: "#111111", lineHeight: 1.2 }}>
                       {item.name}
                     </p>
                     <p style={{ margin: 0, fontSize: "10px", color: "#7d7890" }}>{item.category}</p>
@@ -2854,6 +2885,12 @@ WHY: [one punchy sentence about why this works right now]`;
       setUserEmail(user.email || "");
       styleGenderRef.current = user.user_metadata?.style_gender || "womens";
       styleInspoRef.current = normalizeStyleInspoSelection(user.user_metadata?.style_inspo || []);
+
+      try {
+        await seedStarterClosetForUser(user, styleGenderRef.current);
+      } catch (err) {
+        console.warn("[HomeScreen] Starter closet sync skipped:", err);
+      }
 
       const { data, count } = await supabase
         .from("clothing_items")
@@ -4090,6 +4127,12 @@ function ClosetScreen() {
       if (!user) {
         if (isMounted) setIsLoadingItems(false);
         return;
+      }
+
+      try {
+        await seedStarterClosetForUser(user, user.user_metadata?.style_gender || "womens");
+      } catch (err) {
+        console.warn("[ClosetScreen] Starter closet sync skipped:", err);
       }
 
       let { data, error } = await supabase
@@ -5910,10 +5953,8 @@ function UploadScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please sign in first.");
 
-      const items = buildStarterClosetItems(styleGenderChoice, user.id);
       setLoadingProgress(0.3);
-      const { error } = await supabase.from("clothing_items").insert(items);
-      if (error) throw new Error(error.message);
+      await seedStarterClosetForUser(user, styleGenderChoice);
       await refreshStoredClosetItemCount(user.id);
 
       setLoadingProgress(1);
@@ -6106,7 +6147,7 @@ function UploadScreen() {
                   <div>
                     <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Add a starter pack</p>
                     <p style={{ margin: "4px 0 0", fontSize: "12px", lineHeight: "1.4", color: "#7d7890" }}>
-                      Begin with basics, fashion-forward pieces, or a full mixed starter wardrobe.
+                      Start with a women&apos;s, men&apos;s, or gender-fluid starter pack.
                     </p>
                   </div>
                   <button
@@ -6128,25 +6169,33 @@ function UploadScreen() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
                   {STARTER_CLOSET_CHOICES.map((choice) => {
                     const isActive = starterLoadingChoice === choice.value;
+                    const isDisabled = !!choice.disabled || phase === "seeding" || phase === "saving" || phase === "analyzing";
                     return (
                       <button
                         key={choice.value}
                         type="button"
+                        aria-disabled={isDisabled}
                         onClick={() => handleUseStarterCloset(choice.value)}
-                        disabled={phase === "seeding" || phase === "saving" || phase === "analyzing"}
+                        disabled={isDisabled}
                         style={{
                           border: `1.5px solid ${isActive ? "#B08A4A" : "#E6D8BF"}`,
                           background: isActive ? "#F5EDE0" : "white",
                           borderRadius: "16px",
                           padding: "12px 10px",
                           textAlign: "left",
-                          cursor: phase === "seeding" || phase === "saving" || phase === "analyzing" ? "default" : "pointer",
+                          cursor: isDisabled ? "default" : "pointer",
                           minHeight: "92px",
                           boxShadow: isActive ? "0 6px 18px rgba(176,138,74,0.08)" : "none",
+                          opacity: choice.disabled ? 0.58 : 1,
                         }}
                       >
-                        <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>
-                          {choice.label}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "8px" }}>
+                          <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
+                            {choice.label}
+                          </div>
+                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#8A6A3C", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                            {choice.count}
+                          </div>
                         </div>
                         <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#7d7890" }}>
                           {choice.preview}
@@ -6170,32 +6219,40 @@ function UploadScreen() {
                   <div>
                     <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Try a starter closet</p>
                     <p style={{ margin: "4px 0 0", fontSize: "12px", lineHeight: "1.4", color: "#7d7890" }}>
-                      Explore with a ready-made wardrobe before uploading photos.
+                      Explore with a ready-made starter wardrobe before uploading photos.
                     </p>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
                   {STARTER_CLOSET_CHOICES.map((choice) => {
                     const isActive = starterLoadingChoice === choice.value;
+                    const isDisabled = !!choice.disabled || phase === "seeding" || phase === "saving" || phase === "analyzing";
                     return (
                       <button
                         key={choice.value}
                         type="button"
+                        aria-disabled={isDisabled}
                         onClick={() => handleUseStarterCloset(choice.value)}
-                        disabled={phase === "seeding" || phase === "saving" || phase === "analyzing"}
+                        disabled={isDisabled}
                         style={{
                           border: `1.5px solid ${isActive ? "#B08A4A" : "#E6D8BF"}`,
                           background: isActive ? "#F5EDE0" : "white",
                           borderRadius: "16px",
                           padding: "12px 10px",
                           textAlign: "left",
-                          cursor: phase === "seeding" || phase === "saving" || phase === "analyzing" ? "default" : "pointer",
+                          cursor: isDisabled ? "default" : "pointer",
                           minHeight: "92px",
                           boxShadow: isActive ? "0 6px 18px rgba(176,138,74,0.08)" : "none",
+                          opacity: choice.disabled ? 0.58 : 1,
                         }}
                       >
-                        <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>
-                          {choice.label}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "8px" }}>
+                          <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
+                            {choice.label}
+                          </div>
+                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#8A6A3C", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                            {choice.count}
+                          </div>
                         </div>
                         <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#7d7890" }}>
                           {choice.preview}

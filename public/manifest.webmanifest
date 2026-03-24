@@ -7,6 +7,6 @@
   "background_color": "#FFFFFF",
   "theme_color": "#7C6FE0",
   "icons": [
-    { "src": "/branding/Monogram.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "/branding/AppLogo_1024.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "appId": "com.styliner.app",
+  "appName": "Styliner",
+  "webDir": "dist",
+  "server": {
+    "url": "https://styliner.vercel.app",
+    "cleartext": false
+  }
+}
