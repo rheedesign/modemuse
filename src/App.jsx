@@ -590,8 +590,15 @@ const DEMO_ITEMS_MENS = [...STARTER_SHARED_ITEMS, ...STARTER_MENS_ONLY];
 const DEMO_ITEMS_ALL = [...STARTER_SHARED_ITEMS, ...STARTER_WOMENS_ONLY, ...STARTER_MENS_ONLY];
 
 function getDemoItemsForGender(styleGender) {
-  if (styleGender === "mens" || styleGender === "male") return DEMO_ITEMS_MENS;
-  if (styleGender === "fluid" || styleGender === "gender-fluid") return DEMO_ITEMS_ALL;
+  if (styleGender === "mens" || styleGender === "male") {
+    console.log("[Demo] getDemoItemsForGender → MENS", { styleGender, count: DEMO_ITEMS_MENS.length });
+    return DEMO_ITEMS_MENS;
+  }
+  if (styleGender === "fluid" || styleGender === "gender-fluid") {
+    console.log("[Demo] getDemoItemsForGender → ALL", { styleGender, count: DEMO_ITEMS_ALL.length });
+    return DEMO_ITEMS_ALL;
+  }
+  console.log("[Demo] getDemoItemsForGender → WOMENS", { styleGender, count: DEMO_ITEMS_WOMENS.length });
   return DEMO_ITEMS_WOMENS;
 }
 
@@ -609,8 +616,11 @@ const STARTER_CLOSET_CHOICES = [
 
 const DEMO_CLOSET_STYLE_GENDER = "womens";
 
-function createDemoClosetItems() {
-  return getStarterClosetPreset(DEMO_CLOSET_STYLE_GENDER).map((item, index) => ({
+function createDemoClosetItems(styleGender) {
+  const gender = styleGender || DEMO_CLOSET_STYLE_GENDER;
+  const items = getDemoItemsForGender(gender);
+  console.log("[Demo] createDemoClosetItems:", { styleGender: gender, itemCount: items.length, items: items.map((i) => i.name) });
+  return items.map((item, index) => ({
     ...item,
     id: `demo-${index}`,
     user_id: "demo",
@@ -2332,7 +2342,7 @@ function WeatherIcon({ kind, color = "#B08A4A" }) {
 
 function HomeScreen() {
   const navigate = useNavigate();
-  const { isDemoMode, demoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
+  const { isDemoMode, demoClosetItems, setDemoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
   const [weather, setWeather] = useState(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -2858,7 +2868,12 @@ WHY: [one punchy sentence about why this works right now]`;
       }
 
       if (isDemoMode) {
-        styleGenderRef.current = DEMO_CLOSET_STYLE_GENDER;
+        // Detect gender from demo items: if any item has "mens" in the URL but none have "womens", it's mens
+        const hasWomens = demoClosetItems.some((i) => /womens|women/i.test(i.image_url));
+        const hasMens = demoClosetItems.some((i) => /mens|men/i.test(i.image_url) && !/womens|women/i.test(i.image_url));
+        const detectedGender = (hasWomens && hasMens) ? "fluid" : hasMens ? "mens" : "womens";
+        console.log("[Demo] HomeScreen init — detected gender:", detectedGender, "items:", demoClosetItems.length, "hasWomens:", hasWomens, "hasMens:", hasMens);
+        styleGenderRef.current = detectedGender;
         styleInspoRef.current = [];
         setUserName("Demo");
         setUserEmail("");
@@ -3468,6 +3483,17 @@ WHY: [one punchy sentence about why this works right now]`;
             <button
               type="button"
               onClick={async () => {
+                if (isDemoMode) {
+                  console.log("[Demo] Profile save — switching gender to:", editStyleGender);
+                  styleGenderRef.current = editStyleGender;
+                  styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
+                  const newItems = createDemoClosetItems(editStyleGender);
+                  setDemoClosetItems(newItems);
+                  closetDataRef.current = cloneDemoClosetItems(newItems);
+                  setItemCount(newItems.length);
+                  setProfileSheetOpen(false);
+                  return;
+                }
                 const updates = {};
                 if (nameInput.trim()) updates.first_name = nameInput.trim();
                 updates.style_gender = editStyleGender;
@@ -8366,8 +8392,9 @@ function AppRouter() {
   const isOnboarding = onboardingRoutes.includes(location.pathname);
   const isAdminSession = isAdminEmail(session?.user?.email);
 
-  function enterDemoMode() {
-    setDemoClosetItems(createDemoClosetItems());
+  function enterDemoMode(styleGender) {
+    console.log("[Demo] enterDemoMode called with styleGender:", styleGender || DEMO_CLOSET_STYLE_GENDER);
+    setDemoClosetItems(createDemoClosetItems(styleGender));
     setIsDemoMode(true);
     setDemoPrompt(null);
   }
