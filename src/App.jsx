@@ -6636,6 +6636,7 @@ function ChatScreen() {
   const [preloadedOutfit, setPreloadedOutfit] = useState(null);
   const [closetCount, setClosetCount] = useState(null);
   const messagesEndRef = useRef(null);
+  const latestAssistantRef = useRef(null);
   const inputRef = useRef(null);
 
   // Occasion sheet state for saving outfits
@@ -6852,9 +6853,14 @@ Only suggest items they don't already own.`;
     return () => { cancelled = true; };
   }, [activeConvoId, isDemoMode]);
 
-  // Scroll to bottom when messages change
+  // Scroll when messages change: to bottom for user msgs/loading, to top of response for assistant msgs
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === "assistant" && latestAssistantRef.current) {
+      latestAssistantRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, loading]);
 
   function startNewChat() {
@@ -7710,7 +7716,7 @@ Only suggest items they don't already own.`;
                   const isSaved = savedMsgIds.has(msg.id);
                   const isExpanded = expandedMsgIds.has(msg.id);
                   return (
-                    <div className={isFading ? "chat-fade-out" : "chat-fade-in"}>
+                    <div ref={msgIndex === messages.length - 1 ? latestAssistantRef : undefined} className={isFading ? "chat-fade-out" : "chat-fade-in"}>
                       <p style={{ margin: 0, color: "#B08A4A", fontWeight: 600, fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
                         ✦ Your Look
                       </p>
