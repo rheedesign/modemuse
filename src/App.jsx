@@ -2846,7 +2846,7 @@ function HomeScreen() {
   }, [locationInput, locationSheetOpen]);
 
   function parseOutfitResponse(text) {
-    const urlRegex = /https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)/gi;
+    const urlRegex = /(?:https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)|\/[^\s)>\]]+\.(?:png|jpg|jpeg|webp|gif|svg|bmp|avif))/gi;
     const urls = [...new Set(text.match(urlRegex) || [])];
 
     // Extract vibe
@@ -6718,8 +6718,10 @@ Only suggest items they don't already own.`;
   }
 
   function parseAiResponse(text) {
-    const imageUrlRegex = /(?:https?:\/\/[^\s)>\]]+|\/[^\s)>\]]+\.(?:png|jpg|jpeg|webp|gif|svg))/gi;
-    const imageUrls = [...new Set(text.match(imageUrlRegex) || [])];
+    const imageUrlRegex = /(?:https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)|\/[^\s)>\]]+\.(?:png|jpg|jpeg|webp|gif|svg))/gi;
+    const imageUrls = [...new Set(text.match(imageUrlRegex) || [])].map(u =>
+      u.startsWith("/") ? `https://styliner.vercel.app${u}` : u
+    );
     let clean = text
       .replace(/\*\*([^*]+)\*\*/g, "$1")
       .replace(/\*([^*]+)\*/g, "$1")
@@ -6761,21 +6763,25 @@ Only suggest items they don't already own.`;
   }
 
   function renderTextWithLinks(text) {
-    const linkRegex = /(https?:\/\/www\.google\.com\/search[^\s)>\]]+)/g;
-    const parts = text.split(linkRegex);
-    return parts.map((part, i) => {
-      if (/^https?:\/\/www\.google\.com\/search/.test(part)) {
-        const queryMatch = part.match(/q=([^&\s]+)/);
+    const lines = text.split("\n").filter(Boolean);
+    return lines.map((line, i) => {
+      const linkMatch = line.match(/(https?:\/\/www\.google\.com\/search[^\s)>\]]+)/);
+      if (linkMatch) {
+        const url = linkMatch[1];
+        const queryMatch = url.match(/q=([^&\s]+)/);
         const label = queryMatch ? decodeURIComponent(queryMatch[1].replace(/\+/g, " ")) : "Shop";
+        const beforeLink = line.slice(0, linkMatch.index).replace(/[→►]/g, "").trim();
         return (
-          <a key={i} href={part} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-block", padding: "6px 14px", margin: "4px 4px 4px 0", borderRadius: "100px", background: "#F5EDE0", color: "#B08A4A", fontSize: "13px", fontWeight: 600, textDecoration: "none", border: "1px solid #E6D8BF" }}>
-            Shop {label} ↗
-          </a>
+          <div key={i} style={{ marginBottom: "8px" }}>
+            {beforeLink && <span style={{ fontSize: "13px", color: "#3A352E", lineHeight: "1.5" }}>{beforeLink} </span>}
+            <a href={url} target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-block", padding: "6px 14px", margin: "4px 0", borderRadius: "100px", background: "#F5EDE0", color: "#B08A4A", fontSize: "13px", fontWeight: 600, textDecoration: "none", border: "1px solid #E6D8BF" }}>
+              Shop {label} ↗
+            </a>
+          </div>
         );
       }
-      const cleaned = part.replace(/[→►]/g, "").trim();
-      return cleaned ? <span key={i}>{cleaned} </span> : null;
+      return <p key={i} style={{ margin: "0 0 4px", fontSize: "13px", color: "#3A352E", lineHeight: "1.5" }}>{line}</p>;
     });
   }
 
@@ -7727,22 +7733,25 @@ Only suggest items they don't already own.`;
                             marginTop: "8px",
                           }}
                         >
-                          {imageUrls.map((url, i) => (
-                            <div
-                              key={i}
-                              style={{
-                                position: "relative",
-                                aspectRatio: "1",
-                                borderRadius: "14px",
-                                overflow: "hidden",
-                                background: "#fff",
-                                boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
-                              }}
-                            >
-                              <img src={url} alt={`Outfit item ${i + 1}`}
-                                style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
-                            </div>
-                          ))}
+                          {imageUrls.slice(0, 4).map((url, i) => {
+                            const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
+                            return (
+                              <div
+                                key={i}
+                                style={{
+                                  position: "relative",
+                                  aspectRatio: "1",
+                                  borderRadius: "14px",
+                                  overflow: "hidden",
+                                  background: "#fff",
+                                  boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
+                                }}
+                              >
+                                <img src={absoluteUrl} alt={`Outfit item ${i + 1}`}
+                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
