@@ -93,8 +93,8 @@ function LogoMark({ size = 44 }) {
 
 function LogoWordmark({ compact = false, centered = false }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "12px", justifyContent: centered ? "center" : "flex-start" }}>
-      <LogoMark size={compact ? 38 : 44} />
+    <div style={{ display: "flex", flexDirection: centered ? "column" : "row", alignItems: "center", gap: centered ? "10px" : "12px", justifyContent: centered ? "center" : "flex-start" }}>
+      <LogoMark size={centered ? 56 : (compact ? 38 : 44)} />
       <div style={{ textAlign: centered ? "center" : "left" }}>
         <div style={{ fontSize: compact ? "20px" : "24px", fontWeight: 800, letterSpacing: "-0.05em", color: "#111111", lineHeight: 1 }}>
           Styliner
@@ -557,74 +557,55 @@ const STYLE_INSPO_OPTIONS = [
   "Preppy",
 ];
 
-// Shared basics (unisex)
-const STARTER_SHARED_ITEMS = [
-  { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/starter/white tshirt.png" },
-  { name: "Black T-Shirt", category: "Tops", tags: ["black", "cotton", "basic", "casual"], season: "All Season", image_url: "/starter/Black Tshirt.png" },
-  { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/starter/Group 12.png" },
-  { name: "Suit Jacket", category: "Outerwear", tags: ["navy", "tailored", "structured", "polished"], season: "All Season", image_url: "/starter/Group 14.png" },
-  { name: "Black Slacks", category: "Bottoms", tags: ["black", "tailored", "minimal", "polished"], season: "All Season", image_url: "/starter/Slacks.png" },
-  { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "casual", "clean"], season: "All Season", image_url: "/starter/white sneakers.png" },
+const WOMENS_STARTER = [
+  { id: "w1", name: "White T-Shirt", category: "Tops", image_url: "/starter/white tshirt.png" },
+  { id: "w2", name: "Wide Leg Jeans", category: "Bottoms", image_url: "/starter/Group 12.png" },
+  { id: "w3", name: "Black Blazer", category: "Outerwear", image_url: "/starter/Group 14.png" },
+  { id: "w4", name: "Floral Dress", category: "Dresses", image_url: "/starter/womens floral dress.png" },
+  { id: "w5", name: "Statement Bag", category: "Bags", image_url: "/starter/womens statement bag.png" },
+  { id: "w6", name: "Pumps", category: "Shoes", image_url: "/starter/Womens Pumps.png" },
+  { id: "w7", name: "Midi Skirt", category: "Skirts", image_url: "/starter/Womens Skirt.png" },
+  { id: "w8", name: "Bracelet", category: "Accessories", image_url: "/starter/Womens Bracelet.png" },
 ];
 
-// Women's specific items
-const STARTER_WOMENS_ONLY = [
-  { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "romantic", "spring"], season: "Spring/Summer", image_url: "/starter/womens floral dress.png" },
-  { name: "Statement Bag", category: "Bags", tags: ["black", "structured", "bag", "elevated"], season: "All Season", image_url: "/starter/womens statement bag.png" },
-  { name: "Black Pumps", category: "Shoes", tags: ["black", "pumps", "heels", "elevated"], season: "All Season", image_url: "/starter/Womens Pumps.png" },
-  { name: "Pleated Skirt", category: "Skirts", tags: ["tan", "pleated", "mini", "polished"], season: "All Season", image_url: "/starter/Womens Skirt.png" },
-  { name: "Silver Bracelet", category: "Accessories", tags: ["silver", "bracelet", "jewelry", "delicate"], season: "All Season", image_url: "/starter/Womens Bracelet.png" },
+const MENS_STARTER = [
+  { id: "m1", name: "Black T-Shirt", category: "Tops", image_url: "/starter/Black Tshirt.png" },
+  { id: "m2", name: "Slacks", category: "Bottoms", image_url: "/starter/Slacks.png" },
+  { id: "m3", name: "White Sneakers", category: "Shoes", image_url: "/starter/white sneakers.png" },
+  { id: "m4", name: "Mens Shirt", category: "Tops", image_url: "/starter/mens shirt.png" },
+  { id: "m5", name: "Mens Statement Bag", category: "Bags", image_url: "/starter/mens statement bag.png" },
+  { id: "m6", name: "Mens Chino", category: "Bottoms", image_url: "/starter/Mens Chino.png" },
+  { id: "m7", name: "Mens Loafers", category: "Shoes", image_url: "/starter/Mens Loafers.png" },
+  { id: "m8", name: "Mens Watch", category: "Accessories", image_url: "/starter/Mens Watch.png" },
 ];
 
-// Men's specific items
-const STARTER_MENS_ONLY = [
-  { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens shirt.png" },
-  { name: "Statement Bag", category: "Bags", tags: ["black", "structured", "bag", "elevated"], season: "All Season", image_url: "/starter/mens statement bag.png" },
-  { name: "Brown Loafers", category: "Shoes", tags: ["brown", "loafer", "leather", "classic"], season: "All Season", image_url: "/starter/Mens Loafers.png" },
-  { name: "Chino Pants", category: "Bottoms", tags: ["tan", "chino", "classic", "tailored"], season: "All Season", image_url: "/starter/Mens Chino.png" },
-  { name: "Leather Watch", category: "Accessories", tags: ["watch", "classic", "leather", "menswear"], season: "All Season", image_url: "/starter/Mens Watch.png" },
-];
+const FLUID_STARTER = [...WOMENS_STARTER, ...MENS_STARTER];
 
-const DEMO_ITEMS_WOMENS = [...STARTER_SHARED_ITEMS, ...STARTER_WOMENS_ONLY];
-const DEMO_ITEMS_MENS = [...STARTER_SHARED_ITEMS, ...STARTER_MENS_ONLY];
-const DEMO_ITEMS_ALL = [...STARTER_SHARED_ITEMS, ...STARTER_WOMENS_ONLY, ...STARTER_MENS_ONLY];
-
-function getDemoItemsForGender(styleGender) {
-  if (styleGender === "mens" || styleGender === "male") {
-    console.log("[Demo] getDemoItemsForGender → MENS", { styleGender, count: DEMO_ITEMS_MENS.length });
-    return DEMO_ITEMS_MENS;
-  }
-  if (styleGender === "fluid" || styleGender === "gender-fluid") {
-    console.log("[Demo] getDemoItemsForGender → ALL", { styleGender, count: DEMO_ITEMS_ALL.length });
-    return DEMO_ITEMS_ALL;
-  }
-  console.log("[Demo] getDemoItemsForGender → WOMENS", { styleGender, count: DEMO_ITEMS_WOMENS.length });
-  return DEMO_ITEMS_WOMENS;
+function getStarterItems(gender) {
+  if (gender === "mens") return MENS_STARTER;
+  if (gender === "fluid") return FLUID_STARTER;
+  return WOMENS_STARTER;
 }
 
 const STARTER_CLOSET_PRESETS = {
-  womens: DEMO_ITEMS_WOMENS,
-  mens: DEMO_ITEMS_MENS,
-  fluid: DEMO_ITEMS_ALL,
+  womens: WOMENS_STARTER,
+  mens: MENS_STARTER,
+  fluid: FLUID_STARTER,
 };
 
 const STARTER_CLOSET_CHOICES = [
-  { value: "womens", label: "Women's", count: `${DEMO_ITEMS_WOMENS.length} items`, preview: "Tee, jeans, blazer, pumps, dress" },
-  { value: "mens", label: "Men's", count: `${DEMO_ITEMS_MENS.length} items`, preview: "Tee, jeans, jacket, loafers, watch" },
-  { value: "fluid", label: "Gender Fluid", count: `${DEMO_ITEMS_ALL.length} items`, preview: "Women's + men's combined" },
+  { value: "womens", label: "Women's", preview: "Tee, jeans, blazer, pumps, dress" },
+  { value: "mens", label: "Men's", preview: "Tee, jeans, blazer, loafers, watch" },
+  { value: "fluid", label: "Gender Fluid", preview: "Women's + men's combined" },
 ];
 
-const DEMO_CLOSET_STYLE_GENDER = "womens";
-
 function createDemoClosetItems(styleGender) {
-  const gender = styleGender || DEMO_CLOSET_STYLE_GENDER;
-  const items = getDemoItemsForGender(gender);
-  console.log("[Demo] createDemoClosetItems:", { styleGender: gender, itemCount: items.length, items: items.map((i) => i.name) });
-  return items.map((item, index) => ({
+  const items = getStarterItems(styleGender || "womens");
+  console.log("[Demo] createDemoClosetItems:", { gender: styleGender || "womens", count: items.length, items: items.map((i) => i.name) });
+  return items.map((item) => ({
     ...item,
-    id: `demo-${index}`,
     user_id: "demo",
-    public_id: `demo-${index}`,
+    public_id: item.id,
     rotation: 0,
     is_favorited: false,
     _hasDbName: true,
@@ -650,45 +631,45 @@ function isDemoItemCategory(item, category) {
 
 const DEMO_OUTFIT_TEMPLATES = {
   sun: [
-    { vibe: "Easy Weekend", caption: "A relaxed, polished mix that feels clean and effortless.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Sunny Classic", caption: "An easy base with a little polish so it still feels styled.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Easy Weekend", caption: "You're giving effortless-but-intentional energy. This is the outfit people screenshot.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Sunny Classic", caption: "Classic with a twist. Wear this when you want to look good without anyone knowing you tried.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
   ],
   cool: [
-    { vibe: "Cold-Weather Edit", caption: "Layered up, but still light enough to feel modern.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "City Layering", caption: "A sharper layer stack that keeps the silhouette clean.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+    { vibe: "Cold-Weather Edit", caption: "Cold weather, warm attitude. This layering combo is doing a lot of heavy lifting.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "City Layering", caption: "Sharp enough for the city, relaxed enough for everywhere else.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
   ],
   rain: [
-    { vibe: "Rain Ready", caption: "A practical look that still reads polished and intentional.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Weather Proof", caption: "Built for a wet day with a clean, fashion-forward finish.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+    { vibe: "Rain Ready", caption: "Rain outside, flawless inside. This outfit doesn't negotiate with weather.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Weather Proof", caption: "Waterproof vibes, zero compromise on style. Wear this and own the puddles.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
   ],
   wind: [
-    { vibe: "Wind Ready", caption: "A crisp layer story that keeps the outfit feeling balanced.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Layered Clean", caption: "Soft layers with a tailored edge so it still feels elevated.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+    { vibe: "Wind Ready", caption: "Breezy outside, unbothered energy inside. This look handles anything.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Layered Clean", caption: "Layers that actually make sense together. This is styled, not just warm.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
   ],
   travel: [
-    { vibe: "Vacation Ready", caption: "Easy pieces that feel relaxed, pulled together, and travel friendly.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Trip Edit", caption: "A breezy combo with enough polish for day plans or dinner.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Vacation Ready", caption: "This is your 'just landed and somehow look incredible' outfit. Pack it first.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Trip Edit", caption: "From terminal to dinner table without changing. That's the power of this combo.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
   ],
   office: [
-    { vibe: "Office Clean", caption: "A sharper mix with a polished silhouette and easy movement.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Desk to Dinner", caption: "Tailored enough for work, relaxed enough to wear after hours.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Office Clean", caption: "Boardroom-ready but make it fashion. You'll be the best-dressed person in every meeting today.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Desk to Dinner", caption: "Works at 9am, still works at 9pm. This outfit doesn't clock out.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
   ],
   ceremony: [
-    { vibe: "Ceremony Ready", caption: "Refined, calm, and a little elevated for a special event.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
-    { vibe: "Polished Occasion", caption: "A graceful mix that feels dressed up without trying too hard.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Ceremony Ready", caption: "Graceful, intentional, and quietly stunning. You'll photograph beautifully in this.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Polished Occasion", caption: "The kind of outfit that makes people lean over and whisper 'where did you get that?'", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
   ],
   goingOut: [
-    { vibe: "Going Out", caption: "A little more directional, with a cleaner shape and stronger attitude.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
-    { vibe: "Night Out", caption: "An easy statement look with a polished finish.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Going Out", caption: "This look has energy. Wear it like you already know you're the best-dressed person there.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Night Out", caption: "Main character energy, activated. This is the outfit that starts conversations.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
   ],
   casual: [
-    { vibe: "Off Duty", caption: "Simple, wearable, and still styled enough to feel intentional.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Weekend Uniform", caption: "A low-effort mix that still feels composed and current.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Off Duty", caption: "Your off-duty uniform just got an upgrade. This is the outfit people ask you about.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Weekend Uniform", caption: "Low effort, high returns. You'll want to wear this every weekend from now on.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
   ],
   general: [
-    { vibe: "Quiet Luxury", caption: "A clean edit of pieces that already work beautifully together.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
-    { vibe: "Modern Classic", caption: "Balanced, polished, and easy to wear from day to night.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
-    { vibe: "Effortless", caption: "Light, easy, and styled in a way that still feels finished.", categories: ["Dresses", "Shoes", "Bags"] },
+    { vibe: "Quiet Luxury", caption: "Quiet luxury but make it yours — this combination costs nothing and reads as everything.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Modern Classic", caption: "You already own the best outfit in the room. This is it. Wear it today.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+    { vibe: "Effortless", caption: "The outfit that makes people think you have a stylist. You do — it's us.", categories: ["Dresses", "Shoes", "Bags"] },
   ],
 };
 
@@ -752,14 +733,14 @@ function buildDemoChatResponse(prompt, items, { seed = 0, styleInspo = [] } = {}
     .map((url, index) => `${(suggestion.items?.[index]?.name || `Item ${index + 1}`)} (${url})`)
     .join(" + ");
   const whyByTheme = {
-    travel: "It feels easy, polished, and ready for moving through the day without looking overdone.",
-    office: "The proportions feel sharp and intentional, with enough structure to read polished.",
-    ceremony: "It feels respectful and refined, with a clean silhouette that still looks current.",
-    goingOut: "The mix feels a little more directional and elevated, which gives it presence.",
-    casual: "It keeps things effortless while still looking styled and put together.",
-    wind: "The layering gives it shape without making it feel bulky.",
-    rain: "It stays practical while still feeling thoughtful and polished.",
-    general: "It has an easy, modern balance that feels styled without trying too hard.",
+    travel: "This is your 'just stepped off a flight and somehow look incredible' outfit. Effortless is the point.",
+    office: "Boardroom-ready but make it fashion. You'll be the most put-together person in every room.",
+    ceremony: "Graceful, intentional, and quietly stunning. You'll photograph beautifully in this.",
+    goingOut: "This look has energy. Wear it like you already know you're the best-dressed person there.",
+    casual: "Your off-duty uniform just got an upgrade. This is the outfit people ask you about.",
+    wind: "Layered up but still sharp. Cold weather has never looked this considered.",
+    rain: "Rain-ready and still completely yourself. This is how you dress for bad weather without surrendering style.",
+    general: "This is the outfit that just works. Clean, considered, and completely you.",
   };
 
   return [
@@ -790,7 +771,7 @@ function DemoModeBanner() {
         textAlign: "center",
       }}
     >
-      ✦ You're in demo mode. Sign up to use your own wardrobe.
+      ✦ You're previewing Styliner. Sign up to style YOUR actual clothes.
     </div>
   );
 }
@@ -881,6 +862,7 @@ function DemoPromptModal() {
 }
 
 function getStarterClosetPreset(styleGender) {
+  console.log("getStarterClosetPreset called with:", styleGender, "returning:", styleGender === "mens" ? "MENS" : styleGender === "fluid" ? "FLUID" : "WOMENS");
   if (styleGender === "female") return STARTER_CLOSET_PRESETS.womens;
   if (styleGender === "male") return STARTER_CLOSET_PRESETS.mens;
   if (styleGender === "gender-fluid") return STARTER_CLOSET_PRESETS.fluid;
@@ -913,52 +895,56 @@ function getStarterSampleOutfitItems(styleGender) {
 
 function getStarterSampleOutfitCaption(styleGender, styleInspo = []) {
   const inspo = normalizeStyleInspoSelection(styleInspo);
-  const mood = inspo.length > 0 ? inspo.slice(0, 2).join(" + ") : "";
 
   if (styleGender === "mens") {
-    return mood ? `${mood} starter look` : "A clean first look built from your starter pieces.";
+    return "Sharp without trying. This is the outfit you reach for without thinking.";
   }
 
   if (styleGender === "fluid") {
-    return mood ? `${mood} starter mix` : "A flexible starter mix you can style up or down.";
+    return "No rules, just the right energy. This combination hits different.";
   }
 
-  return mood ? `${mood} starter look` : "A polished first look built from your starter pieces.";
+  // womens — check styleInspo for specific vibes
+  if (inspo.some((s) => /minimal/i.test(s))) {
+    return "Clean lines, zero effort, maximum impact. This is your uniform.";
+  }
+  if (inspo.some((s) => /streetwear/i.test(s))) {
+    return "Off-duty but make it fashion. Your closet already has it.";
+  }
+  if (inspo.some((s) => /romantic/i.test(s))) {
+    return "Soft, considered, and completely yours. Wear this one slowly.";
+  }
+  if (inspo.length > 0) {
+    return "Your starter pieces are already a look. We just found it.";
+  }
+  return "You're giving quiet luxury energy today — here's how to wear it.";
 }
 
+let _seedingInProgress = false;
 async function seedStarterClosetForUser(user, styleGender) {
-  const { count } = await supabase
-    .from("clothing_items")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  const { data: starterRows, error: starterFetchError } = await supabase
-    .from("clothing_items")
-    .select("id")
-    .eq("user_id", user.id)
-    .ilike("public_id", "starter-%");
-
-  if (starterFetchError) throw starterFetchError;
-
-  const preset = getStarterClosetPreset(styleGender);
-
-  if ((count || 0) === 0 || (starterRows || []).length > 0) {
-    if ((starterRows || []).length > 0) {
-      const { error: deleteError } = await supabase
-        .from("clothing_items")
-        .delete()
-        .eq("user_id", user.id)
-        .ilike("public_id", "starter-%");
-      if (deleteError) throw deleteError;
-    }
+  if (_seedingInProgress) {
+    console.log("[seedStarter] Already in progress, skipping duplicate call");
+    return getStarterClosetPreset(styleGender);
+  }
+  _seedingInProgress = true;
+  try {
+    // Always delete existing starter items first to prevent duplicates
+    const { error: deleteError } = await supabase
+      .from("clothing_items")
+      .delete()
+      .eq("user_id", user.id)
+      .ilike("public_id", "starter-%");
+    if (deleteError) throw deleteError;
 
     const starterItems = buildStarterClosetItems(styleGender, user.id);
     const { error } = await supabase.from("clothing_items").insert(starterItems);
     if (error) throw error;
-  }
 
-  await refreshStoredClosetItemCount(user.id);
-  return preset;
+    await refreshStoredClosetItemCount(user.id);
+    return getStarterClosetPreset(styleGender);
+  } finally {
+    _seedingInProgress = false;
+  }
 }
 
 const COUNTRY_MAJOR_CITIES = [
@@ -1420,6 +1406,13 @@ function StyleInspoPicker({ value, onChange, max = 3, compact = false, title = "
 function OnboardingSplash() {
   const navigate = useNavigate();
   const { enterDemoMode } = useDemoMode();
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
+
+  function handlePickGender(gender) {
+    console.log("[Demo] Gender picked:", gender, "Items:", getStarterItems(gender).map((i) => i.name));
+    enterDemoMode(gender);
+    navigate("/home", { replace: true });
+  }
 
   return (
     <div
@@ -1436,52 +1429,94 @@ function OnboardingSplash() {
         justifyContent: "space-between",
       }}
     >
-      <div style={{ textAlign: "center", paddingTop: "30px" }}>
+      <div style={{ textAlign: "center", paddingTop: "30px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <img src="/branding/AppLogo_1024.svg" alt="Styliner" style={{ width: "64px", height: "64px", borderRadius: "16px", marginBottom: "14px" }} />
         <p style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>Your AI Wardrobe</p>
         <div style={{ fontSize: "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em" }}>STYLINER</div>
-        <p style={{ margin: "10px 0 0", fontSize: "15px", color: "rgba(255,255,255,0.9)" }}>Intelligent styling from your own closet</p>
+        <p style={{ margin: "10px 0 0", fontSize: "22px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2 }}>Your clothes are already an outfit.</p>
+        <p style={{ marginTop: "6px", fontSize: "17px", fontWeight: 400, color: "rgba(255,255,255,0.85)" }}>We just find it.</p>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0" }}>
-        <OnboardingIllustration />
-      </div>
-
-      <div style={{ display: "grid", gap: "14px", paddingBottom: "6px" }}>
-        <NavLink to="/signup" className="block" style={{ textDecoration: "none" }}>
-          <PillButton variant="outline" style={{ background: "#fff", color: "#8A6A3C", border: "1px solid rgba(255,255,255,0.68)", boxShadow: "0 12px 24px rgba(92,58,18,0.10)" }}>
-            Sign Up
-          </PillButton>
-        </NavLink>
-        <NavLink to="/login" className="block" style={{ textDecoration: "none" }}>
-          <PillButton variant="outline" style={{ background: "rgba(255,255,255,0.38)", color: "#111111", border: "1px solid rgba(255,255,255,0.72)" }}>
-            Log In
-          </PillButton>
-        </NavLink>
-        <button
-          type="button"
-          onClick={() => {
-            enterDemoMode();
-            navigate("/home", { replace: true });
-          }}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "rgba(255,255,255,0.96)",
-            fontSize: "13px",
-            fontWeight: 700,
-            cursor: "pointer",
-            textDecoration: "underline",
-            textUnderlineOffset: "3px",
-          }}
-        >
-          See it in action →
-        </button>
-        <div style={{ textAlign: "center", paddingTop: "2px" }}>
-          <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.92)", textDecoration: "none" }}>
-            Terms and privacy policy
-          </NavLink>
+      {showGenderPicker ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "20px 0" }}>
+          <p style={{ fontSize: "17px", fontWeight: 700, margin: 0, textAlign: "center" }}>I'm styling for...</p>
+          {[
+            { value: "womens", label: "Women's" },
+            { value: "mens", label: "Men's" },
+            { value: "fluid", label: "Gender Fluid" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handlePickGender(opt.value)}
+              style={{
+                width: "100%",
+                maxWidth: "280px",
+                padding: "16px 20px",
+                borderRadius: "100px",
+                border: "2px solid rgba(255,255,255,0.5)",
+                background: "rgba(255,255,255,0.15)",
+                backdropFilter: "blur(8px)",
+                color: "white",
+                fontSize: "16px",
+                fontWeight: 700,
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "background 0.15s, border-color 0.15s",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowGenderPicker(false)}
+            style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: 600, cursor: "pointer", marginTop: "8px" }}
+          >
+            Back
+          </button>
         </div>
-      </div>
+      ) : (
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0" }}>
+          <OnboardingIllustration />
+        </div>
+      )}
+
+      {!showGenderPicker && (
+        <div style={{ display: "grid", gap: "14px", paddingBottom: "6px" }}>
+          <NavLink to="/signup" className="block" style={{ textDecoration: "none" }}>
+            <PillButton variant="outline" style={{ background: "#fff", color: "#8A6A3C", border: "1px solid rgba(255,255,255,0.68)", boxShadow: "0 12px 24px rgba(92,58,18,0.10)" }}>
+              Sign Up
+            </PillButton>
+          </NavLink>
+          <NavLink to="/login" className="block" style={{ textDecoration: "none" }}>
+            <PillButton variant="outline" style={{ background: "rgba(255,255,255,0.38)", color: "#111111", border: "1px solid rgba(255,255,255,0.72)" }}>
+              Log In
+            </PillButton>
+          </NavLink>
+          <button
+            type="button"
+            onClick={() => setShowGenderPicker(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "rgba(255,255,255,0.96)",
+              fontSize: "13px",
+              fontWeight: 700,
+              cursor: "pointer",
+              textDecoration: "underline",
+              textUnderlineOffset: "3px",
+            }}
+          >
+            See it in action →
+          </button>
+          <div style={{ textAlign: "center", paddingTop: "2px" }}>
+            <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.92)", textDecoration: "none" }}>
+              Terms and privacy policy
+            </NavLink>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1490,14 +1525,13 @@ function OnboardingIllustration() {
   return (
     <img
       src="/branding/Opening.svg"
-      alt=""
-      aria-hidden="true"
+      alt="Styliner"
       style={{
-        width: "100%",
-        height: "100%",
-        maxWidth: "320px",
-        objectFit: "contain",
-        filter: "drop-shadow(0 10px 18px rgba(255,255,255,0.12))",
+        width: "calc(100% - 48px)",
+        maxWidth: "390px",
+        height: "auto",
+        display: "block",
+        margin: "0 auto",
       }}
     />
   );
@@ -1531,8 +1565,34 @@ function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [styleGender, setStyleGender] = useState("womens");
   const [styleInspo, setStyleInspo] = useState([]);
+  const [stylePersona, setStylePersona] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const styleIconsByGender = {
+    womens: [
+      { name: "Hailey Bieber", subtitle: "Clean Girl Minimal" },
+      { name: "Rihanna", subtitle: "Bold & Fearless" },
+      { name: "Olivia Rodrigo", subtitle: "Y2K Edgy Vintage" },
+      { name: "Alexa Chung", subtitle: "Indie Vintage Cool" },
+    ],
+    mens: [
+      { name: "ASAP Rocky", subtitle: "Street Luxury" },
+      { name: "David Beckham", subtitle: "Smart & Tailored" },
+      { name: "Tyler the Creator", subtitle: "Quirky & Creative" },
+      { name: "Timothée Chalamet", subtitle: "Indie Avant-Garde" },
+    ],
+    fluid: [
+      { name: "Harry Styles", subtitle: "Fluid & Romantic" },
+      { name: "Janelle Monáe", subtitle: "Sharp & Powerful" },
+      { name: "Bad Bunny", subtitle: "Street Maximalist" },
+      { name: "Tilda Swinton", subtitle: "Avant-Garde Minimal" },
+    ],
+  };
+
+  useEffect(() => {
+    setStylePersona("");
+  }, [styleGender]);
 
   async function handleSignUp(event) {
     event.preventDefault();
@@ -1547,6 +1607,7 @@ function SignUpScreen() {
           first_name: firstName.trim() || undefined,
           style_gender: styleGender,
           style_inspo: normalizeStyleInspoSelection(styleInspo),
+          style_persona: stylePersona || undefined,
         },
       },
     });
@@ -1631,6 +1692,32 @@ function SignUpScreen() {
                   }}
                 >
                   {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="mb-2 block text-sm font-medium text-gray-700">Who's your style icon?</span>
+            <p style={{ margin: "4px 0 8px", fontSize: "12px", color: "#888" }}>Pick the one that feels most like you</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              {(styleIconsByGender[styleGender] || styleIconsByGender.womens).map((icon) => (
+                <button
+                  key={icon.name}
+                  type="button"
+                  onClick={() => setStylePersona(stylePersona === icon.name ? "" : icon.name)}
+                  style={{
+                    borderRadius: "16px",
+                    padding: "14px 10px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    border: stylePersona === icon.name ? "2px solid #B08A4A" : "1.5px solid #e0e0e0",
+                    background: stylePersona === icon.name ? "#F5EDE0" : "white",
+                    color: stylePersona === icon.name ? "#B08A4A" : "#555",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <div style={{ fontSize: "14px", fontWeight: 700 }}>{icon.name}</div>
+                  <div style={{ fontSize: "11px", fontWeight: 500, color: "#888", marginTop: "4px" }}>{icon.subtitle}</div>
                 </button>
               ))}
             </div>
@@ -2007,16 +2094,19 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
   return (
     <div style={{
       borderRadius: "24px",
-      background: "rgba(255, 255, 255, 0.25)",
-      backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
+      background: "rgba(255, 255, 255, 0.15)",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
       border: "1px solid rgba(255, 255, 255, 0.4)",
       boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
       overflow: "hidden",
       position: "relative",
       padding: "20px",
     }}>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
+        <AIGeneratedTag style={{ fontSize: "9px", padding: "3px 8px", opacity: 0.5, letterSpacing: "0.14em" }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" }}>
         <div
           className={pulsing ? "flatlayPulse" : ""}
           style={{
@@ -2050,11 +2140,12 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
             </div>
           ))}
         </div>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60px", background: "linear-gradient(transparent, rgba(251,248,241,0.4))", pointerEvents: "none", borderRadius: "0 0 20px 20px" }} />
       </div>
       {(caption || children) && (
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center", borderTop: "1px solid rgba(176,138,74,0.12)", paddingTop: "12px", marginTop: "4px" }}>
           {caption && (
-            <p style={{ margin: "16px 0 0", fontSize: "13px", fontWeight: 600, color: "#3A352E", letterSpacing: "0.02em" }}>{caption}</p>
+            <p style={{ margin: "12px 0 0", fontSize: "14px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{caption}</p>
           )}
           {children}
         </div>
@@ -2074,6 +2165,7 @@ function getDisplayName(user) {
 
 function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onGetStyled }) {
   const [visible, setVisible] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -2200,34 +2292,73 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
           background: "linear-gradient(transparent, white 30%)",
           zIndex: 1,
         }}>
-        <button
-          type="button"
-          onClick={() => { handleClose(); setTimeout(onGetStyled || onNavigateChat, 350); }}
-          style={{
-            width: "100%",
-            padding: "14px",
-            borderRadius: "100px",
-            border: "none",
-            background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
-            color: "white",
-            fontWeight: 600,
-            fontSize: "15px",
-            cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-          }}
-        >
-          <IconSparkle active />
-          Get Styled
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={async () => {
+              const shareData = { title: vibe || "My Outfit", text: caption || "Check out this outfit from Styliner", url: "https://styliner.vercel.app" };
+              if (navigator.share) {
+                try { await navigator.share(shareData); } catch {}
+              } else {
+                try { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); setShareCopied(true); setTimeout(() => setShareCopied(false), 2000); } catch {}
+              }
+            }}
+            style={{
+              padding: "14px 20px",
+              borderRadius: "100px",
+              border: "1.5px solid #B08A4A",
+              background: "white",
+              color: "#B08A4A",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {shareCopied ? "Copied!" : "Share Look"}
+          </button>
+          <button
+            type="button"
+            onClick={() => { handleClose(); setTimeout(onGetStyled || onNavigateChat, 350); }}
+            style={{
+              flex: 1,
+              padding: "14px",
+              borderRadius: "100px",
+              border: "none",
+              background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+              color: "white",
+              fontWeight: 600,
+              fontSize: "15px",
+              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            <IconSparkle active />
+            Get Styled
+          </button>
+        </div>
       </div>
       </div>
     </div>
   );
 }
+
+const OUTFIT_COMBINATION_RULES = `
+
+STRICT OUTFIT RULES — never break these:
+- If you include a Dress, do NOT include a Top, Skirt, or Bottoms — a dress is a complete top+bottom
+- If you include a Skirt, do NOT include Bottoms or a Dress
+- If you include Bottoms/Pants/Jeans, do NOT include a Skirt or Dress
+- A complete outfit must follow one of these exact formulas:
+  Option A: Top + Bottom + Shoes + Accessory/Bag
+  Option B: Dress + Shoes + Accessory/Bag + Outerwear (optional)
+  Option C: Top + Skirt + Shoes + Accessory/Bag
+- Never mix dress with skirt or dress with pants
+- Always pick exactly 4 items following one of the above formulas`;
 
 function getStyleSystemPrompt(styleGender, styleInspo = []) {
   const NO_YEAR = `\n\nIMPORTANT: Never mention the year 2026 or any year in your response. Never say "in 2026" or "current 2026 trends" or reference any specific year — just make confident style statements without referencing the year.`;
@@ -2251,7 +2382,7 @@ When suggesting outfits:
 - Always create a complete look — top, bottom or dress, shoes, and one accessory
 - Champion the No Buy ethos — celebrate what the user already owns, frame new purchase suggestions as rare intentional gap pieces only
 - Prioritize unexpected combinations over safe obvious ones
-- Keep descriptions punchy and confident, like a stylist texting a client
+- Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
 - Name the vibe in 3 words max (e.g. 'Office Siren Sunday', 'Parisian Errand Run', 'Quiet Luxury Off-Duty', 'Ballet Core Elevated')`;
 
   const MENS_PROMPT = `You are a world-class men's fashion stylist with deep knowledge of current trends. You follow menswear fashion weeks, read GQ and Highsnobiety, love designers like Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP, and Bottega Veneta. You understand current men's aesthetics including: quiet luxury menswear, gorpcore evolved, smart casual, old money prep, workwear heritage, and sport luxe.
@@ -2272,7 +2403,7 @@ When suggesting outfits:
 - Always create a complete look — top, bottom, shoes, one accessory (watch, bag, hat)
 - Champion the No Buy ethos — celebrate what the user already owns, frame new purchase suggestions as rare intentional gap pieces only
 - Prioritize unexpected combinations over safe obvious ones
-- Keep descriptions punchy and confident, like a stylist texting a client
+- Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
 - Name the vibe in 3 words max (e.g. 'ALD Off-Duty', 'Heritage Workwear Smart', 'Quiet Luxury Errand')`;
 
   const FLUID_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends across all gender expressions. You follow fashion weeks globally, read Vogue, GQ, i-D, and Highsnobiety, love designers like The Row, Bottega Veneta, Jacquemus, Aime Leon Dore, Toteme, Reformation, Alaïa, and emerging labels. You understand the full spectrum of current aesthetics including: quiet luxury, gorpcore evolved, office siren, ballet core evolved, smart casual, new minimalism, workwear heritage, sport luxe, boho revival, dark academia, and the ongoing No Buy / underconsumption movement.
@@ -2295,12 +2426,12 @@ When suggesting outfits:
 - Always create a complete look — top, bottom or one-piece, shoes, and one accessory
 - Champion the No Buy ethos — celebrate what the user already owns
 - Prioritize unexpected combinations over safe obvious ones
-- Keep descriptions punchy and confident, like a stylist texting a client
+- Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
 - Name the vibe in 3 words max (e.g. 'Quiet Luxury Off-Duty', 'Tonal Workwear Chic', 'New Minimalist Errand')`;
 
-  if (styleGender === "mens") return MENS_PROMPT + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
-  if (styleGender === "fluid") return FLUID_PROMPT + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
-  return WOMENS_PROMPT + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
+  if (styleGender === "mens") return MENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
+  if (styleGender === "fluid") return FLUID_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
+  return WOMENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
 }
 
 function WeatherIcon({ kind, color = "#B08A4A" }) {
@@ -2342,7 +2473,7 @@ function WeatherIcon({ kind, color = "#B08A4A" }) {
 
 function HomeScreen() {
   const navigate = useNavigate();
-  const { isDemoMode, demoClosetItems, setDemoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
+  const { isDemoMode, demoGender, setDemoGender, demoClosetItems, setDemoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
   const [weather, setWeather] = useState(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -2597,7 +2728,7 @@ function HomeScreen() {
           // Keep the UI usable even if reverse geocoding fails.
         }
         resolve(null);
-      }, () => resolve(null));
+      }, (err) => { console.warn("[Location] Geolocation denied or failed:", err?.message || err); resolve(null); });
     });
   }
 
@@ -2768,13 +2899,13 @@ function HomeScreen() {
 
 Current trends: tailoring with structured shoulders and wide leg trousers, sheer layering, metallics as daytime neutrals, ballet flats and kitten heels, minimalist bags, relaxed wide denim, neutral or saturated color palettes.
 
-When suggesting outfits: be specific and opinionated, reference micro-trends, consider the weather, always create a complete look (top + bottom or dress + shoes + accessory), champion wearing what you already own, keep descriptions punchy like a stylist texting a client, name the vibe in 3 words max. Never mention any year in your response.`;
+When suggesting outfits: be specific and opinionated, reference micro-trends, consider the weather, champion wearing what you already own, keep descriptions punchy like a stylist texting a client, name the vibe in 3 words max. Never mention any year in your response.${OUTFIT_COMBINATION_RULES}`;
 
       const menSystemPrompt = `You are a world-class men's fashion stylist. You follow menswear fashion weeks, read GQ and Highsnobiety, love Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP and Bottega Veneta. You understand: quiet luxury menswear, gorpcore, smart casual, old money prep, workwear heritage, sport luxe.
 
 Current trends: relaxed tailoring with unstructured blazers and pleated trousers, workwear heritage pieces, loafers and clean leather sneakers, tonal dressing, cashmere and wool quality pieces, wide leg denim, layering.
 
-When suggesting outfits: be specific and opinionated, always create a complete look (top + bottom + shoes + one accessory), champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.`;
+When suggesting outfits: be specific and opinionated, champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.${OUTFIT_COMBINATION_RULES}`;
 
       const systemPrompt = styleGender === "mens" ? menSystemPrompt : womenSystemPrompt;
 
@@ -2868,17 +2999,17 @@ WHY: [one punchy sentence about why this works right now]`;
       }
 
       if (isDemoMode) {
-        // Detect gender from demo items: if any item has "mens" in the URL but none have "womens", it's mens
-        const hasWomens = demoClosetItems.some((i) => /womens|women/i.test(i.image_url));
-        const hasMens = demoClosetItems.some((i) => /mens|men/i.test(i.image_url) && !/womens|women/i.test(i.image_url));
-        const detectedGender = (hasWomens && hasMens) ? "fluid" : hasMens ? "mens" : "womens";
-        console.log("[Demo] HomeScreen init — detected gender:", detectedGender, "items:", demoClosetItems.length, "hasWomens:", hasWomens, "hasMens:", hasMens);
-        styleGenderRef.current = detectedGender;
+        // Use demoGender directly to create items — don't rely on demoClosetItems
+        // from closure, which may still hold stale initial state on first render
+        const freshItems = createDemoClosetItems(demoGender);
+        console.log("[Demo] HomeScreen init — demoGender:", demoGender, "items:", freshItems.map((i) => i.name));
+        styleGenderRef.current = demoGender;
         styleInspoRef.current = [];
         setUserName("Demo");
         setUserEmail("");
-        setItemCount(demoClosetItems.length);
-        closetDataRef.current = cloneDemoClosetItems(demoClosetItems);
+        setItemCount(freshItems.length);
+        setDemoClosetItems(freshItems);
+        closetDataRef.current = cloneDemoClosetItems(freshItems);
         hasFetchedOutfit.current = true;
         try {
           const result = buildDemoOutfitSuggestion(closetDataRef.current, {
@@ -2900,12 +3031,6 @@ WHY: [one punchy sentence about why this works right now]`;
       setUserEmail(user.email || "");
       styleGenderRef.current = user.user_metadata?.style_gender || "womens";
       styleInspoRef.current = normalizeStyleInspoSelection(user.user_metadata?.style_inspo || []);
-
-      try {
-        await seedStarterClosetForUser(user, styleGenderRef.current);
-      } catch (err) {
-        console.warn("[HomeScreen] Starter closet sync skipped:", err);
-      }
 
       const { data, count } = await supabase
         .from("clothing_items")
@@ -2942,7 +3067,7 @@ WHY: [one punchy sentence about why this works right now]`;
       setLoadingOutfit(true);
       try {
         demoOutfitSeedRef.current += 1;
-        const result = buildDemoOutfitSuggestion(closetDataRef.current.length ? closetDataRef.current : demoClosetItems, {
+        const result = buildDemoOutfitSuggestion(closetDataRef.current.length ? closetDataRef.current : createDemoClosetItems(demoGender), {
           theme: getWeatherKind(),
           seed: demoOutfitSeedRef.current,
           styleInspo: styleInspoRef.current,
@@ -3149,9 +3274,6 @@ WHY: [one punchy sentence about why this works right now]`;
           ) : suggestedImages.length > 0 ? (
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
               <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px", position: "relative", zIndex: 1 }}>
-                <AIGeneratedTag />
-              </div>
               <FlatLayCard
                 images={suggestedImages.slice(0, 4)}
                 caption={suggestionVibe}
@@ -3251,53 +3373,95 @@ WHY: [one punchy sentence about why this works right now]`;
                 textAlign: "center",
               }}
             >
-              <p style={{ margin: "10px 0 0", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                {itemCount === 0
-                  ? "Add items to your closet to get daily suggestions"
-                  : "Add more items to your closet to get daily suggestions ✦"}
-              </p>
-              <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>
-                {itemCount === 0
-                  ? "Upload your first clothing items to get started."
-                  : `You have ${itemCount} item${itemCount !== 1 ? "s" : ""} — try adding a few more for better outfits.`}
-              </p>
-              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
-                <button
-                  type="button"
-                  onClick={() => navigate("/upload")}
-                  style={{
-                    border: "none",
-                    background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
-                    color: "white",
-                    borderRadius: "100px",
-                    padding: "10px 24px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-                  }}
-                >
-                  Upload Items
-                </button>
-                {itemCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => fetchOutfitSuggestion()}
-                    style={{
-                      border: "1.5px solid #B08A4A",
-                      background: "transparent",
-                      color: "#B08A4A",
-                      borderRadius: "100px",
-                      padding: "10px 20px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Try Again
-                  </button>
-                )}
-              </div>
+              {itemCount === 0 ? (
+                <>
+                  <p style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 700, color: "#111111" }}>
+                    Your starter wardrobe is ready
+                  </p>
+                  <p style={{ margin: "0 0 20px", fontSize: "13px", lineHeight: "1.5", color: "#888" }}>
+                    Add your own clothes to get personalized suggestions
+                  </p>
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/upload")}
+                      style={{
+                        border: "none",
+                        background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                        color: "white",
+                        borderRadius: "100px",
+                        padding: "12px 24px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                      }}
+                    >
+                      Upload My Clothes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fetchOutfitSuggestion()}
+                      style={{
+                        border: "1.5px solid #B08A4A",
+                        background: "transparent",
+                        color: "#B08A4A",
+                        borderRadius: "100px",
+                        padding: "12px 20px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Try AI Styling Anyway
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                    Add more items to your closet to get daily suggestions <span style={{ color: "#B08A4A" }}>✦</span>
+                  </p>
+                  <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#888" }}>
+                    You have {itemCount} item{itemCount !== 1 ? "s" : ""} — try adding a few more for better outfits.
+                  </p>
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/upload")}
+                      style={{
+                        border: "none",
+                        background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                        color: "white",
+                        borderRadius: "100px",
+                        padding: "10px 24px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                      }}
+                    >
+                      Upload Items
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fetchOutfitSuggestion()}
+                      style={{
+                        border: "1.5px solid #B08A4A",
+                        background: "transparent",
+                        color: "#B08A4A",
+                        borderRadius: "100px",
+                        padding: "10px 20px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -3487,6 +3651,7 @@ WHY: [one punchy sentence about why this works right now]`;
                   console.log("[Demo] Profile save — switching gender to:", editStyleGender);
                   styleGenderRef.current = editStyleGender;
                   styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
+                  setDemoGender(editStyleGender);
                   const newItems = createDemoClosetItems(editStyleGender);
                   setDemoClosetItems(newItems);
                   closetDataRef.current = cloneDemoClosetItems(newItems);
@@ -4153,12 +4318,6 @@ function ClosetScreen() {
       if (!user) {
         if (isMounted) setIsLoadingItems(false);
         return;
-      }
-
-      try {
-        await seedStarterClosetForUser(user, user.user_metadata?.style_gender || "womens");
-      } catch (err) {
-        console.warn("[ClosetScreen] Starter closet sync skipped:", err);
       }
 
       let { data, error } = await supabase
@@ -5548,7 +5707,7 @@ function ItemDetailScreen() {
           zIndex: 200,
           boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
         }}>
-          Items merged into one ✦
+          Items merged into one <span style={{ color: "#B08A4A" }}>✦</span>
         </div>
       )}
 
@@ -5764,7 +5923,7 @@ function UploadScreen() {
   const [overlayFading, setOverlayFading] = useState(false);
   const [detectedItems, setDetectedItems] = useState([]);
   const [starterLoadingChoice, setStarterLoadingChoice] = useState(null);
-  const [starterPickerOpen, setStarterPickerOpen] = useState(false);
+  const [profileGender, setProfileGender] = useState("womens");
   const [hasClosetItems, setHasClosetItems] = useState(() => {
     if (isDemoMode) return true;
     const stored = localStorage.getItem("styliner_closet_item_count");
@@ -5776,7 +5935,11 @@ function UploadScreen() {
   useEffect(() => {
     if (isDemoMode) {
       setHasClosetItems(true);
+      return;
     }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setProfileGender(user.user_metadata?.style_gender || "womens");
+    });
   }, [isDemoMode]);
 
   function dismissTips() {
@@ -5960,7 +6123,7 @@ function UploadScreen() {
     }
   }
 
-  async function handleUseStarterCloset(styleGenderChoice) {
+  async function handleAddStarterPack() {
     if (phase === "analyzing" || phase === "saving" || phase === "seeding") return;
     if (isDemoMode) {
       showDemoPrompt({
@@ -5970,7 +6133,6 @@ function UploadScreen() {
       return;
     }
 
-    setStarterLoadingChoice(styleGenderChoice);
     setPhase("seeding");
     setLoadingProgress(0.08);
     setOverlayFading(false);
@@ -5978,9 +6140,13 @@ function UploadScreen() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please sign in first.");
+      const gender = user.user_metadata?.style_gender || "womens";
+      const items = getStarterItems(gender);
+      console.log("Adding starter pack for profile gender:", gender, "Items:", items.map((i) => i.name));
 
+      setStarterLoadingChoice(gender);
       setLoadingProgress(0.3);
-      await seedStarterClosetForUser(user, styleGenderChoice);
+      await seedStarterClosetForUser(user, gender);
       await refreshStoredClosetItemCount(user.id);
 
       setLoadingProgress(1);
@@ -5988,12 +6154,11 @@ function UploadScreen() {
       await new Promise((r) => setTimeout(r, 550));
       navigate("/closet");
     } catch (err) {
-      console.error("[handleUseStarterCloset] Error:", err);
+      console.error("[handleAddStarterPack] Error:", err);
       alert(`Starter closet failed: ${err.message}`);
       setPhase("pick");
     } finally {
       setStarterLoadingChoice(null);
-      setStarterPickerOpen(false);
       setLoadingProgress(0);
       setOverlayFading(false);
     }
@@ -6142,153 +6307,47 @@ function UploadScreen() {
         {phase === "pick" && (
           <>
               <h1 style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", margin: "0 0 14px" }}>
-              <UploadEntryLink onClick={() => setPhase("tips")}>View tips</UploadEntryLink>
-              <UploadEntryLink
-                onClick={() => {
-                  if (isDemoMode) {
-                    showDemoPrompt({
-                      title: "Sign up to add your own clothes",
-                      message: "Create an account to upload items and get personalized suggestions.",
-                    });
-                    return;
-                  }
-                  setStarterPickerOpen((value) => !value);
+            <div style={{ margin: "0 0 14px" }}>
+              <button
+                type="button"
+                onClick={() => setPhase("tips")}
+                style={{
+                  background: "transparent",
+                  border: "1.5px solid #B08A4A",
+                  borderRadius: "100px",
+                  padding: "8px 18px",
+                  color: "#B08A4A",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
                 }}
               >
-                Add starter pack
-              </UploadEntryLink>
+                View tips
+              </button>
             </div>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload multiple photos at once — we'll identify and tag each item automatically</p>
 
-            {starterPickerOpen && (
-              <div style={{
-                border: "1px solid #E6D8BF",
-                borderRadius: "18px",
-                padding: "16px",
-                background: "linear-gradient(180deg, #FBF8F1 0%, #FAF7F0 100%)",
-                marginBottom: "14px",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Add a starter pack</p>
-                    <p style={{ margin: "4px 0 0", fontSize: "12px", lineHeight: "1.4", color: "#7d7890" }}>
-                      Start with a women&apos;s, men&apos;s, or gender-fluid starter pack.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setStarterPickerOpen(false)}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      color: "#8A6A3C",
-                      fontSize: "12px",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      padding: 0,
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
-                  {STARTER_CLOSET_CHOICES.map((choice) => {
-                    const isActive = starterLoadingChoice === choice.value;
-                    const isDisabled = !!choice.disabled || phase === "seeding" || phase === "saving" || phase === "analyzing";
-                    return (
-                      <button
-                        key={choice.value}
-                        type="button"
-                        aria-disabled={isDisabled}
-                        onClick={() => handleUseStarterCloset(choice.value)}
-                        disabled={isDisabled}
-                        style={{
-                          border: `1.5px solid ${isActive ? "#B08A4A" : "#E6D8BF"}`,
-                          background: isActive ? "#F5EDE0" : "white",
-                          borderRadius: "16px",
-                          padding: "12px 10px",
-                          textAlign: "left",
-                          cursor: isDisabled ? "default" : "pointer",
-                          minHeight: "92px",
-                          boxShadow: isActive ? "0 6px 18px rgba(176,138,74,0.08)" : "none",
-                          opacity: choice.disabled ? 0.58 : 1,
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "8px" }}>
-                          <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
-                            {choice.label}
-                          </div>
-                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#8A6A3C", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-                            {choice.count}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#7d7890" }}>
-                          {choice.preview}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {hasClosetItems !== true && !starterPickerOpen && (
-              <div style={{
-                border: "1px solid #E6D8BF",
-                borderRadius: "18px",
-                padding: "16px",
-                background: "linear-gradient(180deg, #FBF8F1 0%, #FAF7F0 100%)",
-                marginBottom: "14px",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Try a starter closet</p>
-                    <p style={{ margin: "4px 0 0", fontSize: "12px", lineHeight: "1.4", color: "#7d7890" }}>
-                      Explore with a ready-made starter wardrobe before uploading photos.
-                    </p>
-                  </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
-                  {STARTER_CLOSET_CHOICES.map((choice) => {
-                    const isActive = starterLoadingChoice === choice.value;
-                    const isDisabled = !!choice.disabled || phase === "seeding" || phase === "saving" || phase === "analyzing";
-                    return (
-                      <button
-                        key={choice.value}
-                        type="button"
-                        aria-disabled={isDisabled}
-                        onClick={() => handleUseStarterCloset(choice.value)}
-                        disabled={isDisabled}
-                        style={{
-                          border: `1.5px solid ${isActive ? "#B08A4A" : "#E6D8BF"}`,
-                          background: isActive ? "#F5EDE0" : "white",
-                          borderRadius: "16px",
-                          padding: "12px 10px",
-                          textAlign: "left",
-                          cursor: isDisabled ? "default" : "pointer",
-                          minHeight: "92px",
-                          boxShadow: isActive ? "0 6px 18px rgba(176,138,74,0.08)" : "none",
-                          opacity: choice.disabled ? 0.58 : 1,
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "8px" }}>
-                          <div style={{ fontSize: "13px", fontWeight: 700, color: "#111111" }}>
-                            {choice.label}
-                          </div>
-                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#8A6A3C", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-                            {choice.count}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: "11px", lineHeight: "1.45", color: "#7d7890" }}>
-                          {choice.preview}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => handleAddStarterPack()}
+              disabled={phase === "seeding" || phase === "saving" || phase === "analyzing"}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "100px",
+                background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                border: "none",
+                color: "white",
+                fontWeight: "600",
+                fontSize: "14px",
+                cursor: phase === "seeding" ? "default" : "pointer",
+                opacity: phase === "seeding" ? 0.6 : 1,
+                marginBottom: "12px",
+                boxShadow: "0 4px 12px rgba(176, 138, 74, 0.3)",
+              }}
+            >
+              {phase === "seeding" ? "Adding..." : "✦ Add Starter Pack"}
+            </button>
 
             <div
               onClick={openFilePicker}
@@ -6371,8 +6430,22 @@ function UploadScreen() {
               </div>
             </label>
           );
+          const hasLowConfidence = detectedItems.some((d) => d.confidence === "low");
           return (
             <>
+              {hasLowConfidence && (
+                <div style={{
+                  background: "rgba(176,138,74,0.10)",
+                  border: "1px solid rgba(176,138,74,0.20)",
+                  color: "#8A6A3C",
+                  borderRadius: "16px",
+                  padding: "10px 14px",
+                  fontSize: "13px",
+                  marginBottom: "12px",
+                }}>
+                  Some items had low confidence — double check the names and categories below before saving.
+                </div>
+              )}
               <p style={{ fontSize: "14px", fontWeight: 600, color: "#111111", marginBottom: "12px" }}>
                 {primary.length === 1 ? "We found your item:" : `We found ${primary.length} items:`}
               </p>
@@ -6430,7 +6503,7 @@ function UploadScreen() {
 function ChatScreen() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDemoMode, demoClosetItems, showDemoPrompt } = useDemoMode();
+  const { isDemoMode, demoGender, demoClosetItems, showDemoPrompt } = useDemoMode();
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -6784,7 +6857,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
         setMessages((prev) => [...prev, userMsg]);
         setClosetCount(demoClosetItems.length);
         await new Promise((resolve) => setTimeout(resolve, 280));
-        const demoText = buildDemoChatResponse(trimmed, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(), {
+        const demoText = buildDemoChatResponse(trimmed, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(demoGender), {
           seed: demoChatSeedRef.current,
           styleInspo: styleInspoRef.current,
         });
@@ -6927,7 +7000,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
       try {
         await new Promise((resolve) => setTimeout(resolve, 260));
         demoChatSeedRef.current += 1;
-        const demoText = buildDemoChatResponse(occasion, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(), {
+        const demoText = buildDemoChatResponse(occasion, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(demoGender), {
           seed: demoChatSeedRef.current,
           styleInspo: styleInspoRef.current,
         });
@@ -7451,61 +7524,45 @@ Only suggest items they don't already own. Skip this section entirely if the out
                   lineHeight: "1.4",
                 }}
               >
-                <span style={{ color: "#B08A4A", marginRight: "6px" }}>✦</span>
-                Hiya! I'm your style assistant. I'll peek in your closet and suggest outfits!
+                {isDemoMode
+                  ? "Hiya! I'm your style assistant. I'll peek in your closet and suggest outfits!"
+                  : hasCloset === true
+                    ? <>I've had a peek at your closet <span style={{ color: "#B08A4A" }}>✦</span> What are we dressing for today?</>
+                    : "Hiya! I'm your style assistant. Upload some clothes and I'll suggest outfits!"}
               </div>
             )}
 
-            {/* Show conversation history inline when no active chat */}
-            {!preloadedOutfit && conversations.length > 0 && (
-              <div style={{ marginTop: "4px" }}>
-                <ConversationList inline />
-              </div>
-            )}
 
             <div style={{ flex: 1 }} />
 
             {hasCloset !== false && (
               <div
                 style={{
-                  border: "1px solid #eee",
-                  borderRadius: "16px",
-                  padding: "14px",
-                  background: "white",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
                 }}
               >
-                <p style={{ margin: 0, fontSize: "14px", color: "#8A6A3C", fontWeight: 500 }}>
-                  ✦ {preloadedOutfit ? "Want something different? Pick an occasion." : "What are you dressing for?"}
-                </p>
-                <div
-                  style={{
-                    marginTop: "12px",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "8px",
-                  }}
-                >
-                  {occasions.map((occasion) => (
-                    <button
-                      key={occasion}
-                      type="button"
-                      onClick={() => {
-                        setInputValue(occasion);
-                        setTimeout(() => inputRef.current?.focus(), 0);
-                      }}
-                      style={{
-                        border: "1px solid #ddd",
-                        borderRadius: "100px",
-                        padding: "6px 14px",
-                        fontSize: "13px",
-                        background: "white",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {occasion}
-                    </button>
-                  ))}
-                </div>
+                {occasions.map((occasion) => (
+                  <button
+                    key={occasion}
+                    type="button"
+                    onClick={() => {
+                      setInputValue(occasion);
+                      setTimeout(() => inputRef.current?.focus(), 0);
+                    }}
+                    style={{
+                      border: "1px solid #ddd",
+                      borderRadius: "100px",
+                      padding: "6px 14px",
+                      fontSize: "13px",
+                      background: "white",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {occasion}
+                  </button>
+                ))}
               </div>
             )}
           </>
@@ -7893,6 +7950,7 @@ function FavoritesScreen() {
   const [sortBy, setSortBy] = useState("recent");
   const [filterOccasions, setFilterOccasions] = useState([]);
   const [detailOutfit, setDetailOutfit] = useState(null);
+  const [shareCopiedId, setShareCopiedId] = useState(null);
   const navigate = useNavigate();
 
   const occasions = ["All", "Going Out", "Work", "Casual", "Date Night", "Event", "Travel", "Other"];
@@ -8192,6 +8250,49 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                               {getLookbookContextTag(outfit, getConversationTitleForOutfit(outfit.created_at))}
                             </span>
                             <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#8A8798", whiteSpace: "nowrap" }}>Saved {formatDate(outfit.created_at)}</p>
+                            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { styleItemMessage: `Style me an outfit like my ${getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))} look` } }); }}
+                                style={{
+                                  border: "1px solid #E6D8BF",
+                                  background: "white",
+                                  color: "#B08A4A",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  padding: "5px 12px",
+                                  borderRadius: "100px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Style this again →
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const title = getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at));
+                                  const shareData = { title, text: "Check out this outfit from Styliner", url: "https://styliner.vercel.app" };
+                                  if (navigator.share) {
+                                    try { await navigator.share(shareData); } catch {}
+                                  } else {
+                                    try { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); setShareCopiedId(outfit.id); setTimeout(() => setShareCopiedId(null), 2000); } catch {}
+                                  }
+                                }}
+                                style={{
+                                  border: "1px solid #E6D8BF",
+                                  background: "white",
+                                  color: "#B08A4A",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  padding: "5px 12px",
+                                  borderRadius: "100px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {shareCopiedId === outfit.id ? "Copied!" : "Share Look"}
+                              </button>
+                            </div>
                           </div>
                           <button
                             type="button"
@@ -8202,9 +8303,9 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                               width: "34px",
                               height: "34px",
                               borderRadius: "50%",
-                              border: "1px solid #F5D8D8",
-                              background: "#FFF7F7",
-                              color: "#DC2626",
+                              border: "1px solid rgba(176,138,74,0.24)",
+                              background: "rgba(176,138,74,0.06)",
+                              color: "#B08A4A",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -8386,6 +8487,7 @@ function AppRouter() {
   const [session, setSession] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoGender, setDemoGender] = useState("womens");
   const [demoClosetItems, setDemoClosetItems] = useState(() => createDemoClosetItems());
   const [demoPrompt, setDemoPrompt] = useState(null);
   const onboardingRoutes = ["/", "/signup", "/login", "/privacy", "/starter-wardrobe"];
@@ -8393,8 +8495,10 @@ function AppRouter() {
   const isAdminSession = isAdminEmail(session?.user?.email);
 
   function enterDemoMode(styleGender) {
-    console.log("[Demo] enterDemoMode called with styleGender:", styleGender || DEMO_CLOSET_STYLE_GENDER);
-    setDemoClosetItems(createDemoClosetItems(styleGender));
+    const gender = styleGender || "womens";
+    console.log("[Demo] enterDemoMode called with styleGender:", gender);
+    setDemoGender(gender);
+    setDemoClosetItems(createDemoClosetItems(gender));
     setIsDemoMode(true);
     setDemoPrompt(null);
   }
@@ -8477,6 +8581,8 @@ function AppRouter() {
 
   const demoModeApi = {
     isDemoMode,
+    demoGender,
+    setDemoGender,
     demoClosetItems,
     setDemoClosetItems,
     updateDemoClosetItem,
