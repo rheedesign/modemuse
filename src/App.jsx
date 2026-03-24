@@ -6665,6 +6665,11 @@ function ChatScreen() {
     if (metaViewport) {
       metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content');
     }
+    return () => {
+      if (metaViewport) {
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      }
+    };
   }, []);
 
   // Occasion sheet state for saving outfits
@@ -7551,9 +7556,7 @@ Only suggest items they don't already own.`;
         style={{
           flex: 1,
           overflowY: "auto",
-          WebkitOverflowScrolling: "touch",
-          minHeight: 0,
-          padding: "16px 16px 24px",
+          padding: "16px 16px 180px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -7954,10 +7957,11 @@ Only suggest items they don't already own.`;
 
       {/* Input bar */}
       <div
-        className="chat-composer"
         style={{
-          position: "sticky",
-          bottom: 0,
+          position: "fixed",
+          bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
+          left: "50%",
+          transform: "translateX(-50%)",
           width: "100%",
           maxWidth: "430px",
           padding: "12px 16px",
@@ -7968,7 +7972,7 @@ Only suggest items they don't already own.`;
           background: "white",
           zIndex: CHAT_COMPOSER_Z_INDEX,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
-          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 16px))",
+          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
