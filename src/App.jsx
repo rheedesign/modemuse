@@ -7420,9 +7420,9 @@ Only suggest items they don't already own.`;
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); toggleStarConversation(convo.id, convo.is_starred); }}
-            style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", fontSize: "14px", color: convo.is_starred ? "#B08A4A" : "#ccc" }}
+            style={{ background: "none", border: "none", padding: "4px", cursor: "pointer", display: "flex", alignItems: "center" }}
           >
-            {convo.is_starred ? "♥" : "♡"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={convo.is_starred ? "#B08A4A" : "none"} stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
           </button>
           <button
             type="button"
@@ -7479,7 +7479,7 @@ Only suggest items they don't already own.`;
           boxShadow: drawerOpen ? "4px 0 20px rgba(0,0,0,0.1)" : "none",
         }}
       >
-        <div style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
+        <div style={{ padding: "16px", paddingTop: "max(60px, calc(env(safe-area-inset-top) + 16px))", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
           <strong style={{ fontSize: "15px", color: "#111111" }}>Conversations</strong>
           <button type="button" onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", fontSize: "18px", color: "#999", cursor: "pointer" }}>✕</button>
         </div>
@@ -7550,9 +7550,9 @@ Only suggest items they don't already own.`;
             <button
               type="button"
               onClick={() => toggleStarConversation(activeConvo.id, activeConvo.is_starred)}
-              style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer", color: activeConvo.is_starred ? "#B08A4A" : "#ccc" }}
+              style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
             >
-              {activeConvo.is_starred ? "♥" : "♡"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill={activeConvo.is_starred ? "#B08A4A" : "none"} stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
           )}
           <button
