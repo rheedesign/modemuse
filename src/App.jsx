@@ -185,7 +185,7 @@ function BottomNav() {
 
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
-const PAGE_TOP_PADDING = "max(72px, calc(env(safe-area-inset-top) + 32px))";
+const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
 const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
 const SHEET_BACKDROP_Z_INDEX = 13000;
 const SHEET_Z_INDEX = 13001;
@@ -7494,7 +7494,7 @@ Only suggest items they don't already own.`;
       {/* Header */}
       <div
         style={{
-          padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
+          padding: `max(80px, calc(env(safe-area-inset-top) + 40px)) 16px 16px`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
