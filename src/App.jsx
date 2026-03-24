@@ -2737,10 +2737,24 @@ When suggesting outfits: be specific and opinionated, always create a complete l
 
       const systemPrompt = styleGender === "mens" ? menSystemPrompt : womenSystemPrompt;
 
+      // Build avoidance instruction from recent outfits
+      const prevUrls = previousUrlsRef.current;
+      const recentHistory = outfitHistoryRef.current.slice(-3);
+      const allRecentUrls = [...new Set([...prevUrls, ...recentHistory.flatMap((e) => e.urls || [])])];
+      const recentNames = itemsList
+        .filter((item) => allRecentUrls.includes(item.image_url))
+        .map((item) => item.name)
+        .filter(Boolean);
+
+      let avoidInstruction = "";
+      if (recentNames.length > 0) {
+        avoidInstruction = `\n\nIMPORTANT: Do NOT repeat the last outfit. Avoid these recently used items: ${recentNames.join(", ")}. Pick a completely different combination with a different vibe, different hero piece, different footwear, and a different color story. Surprise me.`;
+      }
+
       const prompt = `Pick 4 items from this wardrobe for a great outfit today. Weather: ${weatherText}.
 
 Wardrobe:
-${itemsText}
+${itemsText}${avoidInstruction}
 
 Reply in EXACTLY this format with no other text:
 VIBE: [3 word vibe name]
@@ -2758,6 +2772,7 @@ WHY: [one punchy sentence about why this works right now]`;
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 400,
+          temperature: prevUrls.length > 0 ? 1.0 : 0.85,
           system: systemPrompt,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -2777,6 +2792,8 @@ WHY: [one punchy sentence about why this works right now]`;
       setSuggestedImages(imageUrls);
       setSuggestionVibe(vibe);
       setSuggestionCaption(why);
+      previousUrlsRef.current = imageUrls;
+      recordOutfitHistory(imageUrls);
     } catch (err) {
       console.error("Outfit suggestion failed:", err);
       setSuggestedImages([]);
