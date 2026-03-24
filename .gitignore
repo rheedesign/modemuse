@@ -29,3 +29,5 @@ dist-ssr
 *.png
 !public/*.png
 !public/starter/*.png
+!public/branding/*.png
+!public/branding/*.svg
