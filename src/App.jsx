@@ -138,6 +138,11 @@ function AIGeneratedTag({ className = "", style = {} }) {
 }
 
 function BottomNav() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const items = [
     { to: "/home", label: "Home", icon: IconShirt },
     { to: "/closet", label: "Closet", icon: IconHanger },
@@ -158,6 +163,7 @@ function BottomNav() {
         background: "#fff",
         borderTop: "1px solid #f0f0f0",
         padding: "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
+        transition: "padding 0.1s ease",
       }}
     >
       <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, margin: 0, padding: 0, listStyle: "none" }}>
