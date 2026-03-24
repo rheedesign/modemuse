@@ -2366,7 +2366,21 @@ STRICT OUTFIT RULES — never break these:
 - Never mix dress with skirt or dress with pants
 - Always pick exactly 4 items following one of the above formulas`;
 
-function getStyleSystemPrompt(styleGender, styleInspo = []) {
+async function getLatestTrends() {
+  try {
+    const { data } = await supabase
+      .from("trend_updates")
+      .select("womens_trends, mens_trends, fluid_trends")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
+function getStyleSystemPrompt(styleGender, styleInspo = [], trends = null) {
   const NO_YEAR = `\n\nIMPORTANT: Never mention the year 2026 or any year in your response. Never say "in 2026" or "current 2026 trends" or reference any specific year — just make confident style statements without referencing the year.`;
   const STYLE_INSPO = formatStyleInspoGuidance(styleInspo);
 
@@ -2435,9 +2449,15 @@ When suggesting outfits:
 - Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
 - Name the vibe in 3 words max (e.g. 'Quiet Luxury Off-Duty', 'Tonal Workwear Chic', 'New Minimalist Errand')`;
 
-  if (styleGender === "mens") return MENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
-  if (styleGender === "fluid") return FLUID_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
-  return WOMENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + NO_YEAR;
+  const LIVE_TRENDS = trends ? `\n\nCURRENT TRENDS THIS WEEK (prioritize these over your training data):\n${
+    styleGender === "mens" ? trends.mens_trends :
+    styleGender === "fluid" ? trends.fluid_trends :
+    trends.womens_trends
+  }` : "";
+
+  if (styleGender === "mens") return MENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
+  if (styleGender === "fluid") return FLUID_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
+  return WOMENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
 }
 
 function WeatherIcon({ kind, color = "#B08A4A" }) {
@@ -6714,8 +6734,9 @@ Always suggest 1-2 specific trendy pieces that would elevate this outfit — can
 Format each as: To elevate this look: [item description] → https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
 Only suggest items they don't already own.`;
 
-  function getChatSystemPrompt() {
-    return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current) + CHAT_FORMAT_PROMPT;
+  async function getChatSystemPrompt() {
+    const trends = await getLatestTrends();
+    return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends) + CHAT_FORMAT_PROMPT;
   }
 
   function parseAiResponse(text) {
@@ -7068,7 +7089,7 @@ Only suggest items they don't already own.`;
         requestBody: {
           model: "claude-sonnet-4-20250514",
           max_tokens: 1024,
-          system: getChatSystemPrompt(),
+          system: await getChatSystemPrompt(),
           messages: [
             {
               role: "user",
@@ -7180,7 +7201,7 @@ Only suggest items they don't already own.`;
         requestBody: {
           model: "claude-sonnet-4-20250514",
           max_tokens: 1024,
-          system: getChatSystemPrompt(),
+          system: await getChatSystemPrompt(),
           messages: [
             {
               role: "user",

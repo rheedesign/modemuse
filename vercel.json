@@ -1,8 +1,19 @@
 {
+  "crons": [
+    {
+      "path": "/api/update-trends",
+      "schedule": "0 9 * * 1"
+    }
+  ],
   "functions": {
     "api/anthropic.js": { "maxDuration": 60 }
   },
   "rewrites": [
+    { "source": "/api/anthropic/v1/messages", "destination": "/api/anthropic" },
+    { "source": "/api/anthropic", "destination": "/api/anthropic" },
+    { "source": "/api/update-trends", "destination": "/api/update-trends" },
+    { "source": "/api/scrape-product", "destination": "/api/scrape-product" },
+    { "source": "/api/admin-usage", "destination": "/api/admin-usage" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
