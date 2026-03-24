@@ -21,9 +21,10 @@ function IconHanger({ active, className = "", tone = "" }) {
   const stateClass = tone || (active ? "text-primary" : "text-gray-400");
   return (
     <svg viewBox="0 0 24 24" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a3 3 0 0 1 3 3c0 1.66-3 3-3 3" />
-      <path d="M12 8L3 16h18L12 8z" />
-      <path d="M3 16v2h18v-2" />
+      <path d="M12 3a2 2 0 0 1 2 2c0 1-1 1.5-2 2" />
+      <path d="M12 7C8 7 4 9.5 4 12h16c0-2.5-4-5-8-5z" />
+      <path d="M4 12v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1" />
+      <line x1="4" y1="19" x2="20" y2="19" strokeWidth="1.5" />
     </svg>
   );
 }
