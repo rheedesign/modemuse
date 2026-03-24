@@ -9,6 +9,6 @@
     "api/anthropic.js": { "maxDuration": 60 }
   },
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|branding/|landing.html).*)", "destination": "/index.html" }
   ]
 }
