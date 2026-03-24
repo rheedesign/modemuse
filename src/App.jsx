@@ -1429,12 +1429,10 @@ function OnboardingSplash() {
         justifyContent: "space-between",
       }}
     >
-      <div style={{ textAlign: "center", paddingTop: "30px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <img src="/branding/AppLogo_1024.svg" alt="Styliner" style={{ width: "64px", height: "64px", borderRadius: "16px", marginBottom: "14px" }} />
-        <p style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.9)" }}>Your AI Wardrobe</p>
+      <div style={{ textAlign: "center", paddingTop: "30px" }}>
         <div style={{ fontSize: "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em" }}>STYLINER</div>
-        <p style={{ margin: "10px 0 0", fontSize: "22px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2 }}>Your clothes are already an outfit.</p>
-        <p style={{ marginTop: "6px", fontSize: "17px", fontWeight: 400, color: "rgba(255,255,255,0.85)" }}>We just find it.</p>
+        <p style={{ margin: "14px 0 0", fontSize: "26px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2 }}>Your clothes are already an outfit.</p>
+        <p style={{ marginTop: "8px", fontSize: "18px", fontWeight: 400, color: "rgba(255,255,255,0.85)" }}>We just find it.</p>
       </div>
 
       {showGenderPicker ? (
@@ -1500,12 +1498,13 @@ function OnboardingSplash() {
             style={{
               background: "transparent",
               border: "none",
-              color: "rgba(255,255,255,0.96)",
-              fontSize: "13px",
+              color: "rgba(255,255,255,1)",
+              fontSize: "15px",
               fontWeight: 700,
               cursor: "pointer",
               textDecoration: "underline",
               textUnderlineOffset: "3px",
+              marginTop: "8px",
             }}
           >
             See it in action →
@@ -1630,7 +1629,8 @@ function SignUpScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div className="pt-8">
+      <div style={{ position: "relative", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -1812,7 +1812,8 @@ function StarterWardrobeScreen() {
         flexDirection: "column",
       }}
     >
-      <div style={{ textAlign: "center", paddingTop: "18px" }}>
+      <div style={{ position: "relative", textAlign: "center", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/signup")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(176,138,74,0.10)", border: "1px solid rgba(176,138,74,0.20)", color: "#B08A4A", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <LogoWordmark compact centered />
       </div>
 
@@ -1981,7 +1982,8 @@ function LogInScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div className="pt-8">
+      <div style={{ position: "relative", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -2028,7 +2030,7 @@ function LogInScreen() {
 function PrivacyPolicyScreen() {
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ padding: "8px 0 24px" }}>
+      <div style={{ paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))", paddingBottom: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
           <LogoWordmark compact />
           <NavLink
