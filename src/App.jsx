@@ -4464,8 +4464,8 @@ function ClosetScreen() {
       }}
     >
       {/* Header */}
-      <div style={{ padding: "20px 16px 0" }}>
-        <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Wardrobe</h1>
+      <div style={{ padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 0" }}>
+        <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Closet</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
         <DemoModeBanner />
 
@@ -7469,7 +7469,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
           >
             ☰
           </button>
-          <strong style={{ fontSize: "15px", color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>
+          <strong style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>
             {activeConvo ? activeConvo.title : "New Chat"}
           </strong>
         </div>
@@ -7653,14 +7653,13 @@ Only suggest items they don't already own. Skip this section entirely if the out
             )}
 
 
-            <div style={{ flex: 1 }} />
-
             {hasCloset !== false && (
               <div
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
                   gap: "8px",
+                  marginTop: "16px",
                 }}
               >
                 {occasions.map((occasion) => (
