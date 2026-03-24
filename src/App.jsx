@@ -7413,6 +7413,7 @@ Only suggest items they don't already own.`;
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
+        maxHeight: "100dvh",
         maxWidth: "430px",
         margin: "0 auto",
         background: "white",
@@ -7555,7 +7556,9 @@ Only suggest items they don't already own.`;
       <div
         style={{
           flex: 1,
+          minHeight: 0,
           overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
           padding: "16px 16px 180px",
           display: "flex",
           flexDirection: "column",
