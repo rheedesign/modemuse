@@ -22,7 +22,7 @@ function IconHanger({ active, className = "", tone = "" }) {
   return (
     <svg viewBox="0 0 24 24" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2a3 3 0 0 1 3 3c0 1.66-3 3-3 3" />
-      <path d="M12 8L3 16h18L12 8z" />
+      <path d="M12 8L3 16h18L12 8" />
       <path d="M3 16v2h18v-2" />
     </svg>
   );
