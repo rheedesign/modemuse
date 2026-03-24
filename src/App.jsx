@@ -21,9 +21,9 @@ function IconHanger({ active, className = "", tone = "" }) {
   const stateClass = tone || (active ? "text-primary" : "text-gray-400");
   return (
     <svg viewBox="0 0 24 24" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a3 3 0 0 1 3 3c0 1.66-3 3-3 3" />
-      <path d="M12 8L3 16h18L12 8" />
-      <path d="M3 16v2h18v-2" />
+      <path d="M12 3c1.1 0 2 .9 2 2s-2 2-2 2" />
+      <path d="M12 7L4 17h16L12 7" />
+      <path d="M4 17h16v2H4z" />
     </svg>
   );
 }
@@ -6461,18 +6461,20 @@ function UploadScreen() {
                 marginBottom: "14px",
               }}
             >
-              <div style={{ marginBottom: "6px" }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
-              <p style={{ fontSize: "13px", color: "#999" }}>Select photos</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <p style={{ fontSize: "13px", color: "#999", margin: 0 }}>Select photos</p>
+              </div>
             </div>
 
             <p style={{ textAlign: "center", color: "#999", marginBottom: "14px", fontSize: "13px" }}>or</p>
 
-            <button onClick={openCamera} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "8px" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:"6px"}}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Open Camera
+            <button onClick={openCamera} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Open Camera
             </button>
 
-            <button onClick={() => setShowUrlInput((v) => !v)} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: showUrlInput ? "8px" : "18px" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:"6px"}}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Paste image or product URL
+            <button onClick={() => setShowUrlInput((v) => !v)} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: showUrlInput ? "8px" : "18px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Paste image or product URL
             </button>
 
             {showUrlInput && (
