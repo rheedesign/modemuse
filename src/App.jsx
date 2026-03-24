@@ -6232,7 +6232,7 @@ function UploadScreen() {
       const isLikelyProductPage = !/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url);
       if (isLikelyProductPage) {
         try {
-          const scrapeRes = await fetch("/api/scrape-product", {
+          const scrapeRes = await fetch("https://styliner.vercel.app/api/scrape-product", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url }),
