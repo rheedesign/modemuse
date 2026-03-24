@@ -444,7 +444,7 @@ async function runTrackedAnthropicRequest({
   let data;
   console.log("[DEBUG] About to fetch /api/anthropic", { feature, model: requestBody.model });
   try {
-    response = await fetch("/api/anthropic", {
+    response = await fetch("https://styliner.vercel.app/api/anthropic", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -2939,7 +2939,7 @@ VIBE: [3 word vibe name]
 ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
 WHY: [one punchy sentence about why this works right now]`;
 
-      const response = await fetch("/api/anthropic", {
+      const response = await fetch("https://styliner.vercel.app/api/anthropic", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
