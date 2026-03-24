@@ -6659,6 +6659,14 @@ function ChatScreen() {
   const latestAssistantRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Fix iOS keyboard pushing content
+  useEffect(() => {
+    const metaViewport = document.querySelector('meta[name=viewport]');
+    if (metaViewport) {
+      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content');
+    }
+  }, []);
+
   // Occasion sheet state for saving outfits
   const [occasionSheet, setOccasionSheet] = useState(null); // null or { msgIndex }
   const [outfitTitle, setOutfitTitle] = useState("");
@@ -7543,7 +7551,9 @@ Only suggest items they don't already own.`;
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px 16px 180px",
+          WebkitOverflowScrolling: "touch",
+          minHeight: 0,
+          padding: "16px 16px 24px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -7944,11 +7954,10 @@ Only suggest items they don't already own.`;
 
       {/* Input bar */}
       <div
+        className="chat-composer"
         style={{
-          position: "fixed",
-          bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
-          left: "50%",
-          transform: "translateX(-50%)",
+          position: "sticky",
+          bottom: 0,
           width: "100%",
           maxWidth: "430px",
           padding: "12px 16px",
@@ -7959,7 +7968,7 @@ Only suggest items they don't already own.`;
           background: "white",
           zIndex: CHAT_COMPOSER_Z_INDEX,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
-          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 16px))",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
