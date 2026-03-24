@@ -6718,10 +6718,11 @@ Only suggest items they don't already own.`;
   }
 
   function parseAiResponse(text) {
-    const imageUrlRegex = /(?:https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)|\/[^\s)>\]]+\.(?:png|jpg|jpeg|webp|gif|svg))/gi;
-    const imageUrls = [...new Set(text.match(imageUrlRegex) || [])].map(u =>
+    const imageUrlRegex = /\(([^)]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)[^)]*)\)/gi;
+    const imageUrls = [...new Set([...text.matchAll(imageUrlRegex)].map(m => m[1].trim()))].map(u =>
       u.startsWith("/") ? `https://styliner.vercel.app${u}` : u
     );
+    console.log("[DEBUG] Extracted imageUrls:", imageUrls);
     let clean = text
       .replace(/\*\*([^*]+)\*\*/g, "$1")
       .replace(/\*([^*]+)\*/g, "$1")
@@ -7072,6 +7073,7 @@ Only suggest items they don't already own.`;
       });
 
       const aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      console.log("[DEBUG] AI raw response:", aiText);
       const { imageUrls } = parseAiResponse(aiText);
 
       // Save assistant message
@@ -7183,6 +7185,7 @@ Only suggest items they don't already own.`;
       });
 
       const aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      console.log("[DEBUG] AI raw response:", aiText);
       const { imageUrls } = parseAiResponse(aiText);
 
       const oldMsgId = messages[assistantMsgIndex].id;
