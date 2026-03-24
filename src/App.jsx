@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import supabase from "./supabase";
 
@@ -204,6 +204,16 @@ const ADMIN_EMAILS = Array.from(new Set(
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 ));
+
+const DemoModeContext = createContext(null);
+
+function useDemoMode() {
+  const context = useContext(DemoModeContext);
+  if (!context) {
+    throw new Error("useDemoMode must be used inside DemoModeContext");
+  }
+  return context;
+}
 
 function isAdminEmail(email) {
   if (!email) return false;
@@ -553,15 +563,15 @@ const STARTER_CLOSET_PRESETS = {
     { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
     { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
     { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-floral-dress.png" },
-    { name: "Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-statement-bag.png" },
+    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-dress.png" },
+    { name: "Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-bag.png" },
   ],
   mens: [
     { name: "White T-Shirt", category: "Tops", tags: ["white", "cotton", "basic", "casual"], season: "All Season", image_url: "/Group 13.png" },
     { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
     { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
     { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-shirt.png" },
+    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-pattern-shirt.png" },
     { name: "Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/mens-statement-bag.png" },
   ],
   fluid: [
@@ -569,9 +579,9 @@ const STARTER_CLOSET_PRESETS = {
     { name: "Straight Jeans", category: "Bottoms", tags: ["blue", "denim", "straight", "casual"], season: "All Season", image_url: "/Group 12.png" },
     { name: "White Sneakers", category: "Shoes", tags: ["white", "sneakers", "everyday", "minimal"], season: "All Season", image_url: "/Group 11.png" },
     { name: "Suit Jacket", category: "Outerwear", tags: ["black", "tailored", "blazer", "polished"], season: "Fall/Winter", image_url: "/Group 14.png" },
-    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-floral-dress.png" },
-    { name: "Women Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-statement-bag.png" },
-    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-shirt.png" },
+    { name: "Floral Dress", category: "Dresses", tags: ["floral", "dress", "feminine", "spring"], season: "Spring/Summer", image_url: "/starter/womens-dress.png" },
+    { name: "Women Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/womens-bag.png" },
+    { name: "Pattern Shirt", category: "Tops", tags: ["patterned", "shirt", "resort", "casual"], season: "Spring/Summer", image_url: "/starter/mens-pattern-shirt.png" },
     { name: "Men Statement Bag", category: "Bags", tags: ["black", "bag", "statement", "polished"], season: "All Season", image_url: "/starter/mens-statement-bag.png" },
   ],
 };
@@ -581,6 +591,269 @@ const STARTER_CLOSET_CHOICES = [
   { value: "mens", label: "Men's", preview: "Tee, jeans, loafers" },
   { value: "fluid", label: "Gender Fluid", preview: "Basics, blazer, dress" },
 ];
+
+const DEMO_CLOSET_STYLE_GENDER = "fluid";
+
+function createDemoClosetItems() {
+  return getStarterClosetPreset(DEMO_CLOSET_STYLE_GENDER).map((item, index) => ({
+    ...item,
+    id: `demo-${index}`,
+    user_id: "demo",
+    public_id: `demo-${index}`,
+    rotation: 0,
+    is_favorited: false,
+    _hasDbName: true,
+    _isDemo: true,
+  }));
+}
+
+function cloneDemoClosetItems(items) {
+  return (Array.isArray(items) ? items : []).map((item, index) => ({
+    ...item,
+    id: item.id || `demo-${index}`,
+    rotation: item.rotation || 0,
+    is_favorited: !!item.is_favorited,
+    _hasDbName: true,
+    _isDemo: true,
+  }));
+}
+
+function isDemoItemCategory(item, category) {
+  if (!item || !category) return false;
+  return String(item.category || "").toLowerCase() === String(category).toLowerCase();
+}
+
+const DEMO_OUTFIT_TEMPLATES = {
+  sun: [
+    { vibe: "Easy Weekend", caption: "A relaxed, polished mix that feels clean and effortless.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Sunny Classic", caption: "An easy base with a little polish so it still feels styled.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+  ],
+  cool: [
+    { vibe: "Cold-Weather Edit", caption: "Layered up, but still light enough to feel modern.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "City Layering", caption: "A sharper layer stack that keeps the silhouette clean.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+  ],
+  rain: [
+    { vibe: "Rain Ready", caption: "A practical look that still reads polished and intentional.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Weather Proof", caption: "Built for a wet day with a clean, fashion-forward finish.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+  ],
+  wind: [
+    { vibe: "Wind Ready", caption: "A crisp layer story that keeps the outfit feeling balanced.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Layered Clean", caption: "Soft layers with a tailored edge so it still feels elevated.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+  ],
+  travel: [
+    { vibe: "Vacation Ready", caption: "Easy pieces that feel relaxed, pulled together, and travel friendly.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Trip Edit", caption: "A breezy combo with enough polish for day plans or dinner.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+  ],
+  office: [
+    { vibe: "Office Clean", caption: "A sharper mix with a polished silhouette and easy movement.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Desk to Dinner", caption: "Tailored enough for work, relaxed enough to wear after hours.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes", "Bags"] },
+  ],
+  ceremony: [
+    { vibe: "Ceremony Ready", caption: "Refined, calm, and a little elevated for a special event.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Polished Occasion", caption: "A graceful mix that feels dressed up without trying too hard.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+  ],
+  goingOut: [
+    { vibe: "Going Out", caption: "A little more directional, with a cleaner shape and stronger attitude.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+    { vibe: "Night Out", caption: "An easy statement look with a polished finish.", categories: ["Dresses", "Shoes", "Bags", "Outerwear"] },
+  ],
+  casual: [
+    { vibe: "Off Duty", caption: "Simple, wearable, and still styled enough to feel intentional.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Weekend Uniform", caption: "A low-effort mix that still feels composed and current.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+  ],
+  general: [
+    { vibe: "Quiet Luxury", caption: "A clean edit of pieces that already work beautifully together.", categories: ["Tops", "Bottoms", "Shoes", "Bags"] },
+    { vibe: "Modern Classic", caption: "Balanced, polished, and easy to wear from day to night.", categories: ["Outerwear", "Tops", "Bottoms", "Shoes"] },
+    { vibe: "Effortless", caption: "Light, easy, and styled in a way that still feels finished.", categories: ["Dresses", "Shoes", "Bags"] },
+  ],
+};
+
+function detectDemoTheme(text = "") {
+  const lower = String(text || "").toLowerCase();
+  if (/vacation|travel|trip|hawaii|beach|airport/.test(lower)) return "travel";
+  if (/office|work|meeting|interview|desk/.test(lower)) return "office";
+  if (/wedding|ceremony|baptism|church|gala|formal/.test(lower)) return "ceremony";
+  if (/date night|night out|concert|party|going out|dinner/.test(lower)) return "goingOut";
+  if (/rain|weather|wind|cold|layers|jacket/.test(lower)) return "wind";
+  if (/casual|everyday|brunch|picnic|weekend|errand/.test(lower)) return "casual";
+  return "general";
+}
+
+function pickDemoOutfitItems(items, categories, seed = 0) {
+  const available = [...(Array.isArray(items) ? items : [])];
+  const selected = [];
+  const usedIds = new Set();
+
+  for (const category of categories) {
+    const match = available.find((item) => !usedIds.has(item.id) && isDemoItemCategory(item, category));
+    if (match) {
+      selected.push(match);
+      usedIds.add(match.id);
+    }
+  }
+
+  const fallbackPool = available.filter((item) => !usedIds.has(item.id));
+  const fallbackOffset = fallbackPool.length > 0 ? seed % fallbackPool.length : 0;
+  while (selected.length < Math.min(categories.length, available.length) && fallbackPool.length > 0) {
+    const next = fallbackPool[(selected.length + fallbackOffset) % fallbackPool.length];
+    if (!next || usedIds.has(next.id)) break;
+    selected.push(next);
+    usedIds.add(next.id);
+  }
+
+  return selected;
+}
+
+function buildDemoOutfitSuggestion(items, { theme = "general", seed = 0, styleInspo = [] } = {}) {
+  const templates = DEMO_OUTFIT_TEMPLATES[theme] || DEMO_OUTFIT_TEMPLATES.general;
+  const template = templates[seed % templates.length] || DEMO_OUTFIT_TEMPLATES.general[0];
+  const selectedItems = pickDemoOutfitItems(items, template.categories, seed);
+  const vibe = styleInspo.length > 0
+    ? `${styleInspo[0]} ${template.vibe}`.trim()
+    : template.vibe;
+
+  return {
+    items: selectedItems,
+    images: selectedItems.map((item) => item.image_url).filter(Boolean).slice(0, 6),
+    urls: selectedItems.map((item) => item.image_url).filter(Boolean).slice(0, 6),
+    vibe,
+    caption: template.caption,
+  };
+}
+
+function buildDemoChatResponse(prompt, items, { seed = 0, styleInspo = [] } = {}) {
+  const theme = detectDemoTheme(prompt);
+  const suggestion = buildDemoOutfitSuggestion(items, { theme, seed, styleInspo });
+  const imageLine = suggestion.images
+    .map((url, index) => `${(suggestion.items?.[index]?.name || `Item ${index + 1}`)} (${url})`)
+    .join(" + ");
+  const whyByTheme = {
+    travel: "It feels easy, polished, and ready for moving through the day without looking overdone.",
+    office: "The proportions feel sharp and intentional, with enough structure to read polished.",
+    ceremony: "It feels respectful and refined, with a clean silhouette that still looks current.",
+    goingOut: "The mix feels a little more directional and elevated, which gives it presence.",
+    casual: "It keeps things effortless while still looking styled and put together.",
+    wind: "The layering gives it shape without making it feel bulky.",
+    rain: "It stays practical while still feeling thoughtful and polished.",
+    general: "It has an easy, modern balance that feels styled without trying too hard.",
+  };
+
+  return [
+    "YOUR LOOK",
+    imageLine || suggestion.images.join(" + "),
+    "",
+    "WHY IT WORKS",
+    whyByTheme[theme] || whyByTheme.general,
+  ].join("\n");
+}
+
+function DemoModeBanner() {
+  const { isDemoMode } = useDemoMode();
+  if (!isDemoMode) return null;
+  return (
+    <div
+      style={{
+        margin: "0 0 12px",
+        padding: "8px 12px",
+        borderRadius: "999px",
+        background: "rgba(176,138,74,0.10)",
+        border: "1px solid rgba(176,138,74,0.16)",
+        color: "#8A6A3C",
+        fontSize: "11px",
+        fontWeight: 800,
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+        textAlign: "center",
+      }}
+    >
+      ✦ You're in demo mode. Sign up to use your own wardrobe.
+    </div>
+  );
+}
+
+function DemoPromptModal() {
+  const { demoPrompt, closeDemoPrompt } = useDemoMode();
+  const navigate = useNavigate();
+
+  if (!demoPrompt) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 14000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        background: "rgba(0,0,0,0.45)",
+      }}
+    >
+      <div
+        style={{
+          width: "min(360px, 100%)",
+          borderRadius: "24px",
+          background: "white",
+          padding: "22px 20px 18px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.24)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <div style={{ width: "40px", height: "4px", borderRadius: "999px", background: "#e6d8bf" }} />
+        </div>
+        <h3 style={{ margin: 0, fontSize: "18px", lineHeight: 1.2, fontWeight: 800, color: "#111111", textAlign: "center" }}>
+          {demoPrompt.title || "Sign up to continue"}
+        </h3>
+        {demoPrompt.message && (
+          <p style={{ margin: "10px 0 0", fontSize: "14px", lineHeight: 1.5, color: "#6b6578", textAlign: "center" }}>
+            {demoPrompt.message}
+          </p>
+        )}
+        <div style={{ display: "grid", gap: "10px", marginTop: "18px" }}>
+          <button
+            type="button"
+            onClick={() => {
+              closeDemoPrompt();
+              navigate("/signup");
+            }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: "100px",
+              border: "none",
+              background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 6px 20px rgba(176,138,74,0.24)",
+            }}
+          >
+            Sign up
+          </button>
+          <button
+            type="button"
+            onClick={closeDemoPrompt}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: "100px",
+              border: "1px solid #e0e0e0",
+              background: "white",
+              color: "#555",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 function getStarterClosetPreset(styleGender) {
   if (styleGender === "female") return STARTER_CLOSET_PRESETS.womens;
@@ -603,6 +876,48 @@ function buildStarterClosetItems(styleGender, userId) {
     rotation: 0,
     is_favorited: false,
   }));
+}
+
+function getStarterWardrobePreviewItems(styleGender) {
+  return getStarterClosetPreset(styleGender).slice(0, 6);
+}
+
+function getStarterSampleOutfitItems(styleGender) {
+  return getStarterClosetPreset(styleGender).slice(0, 4);
+}
+
+function getStarterSampleOutfitCaption(styleGender, styleInspo = []) {
+  const inspo = normalizeStyleInspoSelection(styleInspo);
+  const mood = inspo.length > 0 ? inspo.slice(0, 2).join(" + ") : "";
+
+  if (styleGender === "mens") {
+    return mood ? `${mood} starter look` : "A clean first look built from your starter pieces.";
+  }
+
+  if (styleGender === "fluid") {
+    return mood ? `${mood} starter mix` : "A flexible starter mix you can style up or down.";
+  }
+
+  return mood ? `${mood} starter look` : "A polished first look built from your starter pieces.";
+}
+
+async function seedStarterClosetForUser(user, styleGender) {
+  const preset = getStarterClosetPreset(styleGender);
+  const { count } = await supabase
+    .from("clothing_items")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if ((count || 0) === 0) {
+    const starterItems = buildStarterClosetItems(styleGender, user.id);
+    const { error } = await supabase.from("clothing_items").insert(starterItems);
+    if (error) throw error;
+    await refreshStoredClosetItemCount(user.id);
+    return preset;
+  }
+
+  await refreshStoredClosetItemCount(user.id);
+  return preset;
 }
 
 const COUNTRY_MAJOR_CITIES = [
@@ -1062,6 +1377,9 @@ function StyleInspoPicker({ value, onChange, max = 3, compact = false, title = "
 }
 
 function OnboardingSplash() {
+  const navigate = useNavigate();
+  const { enterDemoMode } = useDemoMode();
+
   return (
     <div
       style={{
@@ -1098,6 +1416,25 @@ function OnboardingSplash() {
             Log In
           </PillButton>
         </NavLink>
+        <button
+          type="button"
+          onClick={() => {
+            enterDemoMode();
+            navigate("/home", { replace: true });
+          }}
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "rgba(255,255,255,0.96)",
+            fontSize: "13px",
+            fontWeight: 700,
+            cursor: "pointer",
+            textDecoration: "underline",
+            textUnderlineOffset: "3px",
+          }}
+        >
+          See it in action →
+        </button>
         <div style={{ textAlign: "center", paddingTop: "2px" }}>
           <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.92)", textDecoration: "none" }}>
             Terms and privacy policy
@@ -1180,7 +1517,13 @@ function SignUpScreen() {
       return;
     }
 
-    navigate("/home", { replace: true });
+    navigate("/starter-wardrobe", {
+      replace: true,
+      state: {
+        styleGender,
+        styleInspo: normalizeStyleInspoSelection(styleInspo),
+      },
+    });
   }
 
   return (
@@ -1261,7 +1604,6 @@ function SignUpScreen() {
           <div className="pt-2">
             <PillButton
               type="submit"
-              onClick={handleSignUp}
               disabled={isSubmitting}
               className={isSubmitting ? "opacity-70" : ""}
             >
@@ -1276,6 +1618,209 @@ function SignUpScreen() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function StarterWardrobeScreen() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state || {};
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [starterItems, setStarterItems] = useState([]);
+  const [starterStyleGender, setStarterStyleGender] = useState(routeState.styleGender || "womens");
+  const [starterStyleInspo, setStarterStyleInspo] = useState(normalizeStyleInspoSelection(routeState.styleInspo || []));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          if (!cancelled) navigate("/", { replace: true });
+          return;
+        }
+
+        const resolvedGender = routeState.styleGender || user.user_metadata?.style_gender || "womens";
+        const resolvedInspo = normalizeStyleInspoSelection(routeState.styleInspo || user.user_metadata?.style_inspo || []);
+        const previewItems = await seedStarterClosetForUser(user, resolvedGender);
+
+        if (cancelled) return;
+        setStarterStyleGender(resolvedGender);
+        setStarterStyleInspo(resolvedInspo);
+        setStarterItems(previewItems);
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Unable to load your starter wardrobe.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    init();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, routeState.styleGender, routeState.styleInspo]);
+
+  const wardrobeItems = starterItems.length ? starterItems : getStarterWardrobePreviewItems(starterStyleGender);
+  const sampleOutfitItems = getStarterSampleOutfitItems(starterStyleGender);
+  const sampleCaption = getStarterSampleOutfitCaption(starterStyleGender, starterStyleInspo);
+
+  return (
+    <div
+      style={{
+        minHeight: "100dvh",
+        maxWidth: "430px",
+        margin: "0 auto",
+        background: "linear-gradient(180deg, #FBF8F1 0%, #F7F1E7 56%, #EFE3D0 100%)",
+        color: "#111111",
+        padding: "max(18px, calc(env(safe-area-inset-top, 0px) + 16px)) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)",
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ textAlign: "center", paddingTop: "18px" }}>
+        <LogoWordmark compact centered />
+      </div>
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px", paddingTop: "20px" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8A6A3C" }}>
+            Starter wardrobe
+          </p>
+          <h1 style={{ margin: "10px 0 0", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, lineHeight: 1.1, color: "#111111" }}>
+            Here&apos;s a starter wardrobe to get you going
+          </h1>
+          <p style={{ margin: "10px auto 0", fontSize: "14px", lineHeight: 1.55, color: "#6f675d", maxWidth: "320px" }}>
+            We added a few sample pieces to your closet so you can start styling right away.
+          </p>
+        </div>
+
+        {loading ? (
+          <div style={{ display: "grid", gap: "14px" }}>
+            <div style={{ borderRadius: "24px", border: "1px solid rgba(176,138,74,0.14)", background: "rgba(255,255,255,0.8)", padding: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                <SkeletonBlock width="160px" height="14px" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
+                {[...Array(6)].map((_, index) => (
+                  <div key={index} style={{ borderRadius: "18px", background: "#FBF8F1", padding: "10px" }}>
+                    <SkeletonBlock height="110px" radius="14px" />
+                    <SkeletonBlock width="78%" height="12px" style={{ marginTop: "10px" }} />
+                    <SkeletonBlock width="54%" height="10px" style={{ marginTop: "6px" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ borderRadius: "24px", border: "1px solid rgba(176,138,74,0.14)", background: "rgba(255,255,255,0.8)", padding: "16px" }}>
+              <SkeletonBlock width="140px" height="14px" style={{ margin: "0 auto 14px" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
+                {[...Array(4)].map((_, index) => (
+                  <SkeletonBlock key={index} height="108px" radius="14px" />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ borderRadius: "24px", border: "1px solid rgba(176,138,74,0.14)", background: "rgba(255,255,255,0.85)", padding: "16px", boxShadow: "0 8px 24px rgba(176,138,74,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Starter wardrobe</p>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#8A6A3C", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {wardrobeItems.length} items
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
+                {wardrobeItems.map((item) => (
+                  <div
+                    key={item.public_id || item.image_url}
+                    style={{
+                      borderRadius: "18px",
+                      background: "#FBF8F1",
+                      border: "1px solid rgba(176,138,74,0.10)",
+                      padding: "10px",
+                    }}
+                  >
+                    <div style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#fff" }}>
+                      <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </div>
+                    <p style={{ margin: "10px 0 2px", fontSize: "12px", fontWeight: 700, color: "#111111", lineHeight: 1.2 }}>
+                      {item.name}
+                    </p>
+                    <p style={{ margin: 0, fontSize: "10px", color: "#7d7890" }}>{item.category}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ borderRadius: "24px", border: "1px solid rgba(176,138,74,0.14)", background: "rgba(255,255,255,0.85)", padding: "16px", boxShadow: "0 8px 24px rgba(176,138,74,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#111111" }}>Sample outfit suggestion</p>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#8A6A4A", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Starter look
+                </span>
+              </div>
+              <FlatLayCard images={sampleOutfitItems.map((item) => item.image_url)} caption={sampleCaption} compact />
+            </div>
+
+            <div style={{ textAlign: "center", padding: "0 6px" }}>
+              <p style={{ margin: 0, fontSize: "13px", lineHeight: 1.6, color: "#6f675d" }}>
+                These are sample items. Add your own clothes to get personalized suggestions.
+              </p>
+            </div>
+
+            {error && (
+              <p style={{ margin: "0", fontSize: "13px", color: "#b45309", textAlign: "center" }}>
+                {error}
+              </p>
+            )}
+
+            <div style={{ display: "grid", gap: "10px", paddingTop: "4px" }}>
+              <button
+                type="button"
+                onClick={() => navigate("/upload")}
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: "100px",
+                  border: "none",
+                  background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  boxShadow: "0 6px 20px rgba(176,138,74,0.24)",
+                }}
+              >
+                + Add your own clothes
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/home", { replace: true })}
+                style={{
+                  width: "100%",
+                  padding: "13px 16px",
+                  borderRadius: "100px",
+                  border: "1.5px solid rgba(176,138,74,0.26)",
+                  background: "rgba(255,255,255,0.72)",
+                  color: "#8A6A3C",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                Continue to Home
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1571,47 +2116,49 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
         </p>
       )}
 
-      {/* Image grid */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 168px" }}>
-        {isFeatured ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            {imgs.map((url, i) => (
-              <div
-                key={i}
-                style={{
-                  gridColumn: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "1 / -1" : undefined,
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  background: "#fff",
-                  padding: "3px",
-                  boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
-                  aspectRatio: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "2/1.15" : "1",
-                }}
-              >
-                <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {imgs.map((url, i) => (
-              <div key={i} style={{ borderRadius: "12px", overflow: "hidden", background: "#fff", padding: "3px", boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)" }}>
-                <img src={url} alt="" style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Scrollable content + sticky CTA */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ padding: "16px 16px 24px" }}>
+          {isFeatured ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              {imgs.map((url, i) => (
+                <div
+                  key={i}
+                  style={{
+                    gridColumn: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "1 / -1" : undefined,
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    background: "#fff",
+                    padding: "3px",
+                    boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+                    aspectRatio: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "2/1.15" : "1",
+                  }}
+                >
+                  <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {imgs.map((url, i) => (
+                <div key={i} style={{ borderRadius: "12px", overflow: "hidden", background: "#fff", padding: "3px", boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)" }}>
+                  <img src={url} alt="" style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Bottom CTA */}
-      <div style={{
-        position: "absolute",
-        bottom: SHEET_BOTTOM_OFFSET,
-        left: 0,
-        right: 0,
-        padding: "16px 20px 20px",
-        background: "linear-gradient(transparent, white 30%)",
-      }}>
+        {/* Bottom CTA — sticky inside scroll container, sits above bottom nav */}
+        <div style={{
+          position: "sticky",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "16px 20px calc(20px + env(safe-area-inset-bottom, 0px) + 70px)",
+          background: "linear-gradient(transparent, white 30%)",
+          zIndex: 1,
+        }}>
         <button
           type="button"
           onClick={() => { handleClose(); setTimeout(onGetStyled || onNavigateChat, 350); }}
@@ -1635,6 +2182,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
           <IconSparkle active />
           Get Styled
         </button>
+      </div>
       </div>
     </div>
   );
@@ -1753,6 +2301,7 @@ function WeatherIcon({ kind, color = "#B08A4A" }) {
 
 function HomeScreen() {
   const navigate = useNavigate();
+  const { isDemoMode, demoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
   const [weather, setWeather] = useState(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -1785,9 +2334,11 @@ function HomeScreen() {
   const previousUrlsRef = useRef([]);
   const outfitHistoryRef = useRef([]);
   const retryStyleRef = useRef(0);
+  const newLookStyleRef = useRef(0);
   const hasFetchedOutfit = useRef(false);
   const styleGenderRef = useRef("womens");
   const styleInspoRef = useRef([]);
+  const demoOutfitSeedRef = useRef(0);
 
   function toggleTempUnit() {
     const newVal = !useCelsius;
@@ -1897,6 +2448,15 @@ function HomeScreen() {
     });
   }
 
+  function getRecentOutfitUrls(limit = 3) {
+    return [...new Set(
+      outfitHistoryRef.current
+        .slice(-limit)
+        .flatMap((entry) => entry.urls || [])
+        .filter(Boolean)
+    )];
+  }
+
   function recordOutfitHistory(urls) {
     const clean = [...new Set((urls || []).filter(Boolean))];
     if (!clean.length) return;
@@ -1912,8 +2472,9 @@ function HomeScreen() {
   }
 
   function applyOutfitResult(result) {
-    console.log("[DEBUG] applyOutfitResult — raw URLs:", result.urls);
-    const validUrls = (result.urls || []).filter((url) => url && (url.startsWith("http://") || url.startsWith("https://")));
+    const rawUrls = result.urls || result.images || [];
+    console.log("[DEBUG] applyOutfitResult — raw URLs:", rawUrls);
+    const validUrls = (rawUrls || []).filter((url) => url && (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")));
     console.log("[DEBUG] applyOutfitResult — valid URLs:", validUrls);
     setSuggestedImages(validUrls);
     setSuggestionCaption(result.caption);
@@ -2127,16 +2688,10 @@ function HomeScreen() {
     return { urls: urls.slice(0, 6), caption: caption || "Your daily look", vibe };
   }
 
-  async function fetchOutfitSuggestion(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
-    const user = currentUser || (await supabase.auth.getUser()).data?.user;
-    const userIsAdmin = user?.email === "cnrhee@gmail.com";
-    console.log("[DEBUG] fetchOutfitSuggestion called", { feature, temperature, extraInstruction: extraInstruction?.slice(0, 100), userEmail: user?.email, isAdmin: userIsAdmin });
+  async function fetchOutfitSuggestion(extraInstruction, temperature = 0.85) {
     const data = closetDataRef.current.filter((item) => item.image_url);
-    const { tempF, cityName } = weatherRef.current;
-    console.log("[DEBUG] Context:", { closetItems: data.length, weather: tempF, city: cityName, location: locationLabel || cityName, dailyLookCount: getDailyLookCount(), limit: DAILY_LOOK_LIMIT });
-    if (!data.length) { console.log("[DEBUG] No closet items, skipping"); return null; }
+    if (!data.length) return null;
 
-    // Build text-only item list (no vision image blocks) to reduce token usage
     const itemList = data.map((item, i) => {
       const parts = [`Item ${i + 1}: ${item.image_url}`];
       if (item.name) parts.push(`Name: ${item.name}`);
@@ -2144,6 +2699,7 @@ function HomeScreen() {
       return parts.join(" | ");
     }).join("\n");
 
+    const { tempF, cityName } = weatherRef.current;
     const activeLocation = locationMode === "custom" && locationLabel
       ? locationLabel
       : (cityName || locationLabel || "their current location");
@@ -2167,44 +2723,34 @@ ITEMS:
 [image URL 6 if needed]
 WHY: [one punchy sentence — reference a specific trend or aesthetic, explain why this combination is strong right now]`;
 
-    const requestBody = {
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 512,
-      temperature,
-      system: systemPrompt,
-      messages: [{
-        role: "user",
-        content: prompt,
-      }],
-    };
-    console.log("[DEBUG] API request body:", JSON.stringify({ model: requestBody.model, max_tokens: requestBody.max_tokens, temperature: requestBody.temperature, system: requestBody.system?.slice(0, 200), prompt: prompt.slice(0, 300) }));
+    const resp = await fetch("/api/anthropic/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 512,
+        temperature,
+        system: systemPrompt,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!resp.ok) throw new Error(`Anthropic API error: ${resp.status}`);
+    const result = await resp.json();
 
-    let result;
-    try {
-      result = await runTrackedAnthropicRequest({
-        user,
-        feature,
-        requestBody,
-        metadata: {
-          screen: "home",
-          location: activeLocation,
-          itemCount: data.length,
-          temperature,
-          extraInstruction: extraInstruction || "",
-        },
-      });
-      console.log("[DEBUG] API response OK:", { stopReason: result.stop_reason, usage: result.usage, text: result.content?.[0]?.text?.slice(0, 300) });
-    } catch (apiErr) {
-      console.error("[DEBUG] API request FAILED:", { error: apiErr.message, stack: apiErr.stack });
-      throw apiErr;
-    }
-
-    const parsed = parseOutfitResponse(result.content?.[0]?.text || "");
-    console.log("[DEBUG] Parsed outfit result:", { urls: parsed?.urls?.length, vibe: parsed?.vibe, caption: parsed?.caption?.slice(0, 80) });
-    return parsed;
+    return parseOutfitResponse(result.content?.[0]?.text || "");
   }
 
   async function refreshSuggestedOutfit(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
+    if (isDemoMode) {
+      const result = buildDemoOutfitSuggestion(closetDataRef.current.length ? closetDataRef.current : demoClosetItems, {
+        theme: getWeatherKind(),
+        seed: demoOutfitSeedRef.current,
+        styleInspo: styleInspoRef.current,
+      });
+      applyOutfitResult(result);
+      return result;
+    }
+
     const currentCount = getDailyLookCount();
     console.log("[DEBUG] refreshSuggestedOutfit", { feature, isAdmin, dailyCount: currentCount, limit: DAILY_LOOK_LIMIT, hasFetched: hasFetchedOutfit.current });
     if (!isAdmin && currentCount >= DAILY_LOOK_LIMIT) {
@@ -2214,8 +2760,8 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
       return null;
     }
     if (isAdmin) console.log("[DEBUG] Admin bypass active — skipping all limits");
-    const result = await fetchOutfitSuggestion(extraInstruction, temperature, feature, currentUser);
-    if (!result) { console.log("[DEBUG] fetchOutfitSuggestion returned null"); return null; }
+    const result = await fetchOutfitSuggestion(extraInstruction, temperature);
+    if (!result) return null;
     applyOutfitResult(result);
     if (!isAdmin) {
       const newCount = incrementDailyLookCount();
@@ -2246,6 +2792,28 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         }
       } else {
         await loadWeatherForCurrentLocation();
+      }
+
+      if (isDemoMode) {
+        styleGenderRef.current = DEMO_CLOSET_STYLE_GENDER;
+        styleInspoRef.current = [];
+        setUserName("Demo");
+        setUserEmail("");
+        setItemCount(demoClosetItems.length);
+        closetDataRef.current = cloneDemoClosetItems(demoClosetItems);
+        hasFetchedOutfit.current = true;
+        try {
+          const result = buildDemoOutfitSuggestion(closetDataRef.current, {
+            theme: getWeatherKind(),
+            seed: demoOutfitSeedRef.current,
+            styleInspo: [],
+          });
+          applyOutfitResult(result);
+        } catch (err) {
+          console.error("[HomeScreen] Demo outfit error:", err);
+        }
+        setLoadingOutfit(false);
+        return;
       }
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -2288,9 +2856,40 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
     init();
   }, []);
 
+  useEffect(() => {
+    if (!isDemoMode) return;
+    closetDataRef.current = cloneDemoClosetItems(demoClosetItems);
+    setItemCount(demoClosetItems.length);
+    if (hasFetchedOutfit.current && !loadingOutfit && demoClosetItems.length > 0) {
+      const result = buildDemoOutfitSuggestion(closetDataRef.current, {
+        theme: getWeatherKind(),
+        seed: demoOutfitSeedRef.current,
+        styleInspo: [],
+      });
+      applyOutfitResult(result);
+    }
+  }, [demoClosetItems, isDemoMode]);
+
   async function handleNewLook() {
     console.log("[DEBUG] handleNewLook triggered", { regenerating, loadingOutfit, isAdmin, dailyCount: getDailyLookCount() });
     if (regenerating || loadingOutfit) return;
+    if (isDemoMode) {
+      setRegenerating(true);
+      setLoadingOutfit(true);
+      try {
+        demoOutfitSeedRef.current += 1;
+        const result = buildDemoOutfitSuggestion(closetDataRef.current.length ? closetDataRef.current : demoClosetItems, {
+          theme: getWeatherKind(),
+          seed: demoOutfitSeedRef.current,
+          styleInspo: styleInspoRef.current,
+        });
+        applyOutfitResult(result);
+      } finally {
+        setLoadingOutfit(false);
+        setRegenerating(false);
+      }
+      return;
+    }
     // DEBUG: bypass cache for all users on New Look button
     console.log("[DEBUG] handleNewLook: forcing fresh API call (cache bypass for debugging)");
     setRegenerating(true);
@@ -2298,30 +2897,50 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("You need to be signed in.");
-      const prevUrls = previousUrlsRef.current;
+      const prevUrls = [...new Set([...previousUrlsRef.current, ...getRecentOutfitUrls(4)])];
       const prevVibe = suggestionVibe;
+      const styleModes = [
+        "Build a more editorial look with a different hero piece and silhouette.",
+        "Build a more relaxed off-duty look with a clearly different outfit formula.",
+        "Build a more polished, dressed-up look with new footwear and a new top/bottom pairing.",
+        "Build a more layered look with an unexpected third piece and a different proportion.",
+        "Build a bolder look with a fresh color story and a different anchor piece.",
+        "Build a softer, lighter look with a different mood from the previous outfit.",
+      ];
+      const styleMode = styleModes[newLookStyleRef.current % styleModes.length];
+      newLookStyleRef.current += 1;
       const basePrompt = prevUrls.length > 0
         ? buildRetryInstruction(prevUrls, prevVibe)
         : "Suggest a completely different outfit combination from the previous suggestion. Use a different silhouette, different key pieces, and a different color story.";
 
       let acceptedResult = null;
       let lastResult = null;
-      for (let attempt = 0; attempt < 5; attempt += 1) {
+      for (let attempt = 0; attempt < 20; attempt += 1) {
         const attemptPrompt = attempt === 0
-          ? basePrompt
-          : `${basePrompt} This must be a fresh combination that does not overlap heavily with any outfit already shown in this session. Change the hero piece, footwear, and overall silhouette.`;
-        const attemptTemp = Math.min(1.1 + attempt * 0.07, 1.25);
-        const result = await fetchOutfitSuggestion(attemptPrompt, attemptTemp, "home_new_look", user);
+          ? `${basePrompt} ${styleMode} Do not reuse the exact same combination as the previous look.`
+          : `${basePrompt} ${styleMode} This must be a fresh combination that does not overlap heavily with any outfit already shown in this session. Change the hero piece, footwear, and overall silhouette.`;
+        const attemptTemp = Math.min(1.1 + attempt * 0.08, 1.32);
+        const result = await fetchOutfitSuggestion(attemptPrompt, attemptTemp);
         if (!result) continue;
         lastResult = result;
-        if (!isOutfitTooSimilar(result.urls)) {
+        if (!isOutfitTooSimilar(result.urls, 1)) {
           acceptedResult = result;
           break;
         }
       }
 
       if (!acceptedResult && lastResult) {
-        acceptedResult = lastResult;
+        const fallbackPrompt = [
+          basePrompt,
+          styleMode,
+          "IMPORTANT: return a truly new outfit that does NOT repeat any item from the last few looks.",
+          "Change the hero piece, footwear, and overall silhouette from scratch if needed.",
+          "Prefer a different color story and a different layering structure.",
+        ].join(" ");
+        const fallbackResult = await fetchOutfitSuggestion(fallbackPrompt, 1.32);
+        if (fallbackResult && !isOutfitTooSimilar(fallbackResult.urls, 1)) {
+          acceptedResult = fallbackResult;
+        }
       }
 
       if (!acceptedResult) throw new Error("No new outfit was generated.");
@@ -2434,6 +3053,9 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
             </button>
           )}
         </div>
+        <div style={{ padding: "10px 16px 0" }}>
+          <DemoModeBanner />
+        </div>
 
         {/* Headline */}
         <div style={{ padding: "14px 24px 0", textAlign: "center" }}>
@@ -2451,6 +3073,13 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
           <button
               type="button"
               onClick={() => {
+                if (isDemoMode) {
+                  showDemoPrompt({
+                    title: "Sign up to save your wardrobe settings",
+                    message: "Create an account to keep your profile and style inspirations.",
+                  });
+                  return;
+                }
                 setNameInput(userName);
                 setEditStyleGender(styleGenderRef.current);
                 setEditStyleInspo(styleInspoRef.current);
@@ -2590,6 +3219,25 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                   </p>
                 )}
               </FlatLayCard>
+              {isDemoMode && (
+                <div
+                  onClick={() => navigate("/signup")}
+                  style={{
+                    marginTop: "12px",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(176,138,74,0.16)",
+                    background: "rgba(255,255,255,0.75)",
+                    padding: "10px 12px",
+                    textAlign: "center",
+                    color: "#8A6A3C",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Love this? Sign up to style YOUR clothes →
+                </div>
+              )}
             </div>
           ) : (
             <div
@@ -3284,6 +3932,7 @@ function AdminUsageScreen() {
 
 function ClosetScreen() {
   const navigate = useNavigate();
+  const { isDemoMode, demoClosetItems, updateDemoClosetItem, removeDemoClosetItem, showDemoPrompt } = useDemoMode();
   const [items, setItems] = useState([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -3403,6 +4052,15 @@ function ClosetScreen() {
   }
 
   async function handleFavoriteItem(item) {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account so you can save looks from your wardrobe and keep them in Lookbook.",
+      });
+      closeActionSheet();
+      return;
+    }
+
     const { error } = await supabase
       .from("clothing_items")
       .update({ is_favorited: true })
@@ -3430,6 +4088,12 @@ function ClosetScreen() {
   }
 
   async function handleDeleteItem(item) {
+    if (isDemoMode) {
+      removeDemoClosetItem(item.id);
+      closeActionSheet();
+      return;
+    }
+
     const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
     if (error) {
       alert(`Delete failed: ${error.message}`);
@@ -3439,12 +4103,19 @@ function ClosetScreen() {
     setItems((prev) => prev.filter((entry) => entry.id !== item.id));
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      refreshStoredClosetItemCount(user.id);
+      await refreshStoredClosetItemCount(user.id);
     }
     closeActionSheet();
   }
 
   async function handleRotateItem(item) {
+    if (isDemoMode) {
+      const newRotation = ((item.rotation || 0) + 90) % 360;
+      updateDemoClosetItem(item.id, { rotation: newRotation });
+      closeActionSheet();
+      return;
+    }
+
     const newRotation = ((item.rotation || 0) + 90) % 360;
     const { error } = await supabase
       .from("clothing_items")
@@ -3465,6 +4136,11 @@ function ClosetScreen() {
 
     async function loadItems() {
       setIsLoadingItems(true);
+      if (isDemoMode) {
+        setItems(cloneDemoClosetItems(demoClosetItems));
+        setIsLoadingItems(false);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         if (isMounted) setIsLoadingItems(false);
@@ -3509,7 +4185,13 @@ function ClosetScreen() {
 
     loadItems();
     return () => { isMounted = false; };
-  }, []);
+  }, [isDemoMode, demoClosetItems]);
+
+  useEffect(() => {
+    if (!isDemoMode) return;
+    setItems(cloneDemoClosetItems(demoClosetItems));
+    setIsLoadingItems(false);
+  }, [isDemoMode, demoClosetItems]);
 
   const needsReanalysis = items.some((i) => !i._hasDbName);
 
@@ -3610,6 +4292,7 @@ function ClosetScreen() {
       <div style={{ padding: "20px 16px 0" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Wardrobe</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
+        <DemoModeBanner />
 
         {/* Re-analyze button */}
         {!isLoadingItems && needsReanalysis && !reanalyzeDone && (
@@ -4280,6 +4963,7 @@ function ClosetScreen() {
 function ItemDetailScreen() {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const { isDemoMode, demoClosetItems, updateDemoClosetItem, removeDemoClosetItem } = useDemoMode();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -4300,6 +4984,22 @@ function ItemDetailScreen() {
 
   useEffect(() => {
     async function load() {
+      if (isDemoMode) {
+        const demoItem = demoClosetItems.find((entry) => String(entry.id) === String(itemId));
+        if (!demoItem) {
+          setLoading(false);
+          return;
+        }
+        setItem(demoItem);
+        setEditName(demoItem.name || "");
+        setEditCategory(demoItem.category || "Apparel");
+        setEditTags(Array.isArray(demoItem.tags) ? demoItem.tags : []);
+        setRotation(demoItem.rotation || 0);
+        setEditSeason(demoItem.season || "All Season");
+        setLoading(false);
+        return;
+      }
+
       let { data, error } = await supabase
         .from("clothing_items")
         .select("id, image_url, name, category, tags, is_favorited, rotation, season")
@@ -4331,10 +5031,21 @@ function ItemDetailScreen() {
       setLoading(false);
     }
     load();
-  }, [itemId]);
+  }, [itemId, isDemoMode, demoClosetItems]);
 
   async function handleSave() {
     if (!item) return;
+    if (isDemoMode) {
+      updateDemoClosetItem(item.id, {
+        name: editName.trim() || "Clothing Item",
+        category: editCategory,
+        tags: editTags,
+        rotation,
+        season: editSeason,
+      });
+      navigate("/closet");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("clothing_items")
@@ -4351,10 +5062,19 @@ function ItemDetailScreen() {
   async function handleDelete() {
     if (!item) return;
     if (!window.confirm("Remove this item from your closet?")) return;
+    if (isDemoMode) {
+      removeDemoClosetItem(item.id);
+      navigate("/closet");
+      return;
+    }
     const { error } = await supabase.from("clothing_items").delete().eq("id", item.id);
     if (error) {
       alert(`Delete failed: ${error.message}`);
       return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await refreshStoredClosetItemCount(user.id);
     }
     navigate("/closet");
   }
@@ -4368,6 +5088,11 @@ function ItemDetailScreen() {
   }
 
   async function openMergeModal() {
+    if (isDemoMode) {
+      setMergeItems(demoClosetItems.filter((entry) => String(entry.id) !== String(item.id)));
+      setMergeModalOpen(true);
+      return;
+    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase
@@ -4383,6 +5108,25 @@ function ItemDetailScreen() {
   async function handleMerge(otherItem) {
     setMerging(true);
     try {
+      if (isDemoMode) {
+        const otherTags = Array.isArray(otherItem.tags) ? otherItem.tags : [];
+        const combinedTags = [...new Set([...editTags, ...otherTags])].slice(0, 8);
+        const mergedName = `${(editName || "Item").replace(/ Co-ord Set$/i, "")} + ${(otherItem.name || "Item").replace(/ Co-ord Set$/i, "")} Co-ord Set`;
+        updateDemoClosetItem(item.id, {
+          name: mergedName,
+          category: "Co-ord Set",
+          tags: combinedTags,
+        });
+        removeDemoClosetItem(otherItem.id);
+        setEditName(mergedName);
+        setEditCategory("Co-ord Set");
+        setEditTags(combinedTags);
+        setMergeModalOpen(false);
+        setMergeSuccess(true);
+        setTimeout(() => setMergeSuccess(false), 2500);
+        return;
+      }
+
       const otherTags = Array.isArray(otherItem.tags) ? otherItem.tags : [];
       const combinedTags = [...new Set([...editTags, ...otherTags])].slice(0, 8);
       const mergedName = `${(editName || "Item").replace(/ Co-ord Set$/i, "")} + ${(otherItem.name || "Item").replace(/ Co-ord Set$/i, "")} Co-ord Set`;
@@ -4398,6 +5142,11 @@ function ItemDetailScreen() {
         .delete()
         .eq("id", otherItem.id);
       if (deleteErr) throw new Error(deleteErr.message);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await refreshStoredClosetItemCount(user.id);
+      }
 
       setEditName(mergedName);
       setEditCategory("Co-ord Set");
@@ -4456,6 +5205,10 @@ function ItemDetailScreen() {
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
+
+        <div style={{ padding: "64px 16px 12px" }}>
+          <DemoModeBanner />
+        </div>
 
         {/* Item image */}
         <div style={{ width: "100%", aspectRatio: "1", background: "#FAF7F0", overflow: "hidden" }}>
@@ -4989,6 +5742,7 @@ function UploadLoadingOverlay({ progress, fading, phase }) {
 }
 
 function UploadScreen() {
+  const { isDemoMode, showDemoPrompt } = useDemoMode();
   const seenTips = localStorage.getItem("styliner_upload_tips_seen") === "1";
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [phase, setPhase] = useState(seenTips ? "pick" : "tips"); // tips | pick | analyzing | confirm | saving
@@ -4998,11 +5752,18 @@ function UploadScreen() {
   const [starterLoadingChoice, setStarterLoadingChoice] = useState(null);
   const [starterPickerOpen, setStarterPickerOpen] = useState(false);
   const [hasClosetItems, setHasClosetItems] = useState(() => {
+    if (isDemoMode) return true;
     const stored = localStorage.getItem("styliner_closet_item_count");
     return stored === null ? null : Number(stored) > 0;
   });
   const navigate = useNavigate();
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  useEffect(() => {
+    if (isDemoMode) {
+      setHasClosetItems(true);
+    }
+  }, [isDemoMode]);
 
   function dismissTips() {
     localStorage.setItem("styliner_upload_tips_seen", "1");
@@ -5072,6 +5833,13 @@ function UploadScreen() {
   }
 
   async function handleAnalyze() {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to add your own clothes",
+        message: "Create an account to upload items and get personalized suggestions.",
+      });
+      return;
+    }
     if (!selectedFiles.length) return;
 
     setPhase("analyzing");
@@ -5133,6 +5901,13 @@ function UploadScreen() {
   }
 
   async function handleSave() {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to add your own clothes",
+        message: "Create an account to upload items and get personalized suggestions.",
+      });
+      return;
+    }
     const confirmed = detectedItems.filter((i) => i.checked);
     if (!confirmed.length) { alert("Select at least one item."); return; }
     setPhase("saving");
@@ -5173,6 +5948,13 @@ function UploadScreen() {
 
   async function handleUseStarterCloset(styleGenderChoice) {
     if (phase === "analyzing" || phase === "saving" || phase === "seeding") return;
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to add your own clothes",
+        message: "Create an account to upload items and get personalized suggestions.",
+      });
+      return;
+    }
 
     setStarterLoadingChoice(styleGenderChoice);
     setPhase("seeding");
@@ -5206,6 +5988,13 @@ function UploadScreen() {
   }
 
   const openFilePicker = () => {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to add your own clothes",
+        message: "Create an account to upload items and get personalized suggestions.",
+      });
+      return;
+    }
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
@@ -5223,6 +6012,13 @@ function UploadScreen() {
   };
 
   const openCamera = () => {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to add your own clothes",
+        message: "Create an account to upload items and get personalized suggestions.",
+      });
+      return;
+    }
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -5250,6 +6046,7 @@ function UploadScreen() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 160px" }}>
+        <DemoModeBanner />
 
         {phase === "tips" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -5335,7 +6132,20 @@ function UploadScreen() {
               <h1 style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", margin: "0 0 14px" }}>
               <UploadEntryLink onClick={() => setPhase("tips")}>View tips</UploadEntryLink>
-              <UploadEntryLink onClick={() => setStarterPickerOpen((value) => !value)}>Add starter pack</UploadEntryLink>
+              <UploadEntryLink
+                onClick={() => {
+                  if (isDemoMode) {
+                    showDemoPrompt({
+                      title: "Sign up to add your own clothes",
+                      message: "Create an account to upload items and get personalized suggestions.",
+                    });
+                    return;
+                  }
+                  setStarterPickerOpen((value) => !value);
+                }}
+              >
+                Add starter pack
+              </UploadEntryLink>
             </div>
             <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload multiple photos at once — we'll identify and tag each item automatically</p>
 
@@ -5592,6 +6402,7 @@ function UploadScreen() {
 function ChatScreen() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDemoMode, demoClosetItems, showDemoPrompt } = useDemoMode();
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -5615,6 +6426,7 @@ function ChatScreen() {
 
   const styleItemAutoSent = useRef(false);
   const styleInspoRef = useRef([]);
+  const demoChatSeedRef = useRef(0);
 
   // Handle preloaded outfit from HomeScreen navigation
   useEffect(() => {
@@ -5652,6 +6464,7 @@ function ChatScreen() {
 
   // Load style_gender from user metadata on mount
   useEffect(() => {
+    if (isDemoMode) return;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -5659,7 +6472,7 @@ function ChatScreen() {
         styleInspoRef.current = normalizeStyleInspoSelection(user.user_metadata?.style_inspo || []);
       }
     })();
-  }, []);
+  }, [isDemoMode]);
 
   const CHAT_FORMAT_PROMPT = `
 
@@ -5754,6 +6567,12 @@ Only suggest items they don't already own. Skip this section entirely if the out
 
   // Load conversations list on mount
   useEffect(() => {
+    if (isDemoMode) {
+      setClosetCount(demoClosetItems.length);
+      setLoadingHistory(false);
+      setConversations([]);
+      return;
+    }
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -5778,11 +6597,12 @@ Only suggest items they don't already own. Skip this section entirely if the out
       if (!closetError) setClosetCount((closetItems || []).length);
       setLoadingHistory(false);
     })();
-  }, []);
+  }, [isDemoMode, demoClosetItems]);
 
   // Load messages when active conversation changes
   useEffect(() => {
     if (!activeConvoId) { setMessages([]); return; }
+    if (isDemoMode) return;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
@@ -5800,7 +6620,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
       }
     })();
     return () => { cancelled = true; };
-  }, [activeConvoId]);
+  }, [activeConvoId, isDemoMode]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -5815,6 +6635,9 @@ Only suggest items they don't already own. Skip this section entirely if the out
     setInputValue("");
     setPreloadedOutfit(null);
     setDrawerOpen(false);
+    if (isDemoMode) {
+      demoChatSeedRef.current = 0;
+    }
   }
 
   function openConversation(convoId) {
@@ -5825,6 +6648,13 @@ Only suggest items they don't already own. Skip this section entirely if the out
   }
 
   async function toggleStarConversation(convoId, currentStarred) {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account to save chats and keep them in Lookbook.",
+      });
+      return;
+    }
     const nextStarred = !currentStarred;
     const { error } = await supabase
       .from("conversations")
@@ -5840,6 +6670,13 @@ Only suggest items they don't already own. Skip this section entirely if the out
   }
 
   async function saveConversationToLookbook(convoId) {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account to save chats and keep them in Lookbook.",
+      });
+      return;
+    }
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !convoId) return;
@@ -5904,6 +6741,41 @@ Only suggest items they don't already own. Skip this section entirely if the out
     setInputValue("");
     setLoading(true);
     setPreloadedOutfit(null);
+
+    if (isDemoMode) {
+      try {
+        if (!activeConvoId) {
+          setActiveConvoId("demo-local");
+        }
+        const userMsg = {
+          id: `demo-user-${Date.now()}`,
+          role: "user",
+          content: trimmed,
+          outfitImages: [],
+        };
+        setMessages((prev) => [...prev, userMsg]);
+        setClosetCount(demoClosetItems.length);
+        await new Promise((resolve) => setTimeout(resolve, 280));
+        const demoText = buildDemoChatResponse(trimmed, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(), {
+          seed: demoChatSeedRef.current,
+          styleInspo: styleInspoRef.current,
+        });
+        demoChatSeedRef.current += 1;
+        const { imageUrls } = parseAiResponse(demoText);
+        const assistantMsg = {
+          id: `demo-assistant-${Date.now()}`,
+          role: "assistant",
+          content: demoText,
+          outfitImages: imageUrls,
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (err) {
+        console.error("[ChatScreen] Demo send error:", err);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -6023,6 +6895,26 @@ Only suggest items they don't already own. Skip this section entirely if the out
     setFadingMsgId(messages[assistantMsgIndex].id);
     setLoading(true);
 
+    if (isDemoMode) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 260));
+        demoChatSeedRef.current += 1;
+        const demoText = buildDemoChatResponse(occasion, demoClosetItems.length ? demoClosetItems : createDemoClosetItems(), {
+          seed: demoChatSeedRef.current,
+          styleInspo: styleInspoRef.current,
+        });
+        const { imageUrls } = parseAiResponse(demoText);
+        const newMsg = { id: `demo-assistant-${Date.now()}`, role: "assistant", content: demoText, outfitImages: imageUrls };
+        setMessages((prev) => prev.map((m, i) => i === assistantMsgIndex ? newMsg : m));
+      } catch (err) {
+        console.error("[ChatScreen] Demo another option error:", err);
+      } finally {
+        setLoading(false);
+        setFadingMsgId(null);
+      }
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); setFadingMsgId(null); return; }
@@ -6104,12 +6996,27 @@ Only suggest items they don't already own. Skip this section entirely if the out
   }
 
   function handleSaveOutfit(assistantMsgIndex) {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account to save chats and keep them in Lookbook.",
+      });
+      return;
+    }
     setOutfitTitle("");
     setOccasionSheet({ msgIndex: assistantMsgIndex });
   }
 
   async function confirmSaveOutfit(occasion) {
     if (!occasionSheet) return;
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account to save chats and keep them in Lookbook.",
+      });
+      setOccasionSheet(null);
+      return;
+    }
     const msg = messages[occasionSheet.msgIndex];
     const { imageUrls, description } = parseAiResponse(msg.content);
     const previousUserMessage = [...messages.slice(0, occasionSheet.msgIndex)].reverse().find((entry) => entry.role === "user");
@@ -6302,6 +7209,23 @@ Only suggest items they don't already own. Skip this section entirely if the out
         >
           ✦ New Chat
         </button>
+        {isDemoMode && (
+          <div
+            style={{
+              margin: "4px 16px 0",
+              padding: "10px 12px",
+              borderRadius: "14px",
+              border: "1px solid rgba(176,138,74,0.14)",
+              background: "rgba(176,138,74,0.06)",
+              color: "#8A6A3C",
+              fontSize: "12px",
+              fontWeight: 600,
+              lineHeight: 1.45,
+            }}
+          >
+            Demo mode doesn&apos;t save chat history. Sign up to keep conversations.
+          </div>
+        )}
         <ConversationList />
       </div>
 
@@ -6376,6 +7300,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
           gap: "12px",
         }}
       >
+        {isDemoMode && <DemoModeBanner />}
         {loadingHistory ? (
           <p style={{ textAlign: "center", color: "#999", fontSize: "14px", marginTop: "40px" }}>Loading...</p>
         ) : !activeConvoId && !loading ? (
@@ -6468,6 +7393,24 @@ Only suggest items they don't already own. Skip this section entirely if the out
                   <span style={{ color: "#B08A4A", marginRight: "6px" }}>✦</span>
                   Here's your look for today — want me to style it differently or find something for a specific occasion?
                 </div>
+                {isDemoMode && (
+                  <div
+                    onClick={() => navigate("/signup")}
+                    style={{
+                      border: "1px solid rgba(176,138,74,0.16)",
+                      borderRadius: "16px",
+                      padding: "10px 12px",
+                      background: "rgba(255,255,255,0.76)",
+                      color: "#8A6A3C",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Love this? Sign up to style YOUR clothes →
+                  </div>
+                )}
               </>
             ) : (
               <div
@@ -6693,6 +7636,26 @@ Only suggest items they don't already own. Skip this section entirely if the out
                           </div>
                         </div>
                       )}
+
+                      {isDemoMode && (
+                        <div
+                          onClick={() => navigate("/signup")}
+                          style={{
+                            marginTop: "10px",
+                            borderRadius: "16px",
+                            border: "1px solid rgba(176,138,74,0.16)",
+                            background: "rgba(255,255,255,0.78)",
+                            padding: "10px 12px",
+                            textAlign: "center",
+                            color: "#8A6A3C",
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Love this? Sign up to style YOUR clothes →
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -6892,6 +7855,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
 }
 
 function FavoritesScreen() {
+  const { isDemoMode, showDemoPrompt } = useDemoMode();
   const [savedOutfits, setSavedOutfits] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -6908,6 +7872,14 @@ function FavoritesScreen() {
   useEffect(() => {
     let isMounted = true;
     async function load() {
+      if (isDemoMode) {
+        if (isMounted) {
+          setSavedOutfits([]);
+          setConversations([]);
+          setIsLoading(false);
+        }
+        return;
+      }
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { if (isMounted) setIsLoading(false); return; }
@@ -6933,7 +7905,7 @@ function FavoritesScreen() {
     }
     load();
     return () => { isMounted = false; };
-  }, [refreshTick]);
+  }, [refreshTick, isDemoMode]);
 
   useEffect(() => {
     function handleSavedOutfitsChanged() {
@@ -6957,6 +7929,13 @@ function FavoritesScreen() {
   }
 
   async function handleRemoveOutfit(outfitId) {
+    if (isDemoMode) {
+      showDemoPrompt({
+        title: "Sign up to save your favorite looks",
+        message: "Create an account to keep looks in your Lookbook and sync them across devices.",
+      });
+      return;
+    }
     if (!window.confirm("Remove this outfit from your lookbook?")) return;
     const { error } = await supabase.from("saved_outfits").delete().eq("id", outfitId);
     if (error) { alert(`Failed: ${error.message}`); return; }
@@ -7025,6 +8004,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
         </p>
+        <DemoModeBanner />
       </div>
 
       <div style={{ display: "flex", gap: "8px", marginTop: "14px", padding: "0 16px" }}>
@@ -7104,9 +8084,30 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
             <p style={{ fontSize: "32px", marginBottom: "8px" }}>♡</p>
             <p style={{ fontSize: "14px" }}>
               {savedOutfits.length === 0
-                ? "No saved looks yet. Save outfits from the Stylist Chat!"
+                ? isDemoMode
+                  ? "You're in demo mode. Sign up to save your favorite looks."
+                  : "No saved looks yet. Save outfits from the Stylist Chat!"
                 : "No looks match these filters."}
             </p>
+            {savedOutfits.length === 0 && isDemoMode && (
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                style={{
+                  marginTop: "12px",
+                  border: "none",
+                  background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                  color: "white",
+                  borderRadius: "100px",
+                  padding: "10px 18px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Sign up
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
@@ -7356,9 +8357,46 @@ function AppRouter() {
   const location = useLocation();
   const [session, setSession] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const onboardingRoutes = ["/", "/signup", "/login", "/privacy"];
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoClosetItems, setDemoClosetItems] = useState(() => createDemoClosetItems());
+  const [demoPrompt, setDemoPrompt] = useState(null);
+  const onboardingRoutes = ["/", "/signup", "/login", "/privacy", "/starter-wardrobe"];
   const isOnboarding = onboardingRoutes.includes(location.pathname);
   const isAdminSession = isAdminEmail(session?.user?.email);
+
+  function enterDemoMode() {
+    setDemoClosetItems(createDemoClosetItems());
+    setIsDemoMode(true);
+    setDemoPrompt(null);
+  }
+
+  function exitDemoMode() {
+    setIsDemoMode(false);
+    setDemoPrompt(null);
+  }
+
+  function showDemoPrompt(prompt) {
+    setDemoPrompt(prompt);
+  }
+
+  function closeDemoPrompt() {
+    setDemoPrompt(null);
+  }
+
+  function updateDemoClosetItem(itemId, updater) {
+    setDemoClosetItems((prev) => prev.map((item) => {
+      if (item.id !== itemId) return item;
+      const nextValue = typeof updater === "function" ? updater(item) : updater;
+      return {
+        ...item,
+        ...(typeof nextValue === "object" && nextValue ? nextValue : {}),
+      };
+    }));
+  }
+
+  function removeDemoClosetItem(itemId) {
+    setDemoClosetItems((prev) => prev.filter((item) => item.id !== itemId));
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -7382,6 +8420,12 @@ function AppRouter() {
     };
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      exitDemoMode();
+    }
+  }, [session]);
+
   if (isAuthLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f4f4f8]">
@@ -7391,7 +8435,7 @@ function AppRouter() {
   }
 
   function protectedElement(element) {
-    return session ? element : <Navigate to="/" replace />;
+    return (session || isDemoMode) ? element : <Navigate to="/" replace />;
   }
 
   function publicElement(element) {
@@ -7402,7 +8446,22 @@ function AppRouter() {
     return isAdminSession ? element : <Navigate to="/home" replace />;
   }
 
+  const demoModeApi = {
+    isDemoMode,
+    demoClosetItems,
+    setDemoClosetItems,
+    updateDemoClosetItem,
+    removeDemoClosetItem,
+    enterDemoMode,
+    exitDemoMode,
+    showDemoPrompt,
+    closeDemoPrompt,
+    demoPrompt,
+  };
+  const canUseApp = session || isDemoMode;
+
   return (
+    <DemoModeContext.Provider value={demoModeApi}>
     <div className={`min-h-[100dvh] overflow-x-hidden ${isOnboarding ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-[#FBF8F1]"}`}>
       <style>{`
         @keyframes deShimmer {
@@ -7423,6 +8482,7 @@ function AppRouter() {
         <Route path="/signup" element={publicElement(<SignUpScreen />)} />
         <Route path="/login" element={publicElement(<LogInScreen />)} />
         <Route path="/privacy" element={<PrivacyPolicyScreen />} />
+        <Route path="/starter-wardrobe" element={<StarterWardrobeScreen />} />
         <Route path="/home" element={protectedElement(<HomeScreen />)} />
         <Route path="/closet" element={protectedElement(<ClosetScreen />)} />
         <Route path="/closet/:itemId" element={protectedElement(<ItemDetailScreen />)} />
@@ -7430,10 +8490,12 @@ function AppRouter() {
         <Route path="/chat" element={protectedElement(<ChatScreen />)} />
         <Route path="/favorites" element={protectedElement(<FavoritesScreen />)} />
         <Route path="/admin" element={adminElement(<AdminUsageScreen />)} />
-        <Route path="*" element={<Navigate to={session ? "/home" : "/"} replace />} />
+        <Route path="*" element={<Navigate to={canUseApp ? "/home" : "/"} replace />} />
       </Routes>
-      {session && !isOnboarding && location.pathname !== "/admin" && <BottomNav />}
+      {canUseApp && !isOnboarding && location.pathname !== "/admin" && <BottomNav />}
+      <DemoPromptModal />
     </div>
+    </DemoModeContext.Provider>
   );
 }
 
