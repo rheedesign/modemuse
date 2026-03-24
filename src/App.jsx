@@ -20,10 +20,8 @@ function IconShirt({ active }) {
 function IconHanger({ active, className = "", tone = "" }) {
   const stateClass = tone || (active ? "text-primary" : "text-gray-400");
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3c1.1 0 2 .9 2 2s-2 2-2 2" />
-      <path d="M12 7L4 17h16L12 7" />
-      <path d="M4 17h16v2H4z" />
+    <svg width="21" height="14" viewBox="0 0 21 14" className={`h-5 w-5 ${stateClass} ${className}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 2.33246C9 -0.0478516 13.0008 -0.167491 13.0008 2.31641C13.0007 3.81469 11.9998 4.81456 11.0007 5.8136M11.0007 5.8136L0.5 13.0825H20.5008L11.0007 5.8136Z" />
     </svg>
   );
 }
