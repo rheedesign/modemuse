@@ -2378,8 +2378,30 @@ async function getLatestTrends() {
   }
 }
 
-function getStyleSystemPrompt(styleGender, styleInspo = [], trends = null) {
+function getLocationStyleContext(locationLabel) {
+  if (!locationLabel) return "";
+  const loc = locationLabel.toLowerCase();
+
+  if (/tokyo|japan|osaka|kyoto/.test(loc)) return "The user is in Tokyo/Japan. Lean into avant-garde layering, interesting proportions, Harajuku-influenced mixing of styles, clean minimalism with unexpected details.";
+  if (/paris|france/.test(loc)) return "The user is in Paris. Lean into effortless French chic — neutral tones, minimal accessories, one statement piece, undone elegance. Never try too hard.";
+  if (/milan|italy|rome/.test(loc)) return "The user is in Milan/Italy. Lean into tailored silhouettes, luxe fabrics, structured pieces, quiet Italian elegance.";
+  if (/new york|nyc|brooklyn/.test(loc)) return "The user is in New York. Lean into downtown cool — streetwear meets tailoring, power dressing, fast-paced practical style with an edge.";
+  if (/los angeles|la|california/.test(loc)) return "The user is in LA. Lean into laid-back luxury — athleisure done well, sun-kissed casual, effortless California cool.";
+  if (/london|uk|england/.test(loc)) return "The user is in London. Lean into British cool — eclectic mixing, vintage finds styled up, understated wit in the outfit.";
+  if (/seoul|korea/.test(loc)) return "The user is in Seoul. Lean into K-fashion — clean lines, oversized proportions, monochrome looks, street style with polish.";
+  if (/miami|florida/.test(loc)) return "The user is in Miami. Lean into vibrant, bold colors, resort wear elevated, confident and skin-baring looks.";
+  if (/hawaii|honolulu/.test(loc)) return "The user is in Hawaii. Lean into resort casual — linen, florals, relaxed silhouettes, vacation-ready polish.";
+  if (/chicago/.test(loc)) return "The user is in Chicago. Lean into practical chic — layering done well, structured outerwear, polished professional with personality.";
+  if (/sydney|australia/.test(loc)) return "The user is in Sydney/Australia. Lean into beach-adjacent casual luxury — relaxed but elevated, sun-friendly fabrics, easy confidence.";
+  if (/dubai|uae/.test(loc)) return "The user is in Dubai. Lean into luxury maximalism — statement pieces, elevated glamour, occasion-ready even for casual outings.";
+  if (/berlin|germany/.test(loc)) return "The user is in Berlin. Lean into minimal cool — utilitarian edge, all-black moments, conceptual mixing, anti-fashion fashion.";
+
+  return "";
+}
+
+function getStyleSystemPrompt(styleGender, styleInspo = [], trends = null, locationLabel = "") {
   const NO_YEAR = `\n\nIMPORTANT: Never mention the year 2026 or any year in your response. Never say "in 2026" or "current 2026 trends" or reference any specific year — just make confident style statements without referencing the year.`;
+  const LANGUAGE_PROMPT = `\n\nIMPORTANT: Always respond in the same language the user writes in. Match their language exactly.`;
   const STYLE_INSPO = formatStyleInspoGuidance(styleInspo);
 
   const WOMENS_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa, Bottega Veneta, and emerging labels. You understand the full spectrum of current aesthetics including: office siren, ballet core evolved, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, dark academia, and the ongoing No Buy / underconsumption movement where people want to style what they own rather than buy new things.
@@ -2453,9 +2475,12 @@ When suggesting outfits:
     trends.womens_trends
   }` : "";
 
-  if (styleGender === "mens") return MENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
-  if (styleGender === "fluid") return FLUID_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
-  return WOMENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + NO_YEAR;
+  const locationCtx = getLocationStyleContext(locationLabel);
+  const LOCATION_CONTEXT = locationCtx ? `\n\nLOCATION STYLE CONTEXT:\n${locationCtx}` : "";
+
+  if (styleGender === "mens") return MENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + LOCATION_CONTEXT + NO_YEAR + LANGUAGE_PROMPT;
+  if (styleGender === "fluid") return FLUID_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + LOCATION_CONTEXT + NO_YEAR + LANGUAGE_PROMPT;
+  return WOMENS_PROMPT + OUTFIT_COMBINATION_RULES + (STYLE_INSPO ? `\n\n${STYLE_INSPO}` : "") + LIVE_TRENDS + LOCATION_CONTEXT + NO_YEAR + LANGUAGE_PROMPT;
 }
 
 function WeatherIcon({ kind, color = "#B08A4A" }) {
@@ -2931,7 +2956,9 @@ Current trends: relaxed tailoring with unstructured blazers and pleated trousers
 
 When suggesting outfits: be specific and opinionated, champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.${OUTFIT_COMBINATION_RULES}`;
 
-      const systemPrompt = styleGender === "mens" ? menSystemPrompt : womenSystemPrompt;
+      const locationCtx = getLocationStyleContext(locationLabel);
+      const locationSuffix = locationCtx ? `\n\nLOCATION STYLE CONTEXT:\n${locationCtx}` : "";
+      const systemPrompt = (styleGender === "mens" ? menSystemPrompt : womenSystemPrompt) + locationSuffix;
 
       // Build avoidance instruction from recent outfits
       const prevUrls = previousUrlsRef.current;
@@ -6732,6 +6759,7 @@ function ChatScreen() {
   }, [isDemoMode]);
 
   const CHAT_FORMAT_PROMPT = `
+IMPORTANT: Always respond in the same language the user writes in. If the user writes in Korean, respond in Korean. If they write in Spanish, respond in Spanish. If they write in French, respond in French. Always match the user's language exactly. Never switch to English if the user wrote in another language.
 
 Format every response with EXACTLY these sections:
 
@@ -6749,7 +6777,8 @@ Only suggest items they don't already own.`;
 
   async function getChatSystemPrompt() {
     const trends = await getLatestTrends();
-    return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends) + CHAT_FORMAT_PROMPT;
+    const locationLabel = localStorage.getItem("styliner_weather_location_label") || "";
+    return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends, locationLabel) + CHAT_FORMAT_PROMPT;
   }
 
   function parseAiResponse(text) {
