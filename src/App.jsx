@@ -154,7 +154,7 @@ function BottomNav() {
         pointerEvents: "auto",
         background: "#fff",
         borderTop: "1px solid #f0f0f0",
-        padding: "6px 8px calc(4px + env(safe-area-inset-bottom, 0px))",
+        padding: "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
       }}
     >
       <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, margin: 0, padding: 0, listStyle: "none" }}>
@@ -180,14 +180,14 @@ function BottomNav() {
 
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
-const PAGE_TOP_PADDING = "max(28px, calc(env(safe-area-inset-top) + 18px))";
-const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 0px) + 78px)";
+const PAGE_TOP_PADDING = "max(72px, calc(env(safe-area-inset-top) + 32px))";
+const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
 const SHEET_BACKDROP_Z_INDEX = 13000;
 const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
 const CHAT_DRAWER_Z_INDEX = 12003;
 const CHAT_COMPOSER_Z_INDEX = 12001;
-const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(52px + env(safe-area-inset-bottom, 0px))";
+const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(60px + env(safe-area-inset-bottom, 16px))";
 const AI_USAGE_TABLE = "ai_usage_events";
 const AI_USAGE_DAILY_LIMIT = 10;
 const AI_USAGE_TOTAL_LIMIT = 30;
@@ -1422,7 +1422,7 @@ function OnboardingSplash() {
         margin: "0 auto",
         background: "linear-gradient(180deg, #C6A05C 0%, #D6B77A 100%)",
         color: "white",
-        padding: "max(18px, calc(env(safe-area-inset-top, 0px) + 16px)) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)",
+        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
@@ -1629,8 +1629,8 @@ function SignUpScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
-        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -1806,14 +1806,14 @@ function StarterWardrobeScreen() {
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F7F1E7 56%, #EFE3D0 100%)",
         color: "#111111",
-        padding: "max(18px, calc(env(safe-area-inset-top, 0px) + 16px)) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)",
+        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <div style={{ position: "relative", textAlign: "center", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
-        <button type="button" onClick={() => navigate("/signup")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(176,138,74,0.10)", border: "1px solid rgba(176,138,74,0.20)", color: "#B08A4A", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", textAlign: "center", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/signup")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(176,138,74,0.10)", border: "1px solid rgba(176,138,74,0.20)", color: "#B08A4A", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <LogoWordmark compact centered />
       </div>
 
@@ -1982,8 +1982,8 @@ function LogInScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))" }}>
-        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(12px, calc(env(safe-area-inset-top) + 4px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -2030,7 +2030,7 @@ function LogInScreen() {
 function PrivacyPolicyScreen() {
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ paddingTop: "max(48px, calc(env(safe-area-inset-top) + 32px))", paddingBottom: "24px" }}>
+      <div style={{ paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", paddingBottom: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
           <LogoWordmark compact />
           <NavLink
@@ -3097,7 +3097,7 @@ WHY: [one punchy sentence about why this works right now]`;
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(20px, calc(env(safe-area-inset-top) + 12px)) 0 68px" }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 0 calc(100px + env(safe-area-inset-bottom, 16px))" }}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
@@ -3965,7 +3965,7 @@ function AdminUsageScreen() {
         maxWidth: "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F5EFE4 100%)",
-        padding: "max(20px, calc(env(safe-area-inset-top, 0px) + 16px)) 16px 92px",
+        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 16px calc(120px + env(safe-area-inset-bottom, 16px))",
         boxSizing: "border-box",
       }}
     >
@@ -4748,7 +4748,7 @@ function ClosetScreen() {
         onClick={() => navigate("/upload")}
         style={{
           position: "fixed",
-          bottom: "100px",
+          bottom: "calc(100px + env(safe-area-inset-bottom, 16px))",
           right: "max(16px, calc((100vw - 430px) / 2 + 16px))",
           width: "52px",
           height: "52px",
@@ -5354,13 +5354,13 @@ function ItemDetailScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 calc(180px + env(safe-area-inset-bottom, 0px))" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 calc(180px + env(safe-area-inset-bottom, 16px))" }}>
         {/* Back button */}
         <button
           onClick={() => navigate("/closet")}
           style={{
             position: "absolute",
-            top: "16px",
+            top: "max(72px, calc(env(safe-area-inset-top) + 32px))",
             left: "16px",
             zIndex: 5,
             width: "36px",
@@ -6274,7 +6274,7 @@ function UploadScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 160px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px calc(160px + env(safe-area-inset-bottom, 16px))" }}>
         <DemoModeBanner />
 
         {phase === "tips" && (
@@ -6596,7 +6596,7 @@ function UploadScreen() {
       {/* Bottom CTA — fixed */}
       {phase === "pick" && selectedFiles.length > 0 && (
         <button onClick={handleAnalyze} style={{
-          position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)",
+          position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)",
           width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50,
           padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
           color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
@@ -6607,7 +6607,7 @@ function UploadScreen() {
       )}
       {phase === "confirm" && (
         <button onClick={handleSave} style={{
-          position: "fixed", bottom: "80px", left: "50%", transform: "translateX(-50%)",
+          position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)",
           width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50,
           padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
           color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
@@ -7453,7 +7453,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
       {/* Header */}
       <div
         style={{
-          padding: `calc(env(safe-area-inset-top) + 16px) 16px 16px`,
+          padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -8205,7 +8205,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         position: "relative",
       }}
     >
-      <div style={{ padding: `calc(env(safe-area-inset-top) + 18px) 16px 0` }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 0` }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
@@ -8267,7 +8267,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px 80px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px calc(80px + env(safe-area-inset-bottom, 16px))" }}>
         {isLoading ? (
           <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ borderRadius: "22px", border: "1px solid #F5EDE0", padding: "10px", boxShadow: "0 6px 20px rgba(176,138,74,0.04)" }}>
