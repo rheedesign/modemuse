@@ -5924,6 +5924,9 @@ function UploadScreen() {
   const [detectedItems, setDetectedItems] = useState([]);
   const [starterLoadingChoice, setStarterLoadingChoice] = useState(null);
   const [profileGender, setProfileGender] = useState("womens");
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlInputValue, setUrlInputValue] = useState("");
+  const [urlLoading, setUrlLoading] = useState(false);
   const [hasClosetItems, setHasClosetItems] = useState(() => {
     if (isDemoMode) return true;
     const stored = localStorage.getItem("styliner_closet_item_count");
@@ -6212,6 +6215,53 @@ function UploadScreen() {
     input.click();
   };
 
+  async function handleUrlSubmit() {
+    const url = urlInputValue.trim();
+    if (!url) return;
+    if (isDemoMode) {
+      showDemoPrompt({ title: "Sign up to add your own clothes", message: "Create an account to upload items and get personalized suggestions." });
+      return;
+    }
+    setUrlLoading(true);
+    try {
+      let imageUrl = url;
+
+      // Try scraping product page first
+      const isLikelyProductPage = !/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url);
+      if (isLikelyProductPage) {
+        try {
+          const scrapeRes = await fetch("/api/scrape-product", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url }),
+          });
+          const scrapeData = await scrapeRes.json();
+          if (scrapeData.imageUrl) {
+            imageUrl = scrapeData.imageUrl;
+          } else if (scrapeData.error) {
+            throw new Error(scrapeData.error);
+          }
+        } catch {
+          // Fall through to direct fetch
+        }
+      }
+
+      // Fetch the image
+      const res = await fetch(imageUrl);
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/")) throw new Error("Not an image");
+      const file = new File([blob], `web-${Date.now()}.jpg`, { type: blob.type });
+      const preview = { file, id: Math.random().toString(36).slice(2), previewUrl: URL.createObjectURL(file) };
+      setSelectedFiles((prev) => [...prev, preview]);
+      setUrlInputValue("");
+      setShowUrlInput(false);
+    } catch {
+      alert("Couldn't grab that image — try pasting the image URL directly instead.");
+    } finally {
+      setUrlLoading(false);
+    }
+  }
+
   const removeFile = (id) => {
     setSelectedFiles((prev) => {
       const target = prev.find((item) => item.id === id);
@@ -6367,9 +6417,51 @@ function UploadScreen() {
 
             <p style={{ textAlign: "center", color: "#999", marginBottom: "14px", fontSize: "13px" }}>or</p>
 
-            <button onClick={openCamera} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "18px" }}>
+            <button onClick={openCamera} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: "8px" }}>
               📷 Open Camera
             </button>
+
+            <button onClick={() => setShowUrlInput((v) => !v)} style={{ width: "100%", padding: "12px", borderRadius: "100px", background: "#F5EFE2", border: "none", color: "#B08A4A", fontWeight: "600", fontSize: "13px", cursor: "pointer", marginBottom: showUrlInput ? "8px" : "18px" }}>
+              🔗 Paste image or product URL
+            </button>
+
+            {showUrlInput && (
+              <div style={{ display: "flex", gap: "8px", marginBottom: "18px" }}>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={urlInputValue}
+                  onChange={(e) => setUrlInputValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleUrlSubmit(); }}
+                  style={{
+                    flex: 1,
+                    padding: "10px 14px",
+                    borderRadius: "100px",
+                    border: "1.5px solid #E6D8BF",
+                    fontSize: "13px",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  onClick={handleUrlSubmit}
+                  disabled={urlLoading || !urlInputValue.trim()}
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: "100px",
+                    border: "none",
+                    background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    cursor: urlLoading ? "default" : "pointer",
+                    opacity: urlLoading || !urlInputValue.trim() ? 0.6 : 1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {urlLoading ? "Loading..." : "Add"}
+                </button>
+              </div>
+            )}
 
             {selectedFiles.length > 0 && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
