@@ -6709,16 +6709,16 @@ WHY IT WORKS
 Maximum 2 sentences. Reference a specific trend or aesthetic. Be opinionated and confident. No bullet points.
 
 COMPLETE THE LOOK
-Suggest 1-2 gap pieces ONLY if genuinely needed — can be anything: jacket, shoes, bag, top, jewelry, pants. Keep each suggestion to one line: item name + why, then the shopping link.
-Format links as: https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
-Only suggest items they don't already own. Skip this section entirely if the outfit is complete.`;
+Always suggest 1-2 specific trendy pieces that would elevate this outfit — can be anything: jacket, shoes, bag, top, jewelry, pants. Keep each suggestion to one line: item name + why it elevates the look.
+Format each as: To elevate this look: [item description] → https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
+Only suggest items they don't already own.`;
 
   function getChatSystemPrompt() {
     return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current) + CHAT_FORMAT_PROMPT;
   }
 
   function parseAiResponse(text) {
-    const imageUrlRegex = /https?:\/\/[^\s)>\]]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)(?:[^\s)>\]]*)/gi;
+    const imageUrlRegex = /(?:https?:\/\/[^\s)>\]]+|\/[^\s)>\]]+\.(?:png|jpg|jpeg|webp|gif|svg))/gi;
     const imageUrls = [...new Set(text.match(imageUrlRegex) || [])];
     let clean = text
       .replace(/\*\*([^*]+)\*\*/g, "$1")
@@ -6740,7 +6740,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
     if (yourLookMatch) {
       itemNames = yourLookMatch[1].trim();
       imageUrls.forEach((url) => { itemNames = itemNames.replaceAll(url, ""); });
-      itemNames = itemNames.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+      itemNames = itemNames.replace(/\([^)]*\)/g, "").replace(/\s+\+\s+/g, " + ").replace(/\s{2,}/g, " ").trim();
     }
     if (whyMatch) {
       whyText = whyMatch[1].trim();
@@ -6761,21 +6761,21 @@ Only suggest items they don't already own. Skip this section entirely if the out
   }
 
   function renderTextWithLinks(text) {
-    const linkRegex = /(https:\/\/www\.google\.com\/search\?tbm=shop&q=[^\s)>\]]+)/g;
+    const linkRegex = /(https?:\/\/www\.google\.com\/search[^\s)>\]]+)/g;
     const parts = text.split(linkRegex);
     return parts.map((part, i) => {
-      if (linkRegex.test(part)) {
-        linkRegex.lastIndex = 0;
+      if (/^https?:\/\/www\.google\.com\/search/.test(part)) {
         const queryMatch = part.match(/q=([^&\s]+)/);
         const label = queryMatch ? decodeURIComponent(queryMatch[1].replace(/\+/g, " ")) : "Shop";
         return (
           <a key={i} href={part} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-block", padding: "4px 10px", margin: "2px 4px 2px 0", borderRadius: "100px", background: "#F5EDE0", color: "#B08A4A", fontSize: "12px", fontWeight: 600, textDecoration: "none", border: "1px solid #E6D8BF" }}>
+            style={{ display: "inline-block", padding: "6px 14px", margin: "4px 4px 4px 0", borderRadius: "100px", background: "#F5EDE0", color: "#B08A4A", fontSize: "13px", fontWeight: 600, textDecoration: "none", border: "1px solid #E6D8BF" }}>
             Shop {label} ↗
           </a>
         );
       }
-      return <span key={i}>{part}</span>;
+      const cleaned = part.replace(/[→►]/g, "").trim();
+      return cleaned ? <span key={i}>{cleaned} </span> : null;
     });
   }
 
@@ -7793,44 +7793,15 @@ Only suggest items they don't already own. Skip this section entirely if the out
                       )}
 
                       {whyText && (
-                        <div style={{ marginTop: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedMsgIds((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id);
-                              return next;
-                            })}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              padding: 0,
-                              color: "#B08A4A",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {isExpanded ? "Hide ↑" : "See why ↓"}
-                          </button>
-                          <div
-                            style={{
-                              maxHeight: isExpanded ? "200px" : "0px",
-                              opacity: isExpanded ? 1 : 0,
-                              overflow: "hidden",
-                              transition: "max-height 0.35s ease, opacity 0.3s ease",
-                            }}
-                          >
-                            <p style={{
-                              margin: "6px 0 0",
-                              fontSize: "13px",
-                              lineHeight: "1.55",
-                              color: "#5a5370",
-                            }}>
-                              {whyText}
-                            </p>
-                          </div>
-                        </div>
+                        <p style={{
+                          margin: "8px 0 0",
+                          fontSize: "13px",
+                          lineHeight: "1.55",
+                          color: "#5a5370",
+                          fontStyle: "italic",
+                        }}>
+                          {whyText}
+                        </p>
                       )}
 
                       {isDemoMode && (
