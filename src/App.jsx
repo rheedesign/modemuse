@@ -437,15 +437,15 @@ async function runTrackedAnthropicRequest({
 
   let response;
   let data;
-  console.log("[DEBUG] About to fetch /api/anthropic/v1/messages", { feature, model: requestBody.model });
+  console.log("[DEBUG] About to fetch /api/anthropic", { feature, model: requestBody.model });
   try {
-    response = await fetch("/api/anthropic/v1/messages", {
+    response = await fetch("/api/anthropic", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
+
       },
       body: JSON.stringify(requestBody),
     });
@@ -2935,13 +2935,13 @@ VIBE: [3 word vibe name]
 ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
 WHY: [one punchy sentence about why this works right now]`;
 
-      const response = await fetch("/api/anthropic/v1/messages", {
+      const response = await fetch("/api/anthropic", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
           "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
+  
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
