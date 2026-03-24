@@ -3699,48 +3699,50 @@ WHY: [one punchy sentence about why this works right now]`;
             </div>
 
             {/* Save button */}
-            <button
-              type="button"
-              onClick={async () => {
-                if (isDemoMode) {
-                  console.log("[Demo] Profile save — switching gender to:", editStyleGender);
-                  styleGenderRef.current = editStyleGender;
-                  styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
-                  setDemoGender(editStyleGender);
-                  const newItems = createDemoClosetItems(editStyleGender);
-                  setDemoClosetItems(newItems);
-                  closetDataRef.current = cloneDemoClosetItems(newItems);
-                  setItemCount(newItems.length);
+            <div style={{ padding: "12px 20px calc(16px + env(safe-area-inset-bottom, 34px))", background: "white" }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (isDemoMode) {
+                    console.log("[Demo] Profile save — switching gender to:", editStyleGender);
+                    styleGenderRef.current = editStyleGender;
+                    styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
+                    setDemoGender(editStyleGender);
+                    const newItems = createDemoClosetItems(editStyleGender);
+                    setDemoClosetItems(newItems);
+                    closetDataRef.current = cloneDemoClosetItems(newItems);
+                    setItemCount(newItems.length);
+                    setProfileSheetOpen(false);
+                    return;
+                  }
+                  const updates = {};
+                  if (nameInput.trim()) updates.first_name = nameInput.trim();
+                  updates.style_gender = editStyleGender;
+                  updates.style_inspo = normalizeStyleInspoSelection(editStyleInspo);
+                  const { error } = await supabase.auth.updateUser({ data: updates });
+                  if (!error) {
+                    if (nameInput.trim()) setUserName(nameInput.trim().charAt(0).toUpperCase() + nameInput.trim().slice(1));
+                    styleGenderRef.current = editStyleGender;
+                    styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
+                  }
                   setProfileSheetOpen(false);
-                  return;
-                }
-                const updates = {};
-                if (nameInput.trim()) updates.first_name = nameInput.trim();
-                updates.style_gender = editStyleGender;
-                updates.style_inspo = normalizeStyleInspoSelection(editStyleInspo);
-                const { error } = await supabase.auth.updateUser({ data: updates });
-                if (!error) {
-                  if (nameInput.trim()) setUserName(nameInput.trim().charAt(0).toUpperCase() + nameInput.trim().slice(1));
-                  styleGenderRef.current = editStyleGender;
-                  styleInspoRef.current = normalizeStyleInspoSelection(editStyleInspo);
-                }
-                setProfileSheetOpen(false);
-              }}
-              style={{
-                width: "100%",
-                padding: "14px",
-                borderRadius: "100px",
-                border: "none",
-                background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
-                color: "white",
-                fontWeight: 600,
-                fontSize: "15px",
-                cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-              }}
-            >
-              Save
-            </button>
+                }}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "100px",
+                  border: "none",
+                  background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                  color: "white",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                }}
+              >
+                Save
+              </button>
+            </div>
           </div>
         </>
       )}
