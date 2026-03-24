@@ -7006,7 +7006,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
 
       const { data: items, error: itemsError } = await supabase
         .from("clothing_items")
-        .select("image_url")
+        .select("name, category, image_url")
         .eq("user_id", user.id);
 
       if (itemsError) throw new Error(`Failed to fetch wardrobe: ${itemsError.message}`);
@@ -7044,10 +7044,9 @@ Only suggest items they don't already own. Skip this section entirely if the out
       const userMsg = { id: savedUser.id, role: "user", content: trimmed, outfitImages: [] };
       setMessages((prev) => [...prev, userMsg]);
 
-      const imageBlocks = items.flatMap((item, i) => [
-        { type: "text", text: `Item ${i + 1} (${toHttps(item.image_url)}):` },
-        { type: "image", source: { type: "url", url: toHttps(item.image_url) } },
-      ]);
+      const itemsText = items.map((item, i) =>
+        `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
+      ).join("\n");
 
       const result = await runTrackedAnthropicRequest({
         user,
@@ -7060,11 +7059,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
           messages: [
             {
               role: "user",
-              content: [
-                { type: "text", text: "Here are all the clothing items in my closet:" },
-                ...imageBlocks,
-                { type: "text", text: `I need an outfit for: ${trimmed}\n\nLook at each clothing item image carefully. Pick the best combination from what I own for this occasion. For each item you pick, include its image URL (shown before each image as "Item N (url):").` },
-              ],
+              content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${trimmed}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`,
             },
           ],
         },
@@ -7144,7 +7139,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
 
       const { data: items, error: itemsError } = await supabase
         .from("clothing_items")
-        .select("image_url")
+        .select("name, category, image_url")
         .eq("user_id", user.id);
       if (itemsError) throw new Error(itemsError.message);
       if (!items || items.length === 0) {
@@ -7155,10 +7150,9 @@ Only suggest items they don't already own. Skip this section entirely if the out
       }
       setClosetCount(items.length);
 
-      const imageBlocks = items.flatMap((item, i) => [
-        { type: "text", text: `Item ${i + 1} (${toHttps(item.image_url)}):` },
-        { type: "image", source: { type: "url", url: toHttps(item.image_url) } },
-      ]);
+      const itemsText = items.map((item, i) =>
+        `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
+      ).join("\n");
 
       const result = await runTrackedAnthropicRequest({
         user,
@@ -7176,11 +7170,7 @@ Only suggest items they don't already own. Skip this section entirely if the out
           messages: [
             {
               role: "user",
-              content: [
-                { type: "text", text: "Here are all the clothing items in my closet:" },
-                ...imageBlocks,
-                { type: "text", text: `I need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. For each item you pick, include its image URL (shown before each image as "Item N (url):").` },
-              ],
+              content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. List the image URLs of the items you pick.`,
             },
           ],
         },
