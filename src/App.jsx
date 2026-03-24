@@ -7805,15 +7805,45 @@ Only suggest items they don't already own.`;
                       )}
 
                       {whyText && (
-                        <p style={{
-                          margin: "8px 0 0",
-                          fontSize: "13px",
-                          lineHeight: "1.55",
-                          color: "#5a5370",
-                          fontStyle: "italic",
-                        }}>
-                          {whyText}
-                        </p>
+                        <div style={{ marginTop: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedMsgIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id);
+                              return next;
+                            })}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                              color: "#B08A4A",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {isExpanded ? "Hide ↑" : "Why this works ↓"}
+                          </button>
+                          <div
+                            style={{
+                              maxHeight: isExpanded ? "300px" : "0px",
+                              opacity: isExpanded ? 1 : 0,
+                              overflow: "hidden",
+                              transition: "max-height 0.35s ease, opacity 0.3s ease",
+                            }}
+                          >
+                            <p style={{
+                              margin: "6px 0 0",
+                              fontSize: "13px",
+                              lineHeight: "1.55",
+                              color: "#5a5370",
+                              fontStyle: "italic",
+                            }}>
+                              {whyText}
+                            </p>
+                          </div>
+                        </div>
                       )}
 
                       {isDemoMode && (
