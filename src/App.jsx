@@ -6344,6 +6344,32 @@ function UploadScreen() {
               </div>
             </div>
 
+            {/* Tip 4 */}
+            <div style={{ background: "white", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "64px", height: "64px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <rect x="6" y="6" width="44" height="32" rx="4" fill="#FBF8F1" stroke="#EFE3D0" strokeWidth="1.5" />
+                    <rect x="8" y="8" width="40" height="4" rx="1" fill="#EFE3D0" />
+                    <circle cx="12" cy="10" r="1.5" fill="#B08A4A" />
+                    <circle cx="17" cy="10" r="1.5" fill="#B08A4A" opacity="0.5" />
+                    <circle cx="22" cy="10" r="1.5" fill="#B08A4A" opacity="0.3" />
+                    <rect x="14" y="16" width="16" height="18" rx="2" fill="#EFE3D0" stroke="#B08A4A" strokeWidth="1.5" />
+                    <path d="M34 20h10M34 24h8M34 28h6" stroke="#EFE3D0" strokeWidth="1.5" strokeLinecap="round" />
+                    <circle cx="40" cy="44" r="8" fill="#FBF8F1" stroke="#B08A4A" strokeWidth="1.5" />
+                    <path d="M37 44h6M40 41v6" stroke="#B08A4A" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="M22 42l-4 4" stroke="#B08A4A" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="M14 48l6-2m-6 2l2-6" stroke="#B08A4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111" }}><span style={{ color: "#B08A4A", marginRight: "6px" }}>4</span>Save from any shopping site</p>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888", lineHeight: "1.4" }}>Find a product you love online. Right-click the main product photo and select &quot;Copy Image Address&quot; (Chrome/Safari). Then paste that link directly into Styliner — no screenshots needed.</p>
+                  <p style={{ margin: "6px 0 0", fontSize: "11px", color: "#999", lineHeight: "1.4" }}>Tip: Make sure you copy the image address, not the page URL. The image link usually ends in .jpg or .png</p>
+                </div>
+              </div>
+            </div>
+
             <button type="button" onClick={dismissTips} style={{
               width: "100%", padding: "14px", borderRadius: "100px", background: "#B08A4A",
               border: "none", color: "white", fontWeight: 600, fontSize: "15px", cursor: "pointer",
