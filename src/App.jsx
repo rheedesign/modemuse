@@ -7736,21 +7736,44 @@ Only suggest items they don't already own.`;
                   const isFading = fadingMsgId === msg.id;
                   const isSaved = savedMsgIds.has(msg.id);
                   const isExpanded = expandedMsgIds.has(msg.id);
+                  const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).filter(Boolean) : [];
+                  const shortCaption = whyText ? whyText.split(". ")[0] + "." : "";
                   return (
                     <div ref={msgIndex === messages.length - 1 ? latestAssistantRef : undefined} className={isFading ? "chat-fade-out" : "chat-fade-in"}>
-                      <p style={{ margin: 0, color: "#B08A4A", fontWeight: 600, fontSize: "13px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      {/* 1. Vibe title */}
+                      <p style={{ margin: 0, color: "#B08A4A", fontWeight: 600, fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                         ✦ Your Look
                       </p>
-                      <div style={{ marginTop: "8px" }}>
-                        <AIGeneratedTag />
-                      </div>
+                      <p style={{ margin: "8px 0 0", fontSize: "20px", fontWeight: 800, color: "#111111", lineHeight: "1.2" }}>
+                        {activeConvo?.title || "Today's Outfit"}
+                      </p>
 
-                      {itemNames && (
-                        <p style={{ margin: "6px 0 0", fontSize: "14px", fontWeight: 600, color: "#111111", lineHeight: "1.5" }}>
-                          {itemNames}
+                      {/* 2. Short caption */}
+                      {shortCaption && (
+                        <p style={{ margin: "6px 0 0", fontSize: "14px", color: "#6b6578", fontStyle: "italic", lineHeight: "1.55" }}>
+                          {shortCaption}
                         </p>
                       )}
 
+                      {/* 3. Item chips */}
+                      {itemChips.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "10px" }}>
+                          {itemChips.map((chip, ci) => (
+                            <span key={ci} style={{
+                              background: "#F5EDE0",
+                              color: "#8A6A3C",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              padding: "3px 10px",
+                              borderRadius: "100px",
+                            }}>
+                              {chip.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 4. Outfit images */}
                       {imageUrls.length > 0 && (
                         <div
                           style={{
@@ -7760,7 +7783,7 @@ Only suggest items they don't already own.`;
                             padding: "12px",
                             borderRadius: "20px",
                             background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
-                            marginTop: "8px",
+                            marginTop: "10px",
                           }}
                         >
                           {imageUrls.slice(0, 4).map((url, i) => {
@@ -7785,6 +7808,7 @@ Only suggest items they don't already own.`;
                         </div>
                       )}
 
+                      {/* 5. Buttons */}
                       <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
                         <button
                           type="button"
@@ -7825,12 +7849,7 @@ Only suggest items they don't already own.`;
                         </button>
                       </div>
 
-                      {shopText && (
-                        <div style={{ marginTop: "8px", fontSize: "13px", color: "#3A352E", lineHeight: "1.5" }}>
-                          {renderTextWithLinks(shopText)}
-                        </div>
-                      )}
-
+                      {/* 6. Why this works toggle */}
                       {whyText && (
                         <div style={{ marginTop: "8px" }}>
                           <button
@@ -7850,7 +7869,7 @@ Only suggest items they don't already own.`;
                               cursor: "pointer",
                             }}
                           >
-                            {isExpanded ? "Hide ↑" : "Why this works ↓"}
+                            {isExpanded ? "Hide explanation ↑" : "Why this works ↓"}
                           </button>
                           <div
                             style={{
@@ -7870,6 +7889,13 @@ Only suggest items they don't already own.`;
                               {whyText}
                             </p>
                           </div>
+                        </div>
+                      )}
+
+                      {/* 7. Complete the look */}
+                      {shopText && (
+                        <div style={{ marginTop: "8px", fontSize: "13px", color: "#3A352E", lineHeight: "1.5" }}>
+                          {renderTextWithLinks(shopText)}
                         </div>
                       )}
 
