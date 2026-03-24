@@ -2688,86 +2688,101 @@ function HomeScreen() {
     return { urls: urls.slice(0, 6), caption: caption || "Your daily look", vibe };
   }
 
-  async function fetchOutfitSuggestion(extraInstruction, temperature = 0.85) {
-    const data = closetDataRef.current.filter((item) => item.image_url);
-    if (!data.length) return null;
+  async function fetchOutfitSuggestion() {
+    setLoadingOutfit(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const styleGender = user?.user_metadata?.style_gender || "womens";
 
-    const itemList = data.map((item, i) => {
-      const parts = [`Item ${i + 1}: ${item.image_url}`];
-      if (item.name) parts.push(`Name: ${item.name}`);
-      if (item.category) parts.push(`Category: ${item.category}`);
-      return parts.join(" | ");
-    }).join("\n");
+      let itemsList = [];
+      if (user) {
+        const { data: items } = await supabase
+          .from("clothing_items")
+          .select("image_url, name, category")
+          .eq("user_id", user.id)
+          .limit(15);
+        itemsList = items || [];
+      } else {
+        itemsList = closetDataRef.current;
+      }
 
-    const { tempF, cityName } = weatherRef.current;
-    const activeLocation = locationMode === "custom" && locationLabel
-      ? locationLabel
-      : (cityName || locationLabel || "their current location");
-    const weatherContext = tempF !== null
-      ? `The weather at ${activeLocation} is ${tempF}°F${cityName ? ` in ${cityName}` : ""}.`
-      : `The target location is ${activeLocation}.`;
+      if (itemsList.length === 0) {
+        setSuggestedImages([]);
+        return;
+      }
 
-    const systemPrompt = getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current);
+      const itemsText = itemsList
+        .map((item, i) => `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${item.image_url}`)
+        .join("\n");
 
-    const itemTarget = getRecommendedOutfitItemCount();
-    const prompt = `Here are all my clothing items:\n${itemList}\n\n${weatherContext} Style me a complete outfit from my closet for that location — pick ${itemTarget} to ${Math.min(itemTarget + 1, 6)} items that work together as a cohesive look. In colder or wetter weather, include extra layers or accessories like jackets, boots, beanies, scarves, or bags when useful.${extraInstruction ? " " + extraInstruction : ""}
+      const { tempF, cityName } = weatherRef.current;
+      const activeLocation = locationMode === "custom" && locationLabel
+        ? locationLabel
+        : (cityName || locationLabel || "their current location");
+      const weatherText = tempF !== null
+        ? `${Math.round(tempF)}°F in ${activeLocation}`
+        : activeLocation;
 
-Respond in this exact format:
-VIBE: [3 words max — punchy, trend-aware style descriptor]
-ITEMS:
-[image URL 1]
-[image URL 2]
-[image URL 3]
-[image URL 4]
-[image URL 5 if needed]
-[image URL 6 if needed]
-WHY: [one punchy sentence — reference a specific trend or aesthetic, explain why this combination is strong right now]`;
+      const womenSystemPrompt = `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa and Bottega Veneta. You understand current aesthetics: office siren, ballet core, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, and the No Buy / underconsumption movement.
 
-    const resp = await fetch("/api/anthropic/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
-        temperature,
-        system: systemPrompt,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    if (!resp.ok) throw new Error(`Anthropic API error: ${resp.status}`);
-    const result = await resp.json();
+Current trends: tailoring with structured shoulders and wide leg trousers, sheer layering, metallics as daytime neutrals, ballet flats and kitten heels, minimalist bags, relaxed wide denim, neutral or saturated color palettes.
 
-    return parseOutfitResponse(result.content?.[0]?.text || "");
-  }
+When suggesting outfits: be specific and opinionated, reference micro-trends, consider the weather, always create a complete look (top + bottom or dress + shoes + accessory), champion wearing what you already own, keep descriptions punchy like a stylist texting a client, name the vibe in 3 words max. Never mention any year in your response.`;
 
-  async function refreshSuggestedOutfit(extraInstruction, temperature = 0.85, feature = "home_outfit", currentUser = null) {
-    if (isDemoMode) {
-      const result = buildDemoOutfitSuggestion(closetDataRef.current.length ? closetDataRef.current : demoClosetItems, {
-        theme: getWeatherKind(),
-        seed: demoOutfitSeedRef.current,
-        styleInspo: styleInspoRef.current,
+      const menSystemPrompt = `You are a world-class men's fashion stylist. You follow menswear fashion weeks, read GQ and Highsnobiety, love Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP and Bottega Veneta. You understand: quiet luxury menswear, gorpcore, smart casual, old money prep, workwear heritage, sport luxe.
+
+Current trends: relaxed tailoring with unstructured blazers and pleated trousers, workwear heritage pieces, loafers and clean leather sneakers, tonal dressing, cashmere and wool quality pieces, wide leg denim, layering.
+
+When suggesting outfits: be specific and opinionated, always create a complete look (top + bottom + shoes + one accessory), champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.`;
+
+      const systemPrompt = styleGender === "mens" ? menSystemPrompt : womenSystemPrompt;
+
+      const prompt = `Pick 4 items from this wardrobe for a great outfit today. Weather: ${weatherText}.
+
+Wardrobe:
+${itemsText}
+
+Reply in EXACTLY this format with no other text:
+VIBE: [3 word vibe name]
+ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
+WHY: [one punchy sentence about why this works right now]`;
+
+      const response = await fetch("/api/anthropic/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 400,
+          system: systemPrompt,
+          messages: [{ role: "user", content: prompt }],
+        }),
       });
-      applyOutfitResult(result);
-      return result;
-    }
 
-    const currentCount = getDailyLookCount();
-    console.log("[DEBUG] refreshSuggestedOutfit", { feature, isAdmin, dailyCount: currentCount, limit: DAILY_LOOK_LIMIT, hasFetched: hasFetchedOutfit.current });
-    if (!isAdmin && currentCount >= DAILY_LOOK_LIMIT) {
-      console.log("[DEBUG] Daily limit reached, blocking request");
-      setLimitReached(true);
-      setCountdownText(getCountdownToMidnight());
-      return null;
+      const data = await response.json();
+      const text = data.content?.[0]?.text || "";
+
+      const vibeMatch = text.match(/VIBE:\s*(.+)/);
+      const itemsMatch = text.match(/ITEMS:\s*(.+)/);
+      const whyMatch = text.match(/WHY:\s*(.+)/);
+
+      const vibe = vibeMatch?.[1]?.trim() || "Today's Look";
+      const imageUrls = itemsMatch?.[1]?.split("|").map((u) => u.trim()).filter(Boolean) || [];
+      const why = whyMatch?.[1]?.trim() || "";
+
+      setSuggestedImages(imageUrls);
+      setSuggestionVibe(vibe);
+      setSuggestionCaption(why);
+    } catch (err) {
+      console.error("Outfit suggestion failed:", err);
+      setSuggestedImages([]);
+    } finally {
+      setLoadingOutfit(false);
     }
-    if (isAdmin) console.log("[DEBUG] Admin bypass active — skipping all limits");
-    const result = await fetchOutfitSuggestion(extraInstruction, temperature);
-    if (!result) return null;
-    applyOutfitResult(result);
-    if (!isAdmin) {
-      const newCount = incrementDailyLookCount();
-      console.log("[DEBUG] Incremented daily look count to", newCount);
-    }
-    return result;
   }
 
   useEffect(() => {
@@ -2829,28 +2844,10 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         .eq("user_id", user.id);
 
       const validItems = (data || []).filter((item) => item.image_url);
-      console.log("[HomeScreen] Fetched closet items:", data?.length, "valid (with image_url):", validItems.length);
       setItemCount(count || 0);
       closetDataRef.current = validItems;
-      if (validItems.length === 0) { console.log("[DEBUG] init: no valid items, skipping outfit"); setLoadingOutfit(false); return; }
-      const initIsAdmin = user.email === "cnrhee@gmail.com";
-      console.log("[DEBUG] init: cache check", { isAdmin: initIsAdmin, hasFetched: hasFetchedOutfit.current, email: user.email });
-      if (!initIsAdmin && hasFetchedOutfit.current) { console.log("[DEBUG] init: already fetched, using cache"); setLoadingOutfit(false); return; }
-      hasFetchedOutfit.current = true;
-      if (initIsAdmin) { console.log("[DEBUG] init: admin bypass — clearing outfit history"); outfitHistoryRef.current = []; }
 
-      try {
-        console.log("[DEBUG] init: calling refreshSuggestedOutfit");
-        const result = await refreshSuggestedOutfit(undefined, 0.85, "home_daily_outfit", user);
-        if (!result) {
-          console.warn("[DEBUG] init: refreshSuggestedOutfit returned null");
-        } else {
-          console.log("[DEBUG] init: outfit generated successfully", { urls: result.urls?.length, vibe: result.vibe });
-        }
-      } catch (err) {
-        console.error("[DEBUG] init: outfit suggestion error:", err.message, err);
-      }
-      setLoadingOutfit(false);
+      await fetchOutfitSuggestion();
     }
 
     init();
@@ -2871,10 +2868,8 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
   }, [demoClosetItems, isDemoMode]);
 
   async function handleNewLook() {
-    console.log("[DEBUG] handleNewLook triggered", { regenerating, loadingOutfit, isAdmin, dailyCount: getDailyLookCount() });
-    if (regenerating || loadingOutfit) return;
+    if (loadingOutfit) return;
     if (isDemoMode) {
-      setRegenerating(true);
       setLoadingOutfit(true);
       try {
         demoOutfitSeedRef.current += 1;
@@ -2886,71 +2881,10 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
         applyOutfitResult(result);
       } finally {
         setLoadingOutfit(false);
-        setRegenerating(false);
       }
       return;
     }
-    // DEBUG: bypass cache for all users on New Look button
-    console.log("[DEBUG] handleNewLook: forcing fresh API call (cache bypass for debugging)");
-    setRegenerating(true);
-    setLoadingOutfit(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("You need to be signed in.");
-      const prevUrls = [...new Set([...previousUrlsRef.current, ...getRecentOutfitUrls(4)])];
-      const prevVibe = suggestionVibe;
-      const styleModes = [
-        "Build a more editorial look with a different hero piece and silhouette.",
-        "Build a more relaxed off-duty look with a clearly different outfit formula.",
-        "Build a more polished, dressed-up look with new footwear and a new top/bottom pairing.",
-        "Build a more layered look with an unexpected third piece and a different proportion.",
-        "Build a bolder look with a fresh color story and a different anchor piece.",
-        "Build a softer, lighter look with a different mood from the previous outfit.",
-      ];
-      const styleMode = styleModes[newLookStyleRef.current % styleModes.length];
-      newLookStyleRef.current += 1;
-      const basePrompt = prevUrls.length > 0
-        ? buildRetryInstruction(prevUrls, prevVibe)
-        : "Suggest a completely different outfit combination from the previous suggestion. Use a different silhouette, different key pieces, and a different color story.";
-
-      let acceptedResult = null;
-      let lastResult = null;
-      for (let attempt = 0; attempt < 20; attempt += 1) {
-        const attemptPrompt = attempt === 0
-          ? `${basePrompt} ${styleMode} Do not reuse the exact same combination as the previous look.`
-          : `${basePrompt} ${styleMode} This must be a fresh combination that does not overlap heavily with any outfit already shown in this session. Change the hero piece, footwear, and overall silhouette.`;
-        const attemptTemp = Math.min(1.1 + attempt * 0.08, 1.32);
-        const result = await fetchOutfitSuggestion(attemptPrompt, attemptTemp);
-        if (!result) continue;
-        lastResult = result;
-        if (!isOutfitTooSimilar(result.urls, 1)) {
-          acceptedResult = result;
-          break;
-        }
-      }
-
-      if (!acceptedResult && lastResult) {
-        const fallbackPrompt = [
-          basePrompt,
-          styleMode,
-          "IMPORTANT: return a truly new outfit that does NOT repeat any item from the last few looks.",
-          "Change the hero piece, footwear, and overall silhouette from scratch if needed.",
-          "Prefer a different color story and a different layering structure.",
-        ].join(" ");
-        const fallbackResult = await fetchOutfitSuggestion(fallbackPrompt, 1.32);
-        if (fallbackResult && !isOutfitTooSimilar(fallbackResult.urls, 1)) {
-          acceptedResult = fallbackResult;
-        }
-      }
-
-      if (!acceptedResult) throw new Error("No new outfit was generated.");
-      applyOutfitResult(acceptedResult);
-    } catch (err) {
-      console.error("[HomeScreen] New Look error:", err);
-    } finally {
-      setLoadingOutfit(false);
-      setRegenerating(false);
-    }
+    await fetchOutfitSuggestion();
   }
 
   const homeRotationMap = getRotationMap(closetDataRef.current);
@@ -3152,7 +3086,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
               <FlatLayCard
                 images={suggestedImages.slice(0, 4)}
                 caption={suggestionVibe}
-                pulsing={regenerating}
+                pulsing={loadingOutfit}
                 compact
                 rotationMap={homeRotationMap}
               >
@@ -3191,7 +3125,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
-                      disabled={regenerating}
+                      disabled={loadingOutfit}
                       style={{
                         border: "1.5px solid #B08A4A",
                         background: "transparent",
@@ -3200,16 +3134,16 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                         padding: "10px 18px",
                         fontSize: "12px",
                         fontWeight: 600,
-                        cursor: regenerating ? "default" : "pointer",
-                        opacity: regenerating ? 0.6 : 1,
+                        cursor: loadingOutfit ? "default" : "pointer",
+                        opacity: loadingOutfit ? 0.6 : 1,
                         display: "flex",
                         alignItems: "center",
                         gap: "5px",
                         transition: "opacity 0.2s",
                       }}
                     >
-                      <span style={{ display: "inline-block", transform: regenerating ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
-                      {regenerating ? "Styling..." : "New Look"}
+                      <span style={{ display: "inline-block", transform: loadingOutfit ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
+                      {loadingOutfit ? "Styling..." : "New Look"}
                     </button>
                   )}
                 </div>
@@ -3279,13 +3213,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                 {itemCount > 0 && (
                   <button
                     type="button"
-                    onClick={async () => {
-                      setLoadingOutfit(true);
-                      try {
-                        await refreshSuggestedOutfit();
-                      } catch (err) { console.error("[HomeScreen] Retry error:", err); }
-                      setLoadingOutfit(false);
-                    }}
+                    onClick={() => fetchOutfitSuggestion()}
                     style={{
                       border: "1.5px solid #B08A4A",
                       background: "transparent",
@@ -3583,7 +3511,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                           try {
                             setLocationSaving(true);
                             await loadWeatherForDestination(suggestion.value);
-                            await refreshSuggestedOutfit();
+                            await fetchOutfitSuggestion();
                             setLocationSheetOpen(false);
                           } finally {
                             setLocationSaving(false);
@@ -3635,7 +3563,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                   try {
                     setLocationSheetOpen(false);
                     await loadWeatherForCurrentLocation();
-                    await refreshSuggestedOutfit();
+                    await fetchOutfitSuggestion();
                   } catch {
                     setLocationSheetOpen(false);
                   }
@@ -3662,7 +3590,7 @@ WHY: [one punchy sentence — reference a specific trend or aesthetic, explain w
                   setLocationSaving(true);
                   try {
                     await loadWeatherForDestination(locationInput);
-                    await refreshSuggestedOutfit();
+                    await fetchOutfitSuggestion();
                     setLocationSheetOpen(false);
                   } catch {
                     // Leave the sheet open if the destination lookup fails.
