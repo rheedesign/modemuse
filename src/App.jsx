@@ -3144,7 +3144,7 @@ WHY: [one punchy sentence about why this works right now]`;
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(60px, calc(env(safe-area-inset-top) + 16px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))" }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))" }}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
