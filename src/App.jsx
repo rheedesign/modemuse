@@ -453,7 +453,8 @@ async function runTrackedAnthropicRequest({
       body: JSON.stringify(requestBody),
     });
     console.log("[DEBUG] Fetch response received:", { status: response.status, ok: response.ok });
-    data = await response.json();
+    const rawText = await response.text();
+    try { data = JSON.parse(rawText); } catch { data = { error: { message: `Invalid response (status ${response.status}): ${rawText.slice(0, 200)}` } }; }
     console.log("[DEBUG] Response JSON parsed:", { hasContent: !!data?.content, error: data?.error });
   } catch (err) {
     console.error("[DEBUG] Fetch to /api/anthropic FAILED:", err.message);
