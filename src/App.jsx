@@ -224,7 +224,7 @@ const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
 const CHAT_DRAWER_Z_INDEX = 12003;
 const CHAT_COMPOSER_Z_INDEX = 12001;
-const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(60px + env(safe-area-inset-bottom, 16px))";
+const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(80px + env(safe-area-inset-bottom, 16px))";
 const AI_USAGE_TABLE = "ai_usage_events";
 const AI_USAGE_DAILY_LIMIT = 10;
 const AI_USAGE_TOTAL_LIMIT = 30;
@@ -5150,7 +5150,7 @@ function ClosetScreen() {
             </svg>
             Sort By
           </button>
-          <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+          {!closetIsTablet && <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
             {[
               { value: 2, icon: GridIcon2, label: "2 per row" },
               { value: 3, icon: GridIcon3, label: "3 per row" },
@@ -5181,7 +5181,7 @@ function ClosetScreen() {
                 </button>
               );
             })}
-          </div>
+          </div>}
         </div>
       </div>
 
@@ -5246,7 +5246,7 @@ function ClosetScreen() {
         }}
       >
         {isLoadingItems ? (
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${closetGridColumns}, minmax(0, 1fr))`, gap: "12px", marginTop: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${closetIsTablet ? 4 : closetGridColumns}, minmax(0, 1fr))`, gap: "12px", marginTop: "12px" }}>
             {[...Array(6)].map((_, i) => (
               <div key={i}>
                 <div style={{ aspectRatio: "1", borderRadius: "16px", overflow: "hidden" }}>
@@ -5297,7 +5297,7 @@ function ClosetScreen() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${closetGridColumns}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${closetIsTablet ? 4 : closetGridColumns}, minmax(0, 1fr))`,
                   gap: "12px",
                 }}
               >
@@ -8432,7 +8432,7 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 32px calc(140px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(140px + env(safe-area-inset-bottom, 16px))",
+          padding: chatIsTablet ? "16px 32px calc(160px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(160px + env(safe-area-inset-bottom, 16px))",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -8878,7 +8878,7 @@ COLORS: ${rule.colors}
           background: "white",
           zIndex: CHAT_COMPOSER_Z_INDEX,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
@@ -9314,8 +9314,12 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                         overflow: "hidden",
                       }}
                     >
-                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "240px" : "200px", overflow: "hidden", borderRadius: "20px" }}>
-                        <FlatLayCard images={outfit.outfit_images || []} rotationMap={Object.fromEntries(favClosetItems.map(i => [i.image_url, i.rotation ? `${i.rotation}deg` : "0deg"]))} />
+                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "220px" : "200px", overflow: "hidden", borderRadius: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "#F5EDE0" }}>
+                        {(outfit.outfit_images || []).slice(0, 4).map((url, imgIdx) => (
+                          <div key={imgIdx} style={{ overflow: "hidden", borderRadius: "10px", background: "#fff" }}>
+                            <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", transform: `rotate(${getImageRotation(url, favClosetItems)}deg)` }} />
+                          </div>
+                        ))}
                       </div>
 
                       <div style={{ padding: "10px 4px 2px" }}>
