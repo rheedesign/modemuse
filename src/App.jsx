@@ -5362,7 +5362,7 @@ function ClosetScreen() {
                       }}
                     >
                       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</span>
-                      {item.is_favorited && <span style={{ color: "#B08A4A", fontSize: "12px", flexShrink: 0 }}>♥</span>}
+                      {item.is_favorited && <svg width="12" height="12" viewBox="0 0 24 24" fill="#B08A4A" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
                     </p>
                   </div>
                 ))}
@@ -7530,7 +7530,7 @@ COLORS: ${rule.colors}
             {beforeLink && <span style={{ fontSize: "13px", color: "#3A352E", lineHeight: "1.5" }}>{beforeLink} </span>}
             <a href={url} target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-block", padding: "6px 14px", margin: "4px 0", borderRadius: "100px", background: "#F5EDE0", color: "#B08A4A", fontSize: "13px", fontWeight: 600, textDecoration: "none", border: "1px solid #E6D8BF" }}>
-              Shop {label} ↗
+              Shop {label} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginLeft: "4px" }}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
           </div>
         );
@@ -8379,10 +8379,10 @@ COLORS: ${rule.colors}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            style={{ background: "none", border: "none", fontSize: "18px", cursor: "pointer", padding: "0 4px", color: "#111111" }}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: "0 4px", color: "#111111", display: "flex", alignItems: "center" }}
             aria-label="Open conversations"
           >
-            ☰
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <strong style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>
             {activeConvo ? activeConvo.title : "New Chat"}
@@ -8437,8 +8437,8 @@ COLORS: ${rule.colors}
           flexDirection: "column",
           gap: "12px",
           width: "100%",
-          maxWidth: "none",
-          alignItems: "flex-start",
+          maxWidth: chatIsTablet ? "680px" : "100%",
+          margin: chatIsTablet ? "0 auto" : "0",
         }}
       >
         {isDemoMode && <DemoModeBanner />}
@@ -8649,7 +8649,7 @@ COLORS: ${rule.colors}
 
                       {/* 3. Item chips */}
                       {itemChips.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "nowrap", gap: "6px", marginTop: "10px", overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                        <div style={{ display: "flex", flexWrap: chatIsTablet ? "nowrap" : "wrap", gap: "6px", marginTop: "10px", overflowX: chatIsTablet ? "auto" : "visible", WebkitOverflowScrolling: chatIsTablet ? "touch" : undefined, scrollbarWidth: chatIsTablet ? "none" : undefined, msOverflowStyle: chatIsTablet ? "none" : undefined }}>
                           {itemChips.map((chip, ci) => (
                             <span key={ci} style={{
                               background: "#F5EDE0",
@@ -8672,16 +8672,14 @@ COLORS: ${rule.colors}
                         <div
                           style={{
                             display: "grid",
-                            gridTemplateColumns: imageUrls.length >= 5 ? "1fr 1fr 1fr" : "1fr 1fr",
+                            gridTemplateColumns: chatIsTablet && imageUrls.length >= 5 ? "1fr 1fr 1fr" : "1fr 1fr",
                             gap: "6px",
                             padding: "10px",
                             borderRadius: "16px",
                             background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
                             marginTop: "10px",
-                            maxHeight: chatIsTablet ? "none" : "300px",
-                            maxWidth: chatIsTablet ? "480px" : "none",
-                            marginLeft: chatIsTablet ? "auto" : undefined,
-                            marginRight: chatIsTablet ? "auto" : undefined,
+                            overflow: "hidden",
+                            maxWidth: chatIsTablet ? "480px" : "100%",
                           }}
                         >
                           {imageUrls.slice(0, 6).map((url, i) => {
@@ -8698,7 +8696,7 @@ COLORS: ${rule.colors}
                                   overflow: "hidden",
                                   background: "#F5F3EF",
                                   boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
-                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "33%", justifySelf: "center" } : {}),
+                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: chatIsTablet ? "33%" : "50%", justifySelf: "center" } : {}),
                                 }}
                               >
                                 <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
@@ -8747,7 +8745,7 @@ COLORS: ${rule.colors}
                             cursor: isSaved ? "default" : "pointer",
                           }}
                         >
-                          {isSaved ? "Saved ♥" : "♡ Save Outfit"}
+                          {isSaved ? <>Saved <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle" }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></> : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save Outfit</>}
                         </button>
                       </div>
 
@@ -8914,7 +8912,7 @@ COLORS: ${rule.colors}
           aria-label="Send message"
           data-send-btn="true"
         >
-          ➤
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
       {/* Occasion bottom sheet */}
@@ -9257,7 +9255,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
           </div>
         ) : sortedOutfits.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "60px", color: "#999" }}>
-            <p style={{ fontSize: "32px", marginBottom: "8px" }}>♡</p>
+            <div style={{ marginBottom: "8px" }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
             <p style={{ fontSize: "14px" }}>
               {savedOutfits.length === 0
                 ? isDemoMode
@@ -9310,10 +9308,10 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                         overflow: "hidden",
                       }}
                     >
-                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "220px" : "200px", overflow: "hidden", borderRadius: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "#F5EDE0" }}>
+                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "220px" : "280px", overflow: "hidden", borderRadius: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", background: "#F5EDE0" }}>
                         {(outfit.outfit_images || []).slice(0, 4).map((url, imgIdx) => (
-                          <div key={imgIdx} style={{ overflow: "hidden", borderRadius: "10px", background: "#fff" }}>
-                            <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", transform: `rotate(${getImageRotation(url, favClosetItems)}deg)` }} />
+                          <div key={imgIdx} style={{ overflow: "hidden", borderRadius: "10px", background: "#F5F3EF" }}>
+                            <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px", display: "block", transform: `rotate(${getImageRotation(url, favClosetItems)}deg)` }} />
                           </div>
                         ))}
                       </div>
