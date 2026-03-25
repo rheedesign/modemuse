@@ -7344,13 +7344,89 @@ Only suggest items they don't already own.`;
     return "";
   }
 
+  async function getFashionRules(userMessage) {
+    if (!userMessage) return "";
+    try {
+      const lower = userMessage.toLowerCase();
+      const { data: rules } = await supabase
+        .from("fashion_rules")
+        .select("occasion, rules, avoid, colors, dress_code_level");
+      if (!rules || rules.length === 0) return "";
+      const matchingRules = rules.filter((rule) => {
+        const occasionLower = rule.occasion.toLowerCase();
+        const keywords = occasionLower.split(/\s+/);
+        return keywords.some((keyword) => keyword.length > 3 && lower.includes(keyword)) || lower.includes(occasionLower);
+      });
+      if (matchingRules.length === 0) return "";
+      const rulesContext = matchingRules.map((rule) => `
+OCCASION: ${rule.occasion}
+DRESS CODE: ${rule.dress_code_level}
+RULES: ${rule.rules}
+AVOID: ${rule.avoid}
+COLORS: ${rule.colors}
+`).join("\n---\n");
+      return `\n\nFASHION RULES DATABASE — FOLLOW THESE EXACTLY, DO NOT CONTRADICT THEM:\n${rulesContext}\nThese rules are verified fashion expertise. If the user says something that contradicts these rules, politely correct them with confidence.`;
+    } catch (err) {
+      console.warn("Fashion rules fetch failed:", err);
+      return "";
+    }
+  }
+
   async function getChatSystemPrompt(userMessage = "", styleMemory = "", personaMemory = "") {
     const trends = await getLatestTrends();
     const locationLabel = localStorage.getItem("styliner_weather_location_label") || "";
     const culturalContext = detectCulturalMoment(userMessage);
+    const fashionRules = await getFashionRules(userMessage);
     const basePrompt = getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends, locationLabel);
     const culturalAddition = culturalContext ? `\n\nCULTURAL MOMENT DETECTED:\n${culturalContext}\nPrioritize this cultural context in your styling. Make the outfit feel like it belongs at this specific event or moment.\nThe VIBE name MUST reference this cultural moment. 3 words max, editorial and specific, never generic. Bad: "Casual Chic Look". Good: "Purple Army Energy", "Eras Tour Ready", "Desert Festival Bloom".` : "";
-    return basePrompt + culturalAddition + styleMemory + personaMemory + CHAT_FORMAT_PROMPT;
+    return basePrompt + culturalAddition + fashionRules + styleMemory + personaMemory + "\n\nVISION MODE: You are now looking at ACTUAL PHOTOS of the user's clothes. Use what you can SEE in the images — the real colors, textures, fabrics, silhouettes, and styling details — to make better outfit combinations. Don't rely on just the item names. A photo of a 'blue dress' might actually be a specific shade of cornflower blue with a structured bodice — use that visual information. When you recommend items, reference what you actually see: 'the cream tweed set with gold buttons' not just 'the co-ord set'." + CHAT_FORMAT_PROMPT;
+  }
+
+  function selectRelevantItems(items, userMessage, limit = 20) {
+    if (items.length <= limit) return items;
+    const lower = (userMessage || "").toLowerCase();
+    const scored = items.map((item) => {
+      let score = 0;
+      const cat = (item.category || "").toLowerCase();
+      const name = (item.name || "").toLowerCase();
+      if (/formal|wedding|ceremony|gala|dinner/.test(lower)) {
+        if (/dress|blazer|heels|formal/.test(cat + name)) score += 3;
+      }
+      if (/casual|weekend|brunch|picnic/.test(lower)) {
+        if (/jeans|sneakers|tee|casual/.test(cat + name)) score += 3;
+      }
+      if (/office|work|meeting|interview/.test(lower)) {
+        if (/blazer|trouser|blouse|formal/.test(cat + name)) score += 3;
+      }
+      if (/concert|festival|party|night/.test(lower)) {
+        if (/dress|top|heels|bag/.test(cat + name)) score += 3;
+      }
+      if (/shoes|heels|sneakers|boots|sandals|bag|purse/.test(cat)) score += 2;
+      return { ...item, _score: score };
+    });
+    return scored.sort((a, b) => b._score - a._score).slice(0, limit).map(({ _score, ...item }) => item);
+  }
+
+  function buildVisionContent(items, userMessage) {
+    const imageBlocks = items.map((item) => ({
+      type: "image",
+      source: { type: "url", url: toHttps(item.image_url) },
+    }));
+    const itemLabels = items.map((item, i) =>
+      `Image ${i + 1}: ${item.name || "Item"} (${item.category || "clothing"}) - URL: ${toHttps(item.image_url)}`
+    ).join("\n");
+    return [
+      { type: "text", text: `Here are photos of all the clothing items in my closet. Look at each image carefully to understand the actual fabric, color, cut, and style of each piece:\n\n${itemLabels}` },
+      ...imageBlocks,
+      { type: "text", text: `I need an outfit for: ${userMessage}\n\nNow that you can SEE my actual clothes, pick the best combination. Consider the actual colors, fabrics, and silhouettes you can see in the photos. For each item you pick, use the exact URL from the item labels above.` },
+    ];
+  }
+
+  function buildTextFallbackContent(items, userMessage) {
+    const itemsText = items.map((item, i) =>
+      `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
+    ).join("\n");
+    return `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${userMessage}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`;
   }
 
   function parseAiResponse(text) {
@@ -7765,9 +7841,7 @@ Only suggest items they don't already own.`;
       const userMsg = { id: savedUser.id, role: "user", content: trimmed, outfitImages: [] };
       setMessages((prev) => [...prev, userMsg]);
 
-      const itemsText = items.map((item, i) =>
-        `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
-      ).join("\n");
+      const relevantItems = selectRelevantItems(items, trimmed, 20);
 
       // Fetch style memory from saved outfits
       const { data: savedLooks } = await supabase
@@ -7794,26 +7868,44 @@ Only suggest items they don't already own.`;
         content: typeof m.content === "string" ? m.content.slice(0, 500) : "",
       }));
 
-      const result = await runTrackedAnthropicRequest({
-        user,
-        feature: "chat_generate",
-        metadata: featureMetadata,
-        requestBody: {
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1024,
-          system: await getChatSystemPrompt(trimmed, styleMemory, personaMemory),
-          messages: [
-            ...recentMessages,
-            {
-              role: "user",
-              content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${trimmed}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`,
-            },
-          ],
-        },
-      });
-
-      const rawAiText = result.content?.[0]?.text || "";
-      const aiText = rawAiText.trim() || "Sorry, I couldn't generate a suggestion right now. Please try again.";
+      const chatSystemPrompt = await getChatSystemPrompt(trimmed, styleMemory, personaMemory);
+      let aiText;
+      try {
+        const result = await runTrackedAnthropicRequest({
+          user,
+          feature: "chat_generate",
+          metadata: featureMetadata,
+          requestBody: {
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1024,
+            system: chatSystemPrompt,
+            messages: [
+              ...recentMessages,
+              { role: "user", content: buildVisionContent(relevantItems, trimmed) },
+            ],
+          },
+        });
+        const rawAiText = result.content?.[0]?.text || "";
+        aiText = rawAiText.trim() || "Sorry, I couldn't generate a suggestion right now. Please try again.";
+      } catch (visionErr) {
+        console.warn("[ChatScreen] Vision request failed, falling back to text:", visionErr.message);
+        const result = await runTrackedAnthropicRequest({
+          user,
+          feature: "chat_generate_fallback",
+          metadata: featureMetadata,
+          requestBody: {
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1024,
+            system: chatSystemPrompt,
+            messages: [
+              ...recentMessages,
+              { role: "user", content: buildTextFallbackContent(relevantItems, trimmed) },
+            ],
+          },
+        });
+        const rawAiText = result.content?.[0]?.text || "";
+        aiText = rawAiText.trim() || "Sorry, I couldn't generate a suggestion right now. Please try again.";
+      }
       console.log("[DEBUG] AI raw response:", aiText);
       const { imageUrls: rawImageUrls } = parseAiResponse(aiText);
       const imageUrls = deduplicateOutfitByCategory(rawImageUrls, items);
@@ -7900,33 +7992,47 @@ Only suggest items they don't already own.`;
       }
       setClosetCount(items.length);
 
-      const itemsText = items.map((item, i) =>
-        `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
-      ).join("\n");
+      const relevantRetryItems = selectRelevantItems(items, occasion, 20);
+      const retrySystemPrompt = await getChatSystemPrompt(occasion);
+      const retryMetadata = { screen: "chat", conversationId: activeConvoId, prompt: occasion, previousSuggestion: prevContent.slice(0, 500) };
 
-      const result = await runTrackedAnthropicRequest({
-        user,
-        feature: "chat_retry",
-        metadata: {
-          screen: "chat",
-          conversationId: activeConvoId,
-          prompt: occasion,
-          previousSuggestion: prevContent.slice(0, 500),
-        },
-        requestBody: {
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1024,
-          system: await getChatSystemPrompt(occasion),
-          messages: [
-            {
-              role: "user",
-              content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. List the image URLs of the items you pick.`,
-            },
-          ],
-        },
-      });
+      const retryVisionContent = [
+        ...buildVisionContent(relevantRetryItems, occasion).slice(0, -1),
+        { type: "text", text: `I need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. For each item you pick, use the exact URL from the item labels above.` },
+      ];
 
-      const aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      let aiText;
+      try {
+        const result = await runTrackedAnthropicRequest({
+          user,
+          feature: "chat_retry",
+          metadata: retryMetadata,
+          requestBody: {
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1024,
+            system: retrySystemPrompt,
+            messages: [{ role: "user", content: retryVisionContent }],
+          },
+        });
+        aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      } catch (visionErr) {
+        console.warn("[ChatScreen] Vision retry failed, falling back to text:", visionErr.message);
+        const itemsText = relevantRetryItems.map((item, i) =>
+          `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
+        ).join("\n");
+        const result = await runTrackedAnthropicRequest({
+          user,
+          feature: "chat_retry_fallback",
+          metadata: retryMetadata,
+          requestBody: {
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1024,
+            system: retrySystemPrompt,
+            messages: [{ role: "user", content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${occasion}\n\nHere is the previous suggestion you gave — suggest a COMPLETELY DIFFERENT outfit combination from the same closet. Do NOT repeat any items from this previous suggestion:\n\n${prevContent}\n\nPick entirely different pieces. List the image URLs of the items you pick.` }],
+          },
+        });
+        aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      }
       console.log("[DEBUG] AI raw response:", aiText);
       const { imageUrls: rawRetryUrls } = parseAiResponse(aiText);
       const imageUrls = deduplicateOutfitByCategory(rawRetryUrls, items);
