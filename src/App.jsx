@@ -1946,7 +1946,7 @@ function StarterWardrobeScreen() {
                     }}
                   >
                     <div style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#fff", padding: "6px", boxSizing: "border-box" }}>
-                      <img src={item.image_url} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                      <img src={item.image_url} alt={item.name} loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
                     </div>
                     <p style={{ margin: "8px 0 2px", fontSize: "12px", fontWeight: 700, color: "#111111", lineHeight: 1.2 }}>
                       {item.name}
@@ -2554,7 +2554,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
                     aspectRatio: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "2/1.15" : "1",
                   }}
                 >
-                  <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
                 </div>
               ))}
             </div>
@@ -2562,7 +2562,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {imgs.map((url, i) => (
                 <div key={i} style={{ borderRadius: "12px", overflow: "hidden", background: "#fff", padding: "3px", boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)" }}>
-                  <img src={url} alt="" style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
                 </div>
               ))}
             </div>
@@ -2917,6 +2917,7 @@ function HomeScreen() {
   const [suggestionCaption, setSuggestionCaption] = useState("");
   const [suggestionVibe, setSuggestionVibe] = useState("Today's Look");
   const [loadingOutfit, setLoadingOutfit] = useState(true);
+  const [outfitError, setOutfitError] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [dailyLookCount, setDailyLookCount] = useState(0);
   const [limitReached, setLimitReached] = useState(false);
@@ -3297,6 +3298,7 @@ function HomeScreen() {
 
   async function fetchOutfitSuggestion() {
     setLoadingOutfit(true);
+    setOutfitError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const styleGender = user?.user_metadata?.style_gender || "womens";
@@ -3408,6 +3410,7 @@ WHY: [one punchy sentence about why this works right now]`;
     } catch (err) {
       console.error("Outfit suggestion failed:", err);
       setSuggestedImages([]);
+      setOutfitError(true);
     } finally {
       setLoadingOutfit(false);
     }
@@ -3710,6 +3713,39 @@ WHY: [one punchy sentence about why this works right now]`;
                   <SkeletonBlock width="96px" height="34px" />
                 </div>
               </div>
+            </div>
+          ) : outfitError ? (
+            <div
+              style={{
+                borderRadius: "24px",
+                background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
+                padding: "40px 20px",
+                textAlign: "center",
+              }}
+            >
+              <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                Couldn't load your outfit
+              </p>
+              <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#888" }}>
+                Something went wrong — tap below to try again.
+              </p>
+              <button
+                type="button"
+                onClick={() => fetchOutfitSuggestion()}
+                style={{
+                  border: "none",
+                  background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                  color: "white",
+                  borderRadius: "100px",
+                  padding: "12px 28px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                }}
+              >
+                Try Again
+              </button>
             </div>
           ) : suggestedImages.length > 0 ? (
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
@@ -5832,6 +5868,7 @@ function ItemDetailScreen() {
           <img
             src={item.image_url}
             alt={editName}
+            onError={(e) => { e.target.style.display = "none"; }}
             style={{
               display: "block",
               width: "100%",
@@ -6211,7 +6248,7 @@ function ItemDetailScreen() {
                       }}
                     >
                       <div style={{ width: "100%", aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "white" }}>
-                        <img src={mi.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
+                        <img src={mi.image_url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
                       </div>
                       <p style={{ margin: 0, fontSize: "10px", fontWeight: 600, color: "#111111", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
                         {mi.name || "Item"}
@@ -6371,6 +6408,7 @@ function UploadScreen() {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInputValue, setUrlInputValue] = useState("");
   const [urlLoading, setUrlLoading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [hasClosetItems, setHasClosetItems] = useState(() => {
     if (isDemoMode) return true;
     const stored = localStorage.getItem("styliner_closet_item_count");
@@ -6519,7 +6557,7 @@ function UploadScreen() {
       setPhase("confirm");
     } catch (err) {
       console.error("[handleAnalyze] Error:", err);
-      alert(`Analysis failed: ${err.message}`);
+      setUploadError(err.message || "Analysis failed. Please try again.");
       setPhase("pick");
     }
   }
@@ -6565,7 +6603,7 @@ function UploadScreen() {
       await new Promise((r) => setTimeout(r, 600));
       navigate("/closet");
     } catch (err) {
-      alert(`Save failed: ${err.message}`);
+      setUploadError(err.message || "Save failed. Please try again.");
       setPhase("confirm");
     }
   }
@@ -6602,7 +6640,7 @@ function UploadScreen() {
       navigate("/closet");
     } catch (err) {
       console.error("[handleAddStarterPack] Error:", err);
-      alert(`Starter closet failed: ${err.message}`);
+      setUploadError(err.message || "Starter closet failed. Please try again.");
       setPhase("pick");
     } finally {
       setStarterLoadingChoice(null);
@@ -6827,6 +6865,12 @@ function UploadScreen() {
         {phase === "pick" && (
           <>
               <h1 style={{ fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: "700", marginBottom: "6px" }}>Add to Your Closet</h1>
+              {uploadError && (
+                <div style={{ margin: "0 0 12px", padding: "10px 14px", borderRadius: "12px", background: "#FEF2F2", border: "1px solid #FECACA", fontSize: "13px", color: "#DC2626", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ flex: 1 }}>{uploadError}</span>
+                  <button type="button" onClick={() => setUploadError("")} style={{ background: "none", border: "none", color: "#DC2626", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>✕</button>
+                </div>
+              )}
             <div style={{ margin: "0 0 14px" }}>
               <button
                 type="button"
@@ -6940,7 +6984,7 @@ function UploadScreen() {
                 {selectedFiles.map((f) => (
                   <div key={f.id} style={{ position: "relative", aspectRatio: "1", borderRadius: "12px", overflow: "hidden" }}>
                     <img src={f.previewUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <button onClick={() => removeFile(f.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: "20px", height: "20px", color: "white", cursor: "pointer", fontSize: "12px" }}>x</button>
+                    <button aria-label="Remove file" onClick={() => removeFile(f.id)} style={{ position: "absolute", top: "0", right: "0", background: "none", border: "none", width: "44px", height: "44px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ background: "rgba(0,0,0,0.5)", borderRadius: "50%", width: "22px", height: "22px", color: "white", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</span></button>
                   </div>
                 ))}
               </div>
@@ -7616,7 +7660,8 @@ Only suggest items they don't already own.`;
         },
       });
 
-      const aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
+      const rawAiText = result.content?.[0]?.text || "";
+      const aiText = rawAiText.trim() || "Sorry, I couldn't generate a suggestion right now. Please try again.";
       console.log("[DEBUG] AI raw response:", aiText);
       const { imageUrls } = parseAiResponse(aiText);
 
@@ -7643,7 +7688,7 @@ Only suggest items they don't already own.`;
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("[ChatScreen] Error:", err);
-      alert(`Something went wrong: ${err.message}`);
+      setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: "Something went wrong — please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -7754,7 +7799,7 @@ Only suggest items they don't already own.`;
       setMessages((prev) => prev.map((m, i) => i === assistantMsgIndex ? newMsg : m));
     } catch (err) {
       console.error("[ChatScreen] Another Option Error:", err);
-      alert(`Something went wrong: ${err.message}`);
+      setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: "Something went wrong — please try again." }]);
     } finally {
       setLoading(false);
       setFadingMsgId(null);
@@ -7894,7 +7939,7 @@ Only suggest items they don't already own.`;
         <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
           {previews.slice(0, 2).map((url, i) => (
             <div key={i} style={{ width: "28px", height: "28px", borderRadius: "6px", overflow: "hidden", background: "#eee" }}>
-              <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
           ))}
           {previews.length === 0 && (
@@ -7976,7 +8021,7 @@ Only suggest items they don't already own.`;
       >
         <div style={{ padding: "16px", paddingTop: "max(60px, calc(env(safe-area-inset-top) + 16px))", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
           <strong style={{ fontSize: "15px", color: "#111111" }}>Conversations</strong>
-          <button type="button" onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", fontSize: "18px", color: "#999", cursor: "pointer" }}>✕</button>
+          <button type="button" aria-label="Close conversations" onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", fontSize: "18px", color: "#999", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
         <button
           type="button"
@@ -8159,7 +8204,7 @@ Only suggest items they don't already own.`;
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
                       {preloadedOutfit.images.slice(0, 4).map((url, i) => (
                         <div key={i} style={{ aspectRatio: "1", borderRadius: "14px", overflow: "hidden", background: "#F5EDE0" }}>
-                          <img src={url} alt="" style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
+                          <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
                         </div>
                       ))}
                     </div>
@@ -8343,7 +8388,8 @@ Only suggest items they don't already own.`;
                                   ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "50%", justifySelf: "center" } : {}),
                                 }}
                               >
-                                <img src={absoluteUrl} alt={`Outfit item ${i + 1}`}
+                                <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
+                                  onError={(e) => { e.target.style.display = "none"; }}
                                   style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
                               </div>
                             );
