@@ -214,6 +214,11 @@ function getSheetStyle(isTablet) {
   return { position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: MOBILE_MAX_WIDTH, margin: "0 auto", borderRadius: "24px 24px 0 0", zIndex: SHEET_Z_INDEX, background: "white", maxHeight: SHEET_MAX_HEIGHT };
 }
 const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
+function getImageRotation(imageUrl, closetItems) {
+  if (!imageUrl || !closetItems) return 0;
+  const item = closetItems.find(i => i.image_url === imageUrl);
+  return item?.rotation || 0;
+}
 const SHEET_BACKDROP_Z_INDEX = 13000;
 const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
@@ -2416,15 +2421,15 @@ function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = f
       <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
         <AIGeneratedTag style={{ fontSize: "9px", padding: "3px 8px", opacity: 0.5, letterSpacing: "0.14em" }} />
       </div>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", position: "relative", overflow: "hidden", borderRadius: "12px" }}>
         <div
           className={pulsing ? "flatlayPulse" : ""}
           style={{
             display: "grid",
             gridTemplateColumns: gridCols,
             gap: gridGap,
-            width: compact ? "80%" : "90%",
-            maxWidth: "320px",
+            width: "100%",
+            maxWidth: compact ? "320px" : "100%",
             transition: "opacity 0.3s ease",
           }}
         >
@@ -2437,6 +2442,7 @@ function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = f
                 aspectRatio: "1",
                 borderRadius: compact ? "14px" : "16px",
                 overflow: "hidden",
+                maxWidth: "100%",
                 transform: `rotate(${rotationMap[url] ?? rotations[i] ?? "0deg"})`,
                 background: "#F5EDE0",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
@@ -2480,7 +2486,7 @@ function getDisplayName(user) {
   return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
 }
 
-function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onGetStyled }) {
+function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onGetStyled, closetItems = [] }) {
   const [visible, setVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -2584,7 +2590,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
                     aspectRatio: i === 0 && (imgs.length === 3 || imgs.length >= 5) ? "2/1.15" : "1",
                   }}
                 >
-                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", borderRadius: "9px", transform: `rotate(${getImageRotation(url, closetItems)}deg)` }} />
                 </div>
               ))}
             </div>
@@ -2592,7 +2598,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {imgs.map((url, i) => (
                 <div key={i} style={{ borderRadius: "12px", overflow: "hidden", background: "#fff", padding: "3px", boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)" }}>
-                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px" }} />
+                  <img src={url} alt="" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} style={{ display: "block", width: "100%", objectFit: "contain", borderRadius: "9px", transform: `rotate(${getImageRotation(url, closetItems)}deg)` }} />
                 </div>
               ))}
             </div>
@@ -4481,6 +4487,7 @@ Only use URLs from the wardrobe list above.`;
           images={suggestedImages}
           vibe={suggestionVibe}
           caption={suggestionCaption}
+          closetItems={closetDataRef.current}
           onClose={() => setOutfitModalOpen(false)}
           onNavigateChat={() => navigate("/chat")}
           onGetStyled={() => navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } })}
@@ -7234,6 +7241,7 @@ function ChatScreen() {
   const [feedbackMsgId, setFeedbackMsgId] = useState(null);
   const [preloadedOutfit, setPreloadedOutfit] = useState(null);
   const [closetCount, setClosetCount] = useState(null);
+  const [chatClosetItems, setChatClosetItems] = useState([]);
   const messagesEndRef = useRef(null);
   const latestAssistantRef = useRef(null);
   const inputRef = useRef(null);
@@ -7564,12 +7572,15 @@ COLORS: ${rule.colors}
           .order("created_at", { ascending: false }),
         supabase
           .from("clothing_items")
-          .select("id")
+          .select("id, image_url, rotation")
           .eq("user_id", user.id),
       ]);
 
       if (!error && convos) setConversations(convos);
-      if (!closetError) setClosetCount((closetItems || []).length);
+      if (!closetError) {
+        setClosetCount((closetItems || []).length);
+        setChatClosetItems(closetItems || []);
+      }
 
       // Restore last active conversation if recent
       const lastConvoId = localStorage.getItem("styliner_last_convo_id");
@@ -8421,7 +8432,7 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 32px 180px" : "16px 16px 180px",
+          padding: chatIsTablet ? "16px 32px calc(140px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(140px + env(safe-area-inset-bottom, 16px))",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -8693,7 +8704,7 @@ COLORS: ${rule.colors}
                               >
                                 <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
                                   onError={(e) => { e.target.style.display = "none"; }}
-                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px" }} />
+                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px", transform: `rotate(${getImageRotation(absoluteUrl, chatClosetItems)}deg)`, transition: "transform 0.2s ease" }} />
                               </div>
                             );
                           })}
@@ -8867,7 +8878,7 @@ COLORS: ${rule.colors}
           background: "white",
           zIndex: CHAT_COMPOSER_Z_INDEX,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
-          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
@@ -9027,6 +9038,7 @@ function FavoritesScreen() {
   const [filterOccasions, setFilterOccasions] = useState([]);
   const [detailOutfit, setDetailOutfit] = useState(null);
   const [shareCopiedId, setShareCopiedId] = useState(null);
+  const [favClosetItems, setFavClosetItems] = useState([]);
   const navigate = useNavigate();
 
   const occasions = ["All", "Going Out", "Work", "Casual", "Date Night", "Event", "Travel", "Other"];
@@ -9046,7 +9058,7 @@ function FavoritesScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { if (isMounted) setIsLoading(false); return; }
 
-      const [{ data, error }, { data: convoData }] = await Promise.all([
+      const [{ data, error }, { data: convoData }, { data: closetData }] = await Promise.all([
         supabase
           .from("saved_outfits")
           .select("id, occasion, title, outfit_images, description, created_at")
@@ -9057,11 +9069,16 @@ function FavoritesScreen() {
           .select("id, title, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("clothing_items")
+          .select("image_url, rotation")
+          .eq("user_id", user.id),
       ]);
 
       if (isMounted) {
         setSavedOutfits(error ? [] : (data || []));
         setConversations(convoData || []);
+        setFavClosetItems(closetData || []);
         setIsLoading(false);
       }
     }
@@ -9294,10 +9311,11 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                         border: "1px solid #F5EDE0",
                         boxShadow: "0 6px 20px rgba(176,138,74,0.06)",
                         padding: "10px",
+                        overflow: "hidden",
                       }}
                     >
                       <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "240px" : "200px", overflow: "hidden", borderRadius: "20px" }}>
-                        <FlatLayCard images={outfit.outfit_images || []} />
+                        <FlatLayCard images={outfit.outfit_images || []} rotationMap={Object.fromEntries(favClosetItems.map(i => [i.image_url, i.rotation ? `${i.rotation}deg` : "0deg"]))} />
                       </div>
 
                       <div style={{ padding: "10px 4px 2px" }}>
@@ -9306,7 +9324,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                             <div style={{ marginBottom: "8px" }}>
                               <AIGeneratedTag />
                             </div>
-                            <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
                               {getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))}
                             </p>
                             <span
@@ -9531,6 +9549,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
           images={detailOutfit.outfit_images || []}
           vibe={getLookbookDisplayTitle(detailOutfit, getConversationTitleForOutfit(detailOutfit.created_at))}
           caption={getConversationContextForOutfit(detailOutfit)}
+          closetItems={favClosetItems}
           onClose={() => setDetailOutfit(null)}
           onNavigateChat={() => navigate("/chat")}
         />
