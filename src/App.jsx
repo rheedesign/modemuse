@@ -3364,7 +3364,7 @@ function HomeScreen() {
     return { urls: urls.slice(0, 6), caption: caption || "Your daily look", vibe };
   }
 
-  async function fetchOutfitSuggestion() {
+  async function fetchOutfitSuggestion(isRetry = false) {
     setLoadingOutfit(true);
     setOutfitError(false);
     try {
@@ -3435,34 +3435,41 @@ Layering is the current #1 trend. Always suggest at least one layering element u
         avoidInstruction = `\n\nIMPORTANT: Do NOT repeat the last outfit. Avoid these recently used items: ${recentNames.join(", ")}. Pick a completely different combination with a different vibe, different hero piece, different footwear, and a different color story. Surprise me.`;
       }
 
-      const prompt = `You are building a real outfit from this wardrobe. Follow these rules STRICTLY:
+      const prompt = `You are a professional stylist building a real wearable outfit from this wardrobe.
 
-WARDROBE:
+WARDROBE ITEMS:
 ${itemsText}
 
 WEATHER: ${weatherText}
 ${avoidInstruction}
 
-OUTFIT RULES — NEVER BREAK THESE:
-- Pick EXACTLY one bottom (pants/jeans/skirt) OR one dress/jumpsuit — NEVER both
-- Pick EXACTLY one main top OR use the dress as the full outfit
-- A "Co-ord Set" counts as BOTH top AND bottom — never add another top or bottom
-- Pick EXACTLY one pair of shoes
-- You may add ONE layer (blazer/jacket/cardigan) if weather allows
-- You may add ONE bag OR ONE accessory (ring/bracelet/necklace) — not both unless it's a very dressed up occasion
-- NEVER pick two items from the same category
-- NEVER pick a dress AND a separate skirt or pants
-- NEVER pick a co-ord set AND a separate top or bottom
-- Total items: minimum 3 (top/dress + bottom + shoes), maximum 5
+MANDATORY OUTFIT RULES — NEVER BREAK THESE:
+✓ ALWAYS include exactly ONE bottom (pants, jeans, trousers, skirt) OR one dress/jumpsuit
+✓ ALWAYS include exactly ONE pair of shoes — this is non-negotiable
+✓ ALWAYS include exactly ONE main top OR use a dress as the full outfit
+✓ You MAY add ONE layer (blazer, jacket, cardigan) on top of the base top
+✓ You MAY add ONE accessory (bag, jewelry, watch) — optional
+✓ NEVER pick a blazer/jacket as the only top — it must go over something
+✓ NEVER pick a watch or accessory as a replacement for clothing
+✓ NEVER create an outfit without shoes
+✓ NEVER create an outfit without a bottom or dress
+✓ MINIMUM 3 items: top/dress + bottom + shoes
+✓ MAXIMUM 5 items: top + layer + bottom + shoes + accessory
 
-Before finalizing, mentally check: "Does this make a real wearable outfit a human would actually wear?"
+BEFORE RESPONDING — mentally check your outfit:
+- Do I have a bottom OR a dress? If not, pick one.
+- Do I have shoes? If not, pick shoes.
+- Do I have a top or dress? If not, pick one.
+- Am I including a blazer/jacket WITHOUT a shirt under it? If so, add a top.
 
-Reply in EXACTLY this format:
-VIBE: [3 word vibe name]
+WEATHER RULE: If temperature is above 75F skip heavy layers. If below 60F always add outerwear.
+
+Reply in EXACTLY this format with no extra text:
+VIBE: [3 word editorial vibe name]
 ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
-WHY: [one punchy sentence about why this works right now]
+WHY: [one punchy sentence]
 
-Only include URLs from the wardrobe list above. Never invent URLs.`;
+Only use URLs from the wardrobe list above.`;
 
       const response = await fetch("https://styliner.vercel.app/api/anthropic", {
         method: "POST",
@@ -3491,6 +3498,21 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
       const why = whyMatch?.[1]?.trim() || "";
 
       const imageUrls = deduplicateOutfitByCategory(rawImageUrls, closetDataRef.current);
+
+      // Post-processing validation: ensure outfit has bottom/dress + shoes
+      const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
+      const hasBottom = parsedItems.some(i => /pants|jeans|trouser|skirt|shorts/i.test((i.category || '') + ' ' + (i.name || '')));
+      const hasDress = parsedItems.some(i => /dress|jumpsuit|romper|co-ord/i.test((i.category || '') + ' ' + (i.name || '')));
+      const hasShoes = parsedItems.some(i => /shoes|heels|sneakers|boots|sandals|loafer|flat/i.test((i.category || '') + ' ' + (i.name || '')));
+
+      if ((!hasBottom && !hasDress) || !hasShoes) {
+        console.warn("Invalid outfit generated — missing bottom or shoes, retrying...");
+        if (!isRetry) {
+          fetchOutfitSuggestion(true);
+          return;
+        }
+      }
+
       setSuggestedImages(imageUrls);
       setSuggestionVibe(vibe);
       setSuggestionCaption(why);
@@ -3621,13 +3643,15 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: isTablet ? TABLET_MAX_WIDTH : "430px",
+        width: "100%",
+        maxWidth: isTablet ? "none" : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F8F3EA 58%, #F0E7D7 100%)",
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: `max(88px, calc(env(safe-area-inset-top) + 44px)) ${isTablet ? "48px" : "16px"} calc(100px + env(safe-area-inset-bottom, 16px))` }}>
+      <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", display: isTablet ? "flex" : "block", flexDirection: isTablet ? "column" : undefined, justifyContent: isTablet ? "center" : undefined, padding: isTablet ? `max(88px, calc(env(safe-area-inset-top) + 44px)) 48px calc(100px + env(safe-area-inset-bottom, 16px))` : `max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))` }}>
+        <div style={isTablet ? { maxWidth: "600px", margin: "0 auto", width: "100%" } : {}}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
@@ -4031,6 +4055,7 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
           )}
         </div>
 
+      </div>
       </div>
       <style>{`
         @keyframes flatLayPulse {
