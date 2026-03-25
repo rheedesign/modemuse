@@ -179,14 +179,16 @@ function BottomNav() {
         boxShadow: isTablet ? "0 -4px 20px rgba(0,0,0,0.06)" : "none",
       }}
     >
-      <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, margin: 0, padding: 0, listStyle: "none" }}>
+      <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isTablet ? "24px" : 0, margin: 0, padding: 0, listStyle: "none", maxWidth: isTablet ? "480px" : "none", marginLeft: "auto", marginRight: "auto" }}>
         {items.map((item) => (
           <li key={item.to}>
             <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 py-1 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap" }}>
               {({ isActive }) => (
                 <>
-                  <item.icon active={isActive} />
-                  <span className={isActive ? "text-primary font-medium" : "text-gray-500"} style={{ fontSize: "clamp(10px, 2.5vw, 12px)" }}>{item.label}</span>
+                  <div style={isTablet ? { transform: "scale(1.2)" } : {}}>
+                    <item.icon active={isActive} />
+                  </div>
+                  <span className={isActive ? "text-primary font-medium" : "text-gray-500"} style={{ fontSize: isTablet ? "13px" : "clamp(10px, 2.5vw, 12px)" }}>{item.label}</span>
                 </>
               )}
             </NavLink>
@@ -208,7 +210,7 @@ const MOBILE_MAX_WIDTH = "430px";
 const TABLET_CONTENT_WIDTH = "680px";
 function getMaxWidth() { return window.innerWidth >= 768 ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH; }
 function getSheetStyle(isTablet) {
-  if (isTablet) return { position: "fixed", top: "50%", left: "50%", transform: "translateX(-50%) translateY(-50%)", width: "min(600px, 90vw)", maxHeight: "80vh", borderRadius: "24px", zIndex: SHEET_Z_INDEX, background: "white", boxShadow: "0 25px 60px rgba(0,0,0,0.25)" };
+  if (isTablet) return { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(560px, 90vw)", maxHeight: "85vh", overflowY: "auto", borderRadius: "24px", zIndex: SHEET_Z_INDEX, background: "white", boxShadow: "0 24px 80px rgba(0,0,0,0.2)" };
   return { position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: MOBILE_MAX_WIDTH, margin: "0 auto", borderRadius: "24px 24px 0 0", zIndex: SHEET_Z_INDEX, background: "white", maxHeight: SHEET_MAX_HEIGHT };
 }
 const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
@@ -1466,7 +1468,7 @@ function OnboardingSplash() {
           : { textAlign: "center", paddingTop: "30px" }),
       }}>
         <div style={{ fontSize: window.innerWidth >= 768 ? "56px" : "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em", textAlign: "center" }}>STYLINER</div>
-        <p style={{ margin: "14px 0 0", fontSize: window.innerWidth >= 768 ? "32px" : "26px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2, textAlign: "center" }}>Your clothes are already an outfit.</p>
+        <p style={{ margin: "14px 0 0", fontSize: window.innerWidth >= 768 ? "32px" : "22px", fontWeight: 700, color: "rgba(255,255,255,1)", lineHeight: 1.2, textAlign: "center" }}>Your clothes are already an outfit.</p>
         <p style={{ marginTop: "8px", fontSize: window.innerWidth >= 768 ? "20px" : "18px", fontWeight: 400, color: "rgba(255,255,255,0.85)", textAlign: "center" }}>We just find it.</p>
         {window.innerWidth >= 768 && !showGenderPicker && (
           <div style={{ marginTop: "32px" }}>
@@ -1897,7 +1899,7 @@ function StarterWardrobeScreen() {
     <div
       style={{
         minHeight: "100dvh",
-        maxWidth: "430px",
+        maxWidth: window.innerWidth >= 768 ? "100%" : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F7F1E7 56%, #EFE3D0 100%)",
         color: "#111111",
@@ -2393,7 +2395,7 @@ function PrivacyPolicyScreen() {
   );
 }
 
-function FlatLayCard({ images, caption, children, pulsing, compact = false, rotationMap = {} }) {
+function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = false, rotationMap = {} }) {
   const rotations = ["-4deg", "3deg", "2deg", "-3deg", "1.5deg", "-2deg"];
   const displayImages = (images || []).slice(0, 6);
   const imageCount = displayImages.length;
@@ -2454,10 +2456,13 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
         </div>
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60px", background: "linear-gradient(transparent, rgba(251,248,241,0.4))", pointerEvents: "none", borderRadius: "0 0 20px 20px" }} />
       </div>
-      {(caption || children) && (
+      {(caption || subtitle || children) && (
         <div style={{ textAlign: "center", borderTop: "1px solid rgba(176,138,74,0.12)", paddingTop: "12px", marginTop: "4px" }}>
           {caption && (
             <p style={{ margin: "12px 0 0", fontSize: "14px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{caption}</p>
+          )}
+          {subtitle && (
+            <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", textAlign: "center", margin: "4px 16px 12px", lineHeight: 1.5 }}>{subtitle}</p>
           )}
           {children}
         </div>
@@ -2519,7 +2524,7 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
         background: "white",
         display: "flex",
         flexDirection: "column",
-        maxWidth: "430px",
+        maxWidth: window.innerWidth >= 768 ? "100%" : "430px",
         margin: "0 auto",
         transform: visible ? "translateY(0)" : "translateY(100%)",
         transition: "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
@@ -2982,6 +2987,7 @@ function HomeScreen() {
   const [suggestedImages, setSuggestedImages] = useState([]);
   const [suggestionCaption, setSuggestionCaption] = useState("");
   const [suggestionVibe, setSuggestionVibe] = useState("Today's Look");
+  const [outfitCaption, setOutfitCaption] = useState("");
   const [loadingOutfit, setLoadingOutfit] = useState(true);
   const [outfitError, setOutfitError] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -3367,6 +3373,7 @@ function HomeScreen() {
   async function fetchOutfitSuggestion(isRetry = false) {
     setLoadingOutfit(true);
     setOutfitError(false);
+    setOutfitCaption("");
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const styleGender = user?.user_metadata?.style_gender || "womens";
@@ -3435,12 +3442,22 @@ Layering is the current #1 trend. Always suggest at least one layering element u
         avoidInstruction = `\n\nIMPORTANT: Do NOT repeat the last outfit. Avoid these recently used items: ${recentNames.join(", ")}. Pick a completely different combination with a different vibe, different hero piece, different footwear, and a different color story. Surprise me.`;
       }
 
+      const dayOfWeek = new Date().toLocaleDateString("en-US", { weekday: "long" });
+      const season = (() => {
+        const m = new Date().getMonth();
+        if (m >= 2 && m <= 4) return "spring";
+        if (m >= 5 && m <= 7) return "summer";
+        if (m >= 8 && m <= 10) return "fall";
+        return "winter";
+      })();
+
       const prompt = `You are a professional stylist building a real wearable outfit from this wardrobe.
 
 WARDROBE ITEMS:
 ${itemsText}
 
 WEATHER: ${weatherText}
+TODAY: ${dayOfWeek}, ${season}
 ${avoidInstruction}
 
 MANDATORY OUTFIT RULES — NEVER BREAK THESE:
@@ -3466,6 +3483,7 @@ WEATHER RULE: If temperature is above 75F skip heavy layers. If below 60F always
 
 Reply in EXACTLY this format with no extra text:
 VIBE: [3 word editorial vibe name]
+CAPTION: [one witty, fashion-forward sentence about why this outfit is perfect for today. Reference the actual weather, day of the week, or season. Make it feel like a stylist texting a friend. Under 20 words. No em dashes.]
 ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
 WHY: [one punchy sentence]
 
@@ -3490,10 +3508,12 @@ Only use URLs from the wardrobe list above.`;
       const text = data.content?.[0]?.text || "";
 
       const vibeMatch = text.match(/VIBE:\s*(.+)/);
+      const captionMatch = text.match(/CAPTION:\s*(.+)/);
       const itemsMatch = text.match(/ITEMS:\s*(.+)/);
       const whyMatch = text.match(/WHY:\s*(.+)/);
 
       const vibe = vibeMatch?.[1]?.trim() || "Today's Look";
+      const caption = captionMatch?.[1]?.trim() || "";
       const rawImageUrls = itemsMatch?.[1]?.split("|").map((u) => u.trim()).filter(Boolean) || [];
       const why = whyMatch?.[1]?.trim() || "";
 
@@ -3515,6 +3535,7 @@ Only use URLs from the wardrobe list above.`;
 
       setSuggestedImages(imageUrls);
       setSuggestionVibe(vibe);
+      setOutfitCaption(caption);
       setSuggestionCaption(why);
       previousUrlsRef.current = imageUrls;
       recordOutfitHistory(imageUrls);
@@ -3651,7 +3672,7 @@ Only use URLs from the wardrobe list above.`;
       }}
     >
       <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", display: isTablet ? "flex" : "block", flexDirection: isTablet ? "column" : undefined, justifyContent: isTablet ? "center" : undefined, padding: isTablet ? `max(88px, calc(env(safe-area-inset-top) + 44px)) 48px calc(100px + env(safe-area-inset-bottom, 16px))` : `max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))` }}>
-        <div style={isTablet ? { maxWidth: "600px", margin: "0 auto", width: "100%" } : {}}>
+        <div style={isTablet ? { maxWidth: "560px", margin: "0 auto", width: "100%" } : {}}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
@@ -3866,6 +3887,7 @@ Only use URLs from the wardrobe list above.`;
               <FlatLayCard
                 images={suggestedImages.slice(0, 6)}
                 caption={suggestionVibe}
+                subtitle={outfitCaption}
                 pulsing={loadingOutfit}
                 compact
                 rotationMap={homeRotationMap}
@@ -4535,7 +4557,7 @@ function AdminUsageScreen() {
     <div
       style={{
         minHeight: "100dvh",
-        maxWidth: "430px",
+        maxWidth: window.innerWidth >= 768 ? "100%" : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F5EFE4 100%)",
         padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 16px calc(120px + env(safe-area-inset-bottom, 16px))",
@@ -5032,7 +5054,7 @@ function ClosetScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: closetIsTablet ? "680px" : "430px",
+        maxWidth: closetIsTablet ? "100%" : "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
@@ -5572,8 +5594,8 @@ function ClosetScreen() {
               ...(closetIsTablet ? {
                 position: "fixed", top: "50%", left: "50%",
                 transform: `translateX(-50%) translateY(${actionSheetVisible ? "-50%" : "100%"})`,
-                width: "min(600px, 90vw)", borderRadius: "24px",
-                boxShadow: "0 25px 60px rgba(0,0,0,0.25)", zIndex: 13000,
+                width: "min(560px, 90vw)", maxHeight: "85vh", overflowY: "auto", borderRadius: "24px",
+                boxShadow: "0 24px 80px rgba(0,0,0,0.2)", zIndex: 13000,
               } : {
                 position: "fixed", bottom: 0, left: "50%",
                 transform: `translateX(-50%) translateY(${actionSheetVisible ? "0" : "100%"})`,
@@ -5630,11 +5652,11 @@ function ClosetScreen() {
             ) : (
               <div>
                 {[
-                  { key: "favorite", label: "Save to Lookbook", icon: "\u2665", onClick: () => handleFavoriteItem(actionSheetItem) },
-                  { key: "style", label: "Style this item", icon: "\u2726", onClick: () => handleStyleItem(actionSheetItem) },
-                  { key: "rotate", label: "Rotate image", icon: "\u21BA", onClick: () => handleRotateItem(actionSheetItem) },
-                  { key: "edit", label: "Edit item", icon: "\u270F", onClick: () => handleEditItem(actionSheetItem) },
-                  { key: "delete", label: "Delete item", icon: "\uD83D\uDDD1", onClick: () => setDeleteConfirmOpen(true), danger: true },
+                  { key: "favorite", label: "Save to Lookbook", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>, onClick: () => handleFavoriteItem(actionSheetItem) },
+                  { key: "style", label: "Style this item", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>, onClick: () => handleStyleItem(actionSheetItem) },
+                  { key: "rotate", label: "Rotate image", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>, onClick: () => handleRotateItem(actionSheetItem) },
+                  { key: "edit", label: "Edit item", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, onClick: () => handleEditItem(actionSheetItem) },
+                  { key: "delete", label: "Delete item", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>, onClick: () => setDeleteConfirmOpen(true), danger: true },
                 ].map((action) => (
                   <button
                     key={action.key}
@@ -5658,7 +5680,7 @@ function ClosetScreen() {
                       WebkitTapHighlightColor: "transparent",
                     }}
                   >
-                    <span style={{ width: "22px", textAlign: "center", flexShrink: 0, fontSize: "16px" }}>{action.icon}</span>
+                    <span style={{ width: "22px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: action.danger ? "#dc2626" : "#555" }}>{action.icon}</span>
                     <span>{action.label}</span>
                   </button>
                 ))}
@@ -6836,7 +6858,7 @@ function UploadScreen() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: getMaxWidth(), margin: "0 auto", background: "white" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? "100%" : "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: `24px ${window.innerWidth >= 768 ? "48px" : "20px"} calc(160px + env(safe-area-inset-bottom, 16px))` }}>
         <DemoModeBanner />
 
@@ -8332,13 +8354,14 @@ COLORS: ${rule.colors}
       {/* Header */}
       <div
         style={{
-          padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
+          padding: chatIsTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 32px 16px` : `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           borderBottom: "1px solid #f0f0f0",
           background: "white",
           flexShrink: 0,
+          width: "100%",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -8398,11 +8421,12 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: "16px 16px 180px",
+          padding: chatIsTablet ? "16px 32px 180px" : "16px 16px 180px",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
-          maxWidth: chatIsTablet ? "700px" : "none",
+          width: "100%",
+          maxWidth: chatIsTablet ? "680px" : "none",
           marginLeft: "auto",
           marginRight: "auto",
         }}
@@ -8608,14 +8632,14 @@ COLORS: ${rule.colors}
 
                       {/* 2. Short caption */}
                       {shortCaption && (
-                        <p style={{ margin: "6px 0 0", fontSize: "14px", color: "#6b6578", fontStyle: "italic", lineHeight: "1.55" }}>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#6b6578", fontStyle: "italic", lineHeight: "1.45", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                           {shortCaption}
                         </p>
                       )}
 
                       {/* 3. Item chips */}
                       {itemChips.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "10px" }}>
+                        <div style={{ display: "flex", flexWrap: "nowrap", gap: "6px", marginTop: "10px", overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>
                           {itemChips.map((chip, ci) => (
                             <span key={ci} style={{
                               background: "#F5EDE0",
@@ -8624,6 +8648,8 @@ COLORS: ${rule.colors}
                               fontWeight: 600,
                               padding: "3px 10px",
                               borderRadius: "100px",
+                              whiteSpace: "nowrap",
+                              flexShrink: 0,
                             }}>
                               {chip.trim()}
                             </span>
@@ -8636,33 +8662,38 @@ COLORS: ${rule.colors}
                         <div
                           style={{
                             display: "grid",
-                            gridTemplateColumns: imageUrls.length === 6 ? "1fr 1fr 1fr" : "1fr 1fr",
-                            gap: "8px",
-                            padding: "12px",
-                            borderRadius: "20px",
+                            gridTemplateColumns: imageUrls.length >= 5 ? "1fr 1fr 1fr" : "1fr 1fr",
+                            gap: "6px",
+                            padding: "10px",
+                            borderRadius: "16px",
                             background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
                             marginTop: "10px",
+                            maxHeight: chatIsTablet ? "none" : "300px",
+                            maxWidth: chatIsTablet ? "480px" : "none",
+                            marginLeft: chatIsTablet ? "auto" : undefined,
+                            marginRight: chatIsTablet ? "auto" : undefined,
                           }}
                         >
                           {imageUrls.slice(0, 6).map((url, i) => {
                             const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
                             const isLastOdd5 = imageUrls.length === 5 && i === 4;
+                            const cellHeight = imageUrls.length >= 5 ? "110px" : "140px";
                             return (
                               <div
                                 key={i}
                                 style={{
                                   position: "relative",
-                                  aspectRatio: "1",
-                                  borderRadius: "14px",
+                                  height: cellHeight,
+                                  borderRadius: "12px",
                                   overflow: "hidden",
-                                  background: "#fff",
+                                  background: "#F5F3EF",
                                   boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
-                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "50%", justifySelf: "center" } : {}),
+                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "33%", justifySelf: "center" } : {}),
                                 }}
                               >
                                 <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
                                   onError={(e) => { e.target.style.display = "none"; }}
-                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
+                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px" }} />
                               </div>
                             );
                           })}
@@ -8827,7 +8858,7 @@ COLORS: ${rule.colors}
           left: "50%",
           transform: "translateX(-50%)",
           width: "100%",
-          maxWidth: chatIsTablet ? "700px" : "430px",
+          maxWidth: chatIsTablet ? "680px" : "430px",
           padding: "12px 16px",
           borderTop: "1px solid #eee",
           display: "flex",
@@ -9253,7 +9284,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                   </div>
                 )}
 
-                <div style={{ display: "grid", gridTemplateColumns: favIsTablet ? "1fr 1fr" : "1fr", gap: favIsTablet ? "16px" : "18px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: favIsTablet ? "1fr 1fr" : "1fr", gap: favIsTablet ? "16px" : "18px", alignItems: "stretch" }}>
                   {groupItems.map((outfit) => (
                     <div
                       key={outfit.id}
@@ -9265,7 +9296,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                         padding: "10px",
                       }}
                     >
-                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer" }}>
+                      <div onClick={() => setDetailOutfit(outfit)} style={{ cursor: "pointer", height: favIsTablet ? "240px" : "200px", overflow: "hidden", borderRadius: "20px" }}>
                         <FlatLayCard images={outfit.outfit_images || []} />
                       </div>
 
