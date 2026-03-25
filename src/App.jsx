@@ -1967,6 +1967,11 @@ function LogInScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   async function handleLogIn(event) {
     event.preventDefault();
@@ -1988,6 +1993,21 @@ function LogInScreen() {
     navigate("/home", { replace: true });
   }
 
+  async function handleResetPassword(event) {
+    event.preventDefault();
+    setResetError("");
+    setResetSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: "https://styliner.vercel.app/reset-password",
+    });
+    setResetSubmitting(false);
+    if (error) {
+      setResetError(error.message);
+      return;
+    }
+    setResetSuccess(true);
+  }
+
   return (
     <AppShell gradient hideBottomNav>
       <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
@@ -1995,41 +2015,176 @@ function LogInScreen() {
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
-        <h2 className="text-center text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-1 text-center text-sm text-gray-600">Log in to continue with Styliner</p>
-        <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
-          <Field
-            label="Email"
-            name="email"
-            type="email"
-            placeholder="jane@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-          <Field
-            label="Password"
-            name="password"
-            type="password"
-            placeholder="********"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-          {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-          <div className="pt-2">
-            <PillButton type="submit" disabled={isSubmitting} className={isSubmitting ? "opacity-70" : ""}>
-              {isSubmitting ? "Logging in..." : "Log In"}
-            </PillButton>
+        <h2 className="text-center text-2xl font-bold text-gray-900">{forgotMode ? "Reset password" : "Welcome back"}</h2>
+        <p className="mt-1 text-center text-sm text-gray-600">{forgotMode ? "Enter your email to receive a reset link" : "Log in to continue with Styliner"}</p>
+
+        {forgotMode ? (
+          <div className="mt-8 space-y-4">
+            {resetSuccess ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111", marginBottom: "8px" }}>Check your email for a reset link!</p>
+                <p style={{ fontSize: "13px", color: "#888" }}>If you don't see it, check your spam folder.</p>
+                <button type="button" onClick={() => { setForgotMode(false); setResetSuccess(false); setResetEmail(""); }} style={{ marginTop: "20px", fontSize: "13px", fontWeight: 600, color: "#B08A4A", background: "none", border: "none", cursor: "pointer" }}>← Back to log in</button>
+              </div>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <Field
+                  label="Email"
+                  name="reset-email"
+                  type="email"
+                  placeholder="jane@example.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+                {resetError && <p className="text-sm font-medium text-red-600">{resetError}</p>}
+                <div className="pt-2">
+                  <PillButton type="submit" disabled={resetSubmitting} className={resetSubmitting ? "opacity-70" : ""}>
+                    {resetSubmitting ? "Sending..." : "Send reset link"}
+                  </PillButton>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <button type="button" onClick={() => { setForgotMode(false); setResetError(""); }} style={{ fontSize: "13px", fontWeight: 600, color: "#B08A4A", background: "none", border: "none", cursor: "pointer" }}>← Back to log in</button>
+                </div>
+              </form>
+            )}
           </div>
-        </form>
+        ) : (
+          <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              placeholder="jane@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+            <Field
+              label="Password"
+              name="password"
+              type="password"
+              placeholder="********"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+            <button type="button" onClick={() => { setForgotMode(true); setResetEmail(email); }} style={{ fontSize: "13px", color: "#B08A4A", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "right", width: "100%", padding: 0 }}>Forgot password?</button>
+            {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+            <div className="pt-2">
+              <PillButton type="submit" disabled={isSubmitting} className={isSubmitting ? "opacity-70" : ""}>
+                {isSubmitting ? "Logging in..." : "Log In"}
+              </PillButton>
+            </div>
+          </form>
+        )}
+
         <div style={{ marginTop: "14px", textAlign: "center" }}>
           <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 600, color: "#8A6A3C", textDecoration: "none" }}>
             Privacy Policy
           </NavLink>
         </div>
+      </div>
+    </AppShell>
+  );
+}
+
+function ResetPasswordScreen() {
+  const navigate = useNavigate();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [tokenValid, setTokenValid] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) setTokenValid(false);
+    });
+  }, []);
+
+  async function handleUpdatePassword(event) {
+    event.preventDefault();
+    setError("");
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords don't match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    setIsSubmitting(false);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    setSuccess(true);
+    setTimeout(() => navigate("/home", { replace: true }), 2000);
+  }
+
+  return (
+    <AppShell gradient hideBottomNav>
+      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+        <div className="mb-8">
+          <LogoWordmark compact centered />
+        </div>
+
+        {!tokenValid ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <h2 className="text-center text-2xl font-bold text-gray-900">Link expired</h2>
+            <p style={{ fontSize: "14px", color: "#888", marginTop: "8px", marginBottom: "24px" }}>Invalid or expired reset link. Please try again.</p>
+            <NavLink to="/login" style={{ fontSize: "14px", fontWeight: 600, color: "#B08A4A", textDecoration: "none" }}>← Back to log in</NavLink>
+          </div>
+        ) : success ? (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <h2 className="text-center text-2xl font-bold text-gray-900">Password updated!</h2>
+            <p style={{ fontSize: "14px", color: "#888", marginTop: "8px" }}>Redirecting you now...</p>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-center text-2xl font-bold text-gray-900">Set new password</h2>
+            <p className="mt-1 text-center text-sm text-gray-600">Enter your new password below</p>
+            <form className="mt-8 space-y-4" onSubmit={handleUpdatePassword}>
+              <Field
+                label="New Password"
+                name="new-password"
+                type="password"
+                placeholder="********"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+              <Field
+                label="Confirm Password"
+                name="confirm-password"
+                type="password"
+                placeholder="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+              {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+              <div className="pt-2">
+                <PillButton type="submit" disabled={isSubmitting} className={isSubmitting ? "opacity-70" : ""}>
+                  {isSubmitting ? "Updating..." : "Update Password"}
+                </PillButton>
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </AppShell>
   );
@@ -8721,7 +8876,7 @@ function AppRouter() {
   const [demoGender, setDemoGender] = useState("womens");
   const [demoClosetItems, setDemoClosetItems] = useState(() => createDemoClosetItems());
   const [demoPrompt, setDemoPrompt] = useState(null);
-  const onboardingRoutes = ["/", "/signup", "/login", "/privacy", "/starter-wardrobe"];
+  const onboardingRoutes = ["/", "/signup", "/login", "/privacy", "/starter-wardrobe", "/reset-password"];
   const isOnboarding = onboardingRoutes.includes(location.pathname);
   const isAdminSession = isAdminEmail(session?.user?.email);
 
@@ -8847,6 +9002,7 @@ function AppRouter() {
         <Route path="/" element={publicElement(<OnboardingSplash />)} />
         <Route path="/signup" element={publicElement(<SignUpScreen />)} />
         <Route path="/login" element={publicElement(<LogInScreen />)} />
+        <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/privacy" element={<PrivacyPolicyScreen />} />
         <Route path="/starter-wardrobe" element={<StarterWardrobeScreen />} />
         <Route path="/home" element={protectedElement(<HomeScreen />)} />
