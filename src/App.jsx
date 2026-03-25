@@ -4375,6 +4375,8 @@ WHY: [one punchy sentence about why this works right now]`;
 
 async function handleLogout(navigate, setProfileSheetOpen) {
   setProfileSheetOpen(false);
+  localStorage.removeItem("styliner_last_convo_id");
+  localStorage.removeItem("styliner_last_convo_time");
   await supabase.auth.signOut();
   navigate("/");
 }
@@ -6662,7 +6664,16 @@ function UploadScreen() {
     input.multiple = true;
     input.accept = "image/*";
     input.onchange = (e) => {
-      const files = Array.from(e.target.files || []);
+      const remaining = 5 - selectedFiles.length;
+      if (remaining <= 0) {
+        setUploadError("You can upload up to 5 photos at a time. Remove some to add more.");
+        return;
+      }
+      const rawFiles = Array.from(e.target.files || []);
+      if (rawFiles.length > remaining) {
+        setUploadError(`You can upload up to 5 photos at a time. We selected the first ${remaining} for you.`);
+      }
+      const files = rawFiles.slice(0, remaining);
       const previews = files.map((file) => ({
         file,
         id: Math.random().toString(36).slice(2),
@@ -6681,18 +6692,22 @@ function UploadScreen() {
       });
       return;
     }
+    if (selectedFiles.length >= 5) {
+      setUploadError("You can upload up to 5 photos at a time. Remove some to add more.");
+      return;
+    }
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     input.capture = "environment";
     input.onchange = (e) => {
-      const files = Array.from(e.target.files || []);
+      const files = Array.from(e.target.files || []).slice(0, 1);
       const previews = files.map((file) => ({
         file,
         id: Math.random().toString(36).slice(2),
         previewUrl: URL.createObjectURL(file),
       }));
-      setSelectedFiles((prev) => [...prev, ...previews]);
+      setSelectedFiles((prev) => [...prev, ...previews].slice(0, 5));
     };
     input.click();
   };
@@ -6889,7 +6904,7 @@ function UploadScreen() {
                 View tips
               </button>
             </div>
-            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload multiple photos at once — we'll identify and tag each item automatically</p>
+            <p style={{ fontSize: "13px", color: "#666", marginBottom: "18px" }}>Upload up to 5 photos at once — we'll identify and tag each item automatically</p>
 
             <button
               type="button"
@@ -6980,14 +6995,17 @@ function UploadScreen() {
             )}
 
             {selectedFiles.length > 0 && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
-                {selectedFiles.map((f) => (
-                  <div key={f.id} style={{ position: "relative", aspectRatio: "1", borderRadius: "12px", overflow: "hidden" }}>
-                    <img src={f.previewUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <button aria-label="Remove file" onClick={() => removeFile(f.id)} style={{ position: "absolute", top: "0", right: "0", background: "none", border: "none", width: "44px", height: "44px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ background: "rgba(0,0,0,0.5)", borderRadius: "50%", width: "22px", height: "22px", color: "white", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</span></button>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "0" }}>
+                  {selectedFiles.map((f) => (
+                    <div key={f.id} style={{ position: "relative", aspectRatio: "1", borderRadius: "12px", overflow: "hidden" }}>
+                      <img src={f.previewUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <button aria-label="Remove file" onClick={() => removeFile(f.id)} style={{ position: "absolute", top: "0", right: "0", background: "none", border: "none", width: "44px", height: "44px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ background: "rgba(0,0,0,0.5)", borderRadius: "50%", width: "22px", height: "22px", color: "white", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</span></button>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize: "12px", color: "#999", textAlign: "center", margin: "8px 0 16px" }}>{selectedFiles.length} of 5 photos selected</p>
+              </>
             )}
           </>
         )}
@@ -7083,15 +7101,19 @@ function UploadScreen() {
 
       {/* Bottom CTA — fixed */}
       {phase === "pick" && selectedFiles.length > 0 && (
-        <button onClick={handleAnalyze} style={{
-          position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)",
-          width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50,
-          padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
-          color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
-          boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-        }}>
-          Continue ({selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""})
-        </button>
+        <div style={{ position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)", width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50, textAlign: "center" }}>
+          <button onClick={handleAnalyze} style={{
+            width: "100%",
+            padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
+            color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+          }}>
+            Continue ({selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""})
+          </button>
+          <p style={{ fontSize: "12px", color: "#999", textAlign: "center", marginTop: "8px" }}>
+            Analyzing {selectedFiles.length} photo{selectedFiles.length !== 1 ? "s" : ""} — takes about {selectedFiles.length * 15} seconds
+          </p>
+        </div>
       )}
       {phase === "confirm" && (
         <button onClick={handleSave} style={{
@@ -7382,6 +7404,18 @@ Only suggest items they don't already own.`;
 
       if (!error && convos) setConversations(convos);
       if (!closetError) setClosetCount((closetItems || []).length);
+
+      // Restore last active conversation if recent
+      const lastConvoId = localStorage.getItem("styliner_last_convo_id");
+      const lastConvoTime = parseInt(localStorage.getItem("styliner_last_convo_time") || "0");
+      const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+      if (lastConvoId && lastConvoTime > twoHoursAgo && convos?.some((c) => c.id === lastConvoId)) {
+        setActiveConvoId(lastConvoId);
+      } else {
+        localStorage.removeItem("styliner_last_convo_id");
+        localStorage.removeItem("styliner_last_convo_time");
+      }
+
       setLoadingHistory(false);
     })();
   }, [isDemoMode, demoClosetItems]);
@@ -7429,6 +7463,9 @@ Only suggest items they don't already own.`;
     setDrawerOpen(false);
     if (isDemoMode) {
       demoChatSeedRef.current = 0;
+    } else {
+      localStorage.removeItem("styliner_last_convo_id");
+      localStorage.removeItem("styliner_last_convo_time");
     }
   }
 
@@ -7437,6 +7474,10 @@ Only suggest items they don't already own.`;
     setSavedMsgIds(new Set());
     setExpandedMsgIds(new Set());
     setDrawerOpen(false);
+    if (!isDemoMode) {
+      localStorage.setItem("styliner_last_convo_id", convoId);
+      localStorage.setItem("styliner_last_convo_time", Date.now().toString());
+    }
   }
 
   async function toggleStarConversation(convoId, currentStarred) {
@@ -7585,9 +7626,54 @@ Only suggest items they don't already own.`;
         return;
       }
 
-      // Create a new conversation if none is active
+      // Check message limit on current conversation
       let convoId = activeConvoId;
+      if (convoId) {
+        const { count: msgCount } = await supabase
+          .from("chat_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("conversation_id", convoId);
+        if (msgCount >= 50) {
+          setMessages((prev) => [...prev, {
+            id: "limit-msg-" + Date.now(),
+            role: "assistant",
+            content: "This conversation is getting long! Start a new chat for the best styling experience. \u2726",
+          }]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Create a new conversation if none is active
       if (!convoId) {
+        // Enforce 20 conversation limit
+        const { count } = await supabase
+          .from("conversations")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        if (count >= 20) {
+          const { data: oldest } = await supabase
+            .from("conversations")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("is_starred", false)
+            .order("created_at", { ascending: true })
+            .limit(1);
+          if (oldest?.length > 0) {
+            await supabase.from("chat_messages").delete().eq("conversation_id", oldest[0].id);
+            await supabase.from("conversations").delete().eq("id", oldest[0].id);
+            setConversations((prev) => prev.filter((c) => c.id !== oldest[0].id));
+          } else {
+            setMessages((prev) => [...prev, {
+              id: "limit-msg",
+              role: "assistant",
+              content: "You've reached 20 saved conversations. Unstar or delete some to start new chats.",
+            }]);
+            setLoading(false);
+            return;
+          }
+        }
+
         const { data: newConvo, error: convoErr } = await supabase
           .from("conversations")
           .insert({ user_id: user.id, title: trimmed, is_starred: false, preview_images: [] })
@@ -7597,6 +7683,8 @@ Only suggest items they don't already own.`;
         convoId = newConvo.id;
         setActiveConvoId(convoId);
         setConversations((prev) => [newConvo, ...prev]);
+        localStorage.setItem("styliner_last_convo_id", convoId);
+        localStorage.setItem("styliner_last_convo_time", Date.now().toString());
       }
 
       setClosetCount(items.length);
@@ -8040,6 +8128,11 @@ Only suggest items they don't already own.`;
         >
           ✦ New Chat
         </button>
+        {!isDemoMode && conversations.length >= 15 && (
+          <p style={{ fontSize: "11px", color: "#999", textAlign: "center", padding: "4px 16px" }}>
+            {conversations.length} of 20 conversations
+          </p>
+        )}
         {isDemoMode && (
           <div
             style={{
@@ -8444,8 +8537,12 @@ Only suggest items they don't already own.`;
                           <span style={{ fontSize: "12px", color: "#B08A4A", fontWeight: 500 }}>Thanks! I'll remember that</span>
                         ) : (
                           <>
-                            <button type="button" onClick={() => handleFeedback(msg.id, "positive")} style={{ fontSize: "12px", background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "4px 10px", color: "#999", cursor: "pointer" }}>👍</button>
-                            <button type="button" onClick={() => handleFeedback(msg.id, "negative")} style={{ fontSize: "12px", background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "4px 10px", color: "#999", cursor: "pointer" }}>👎</button>
+                            <button type="button" aria-label="Good suggestion" onClick={() => handleFeedback(msg.id, "positive")} style={{ background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "6px 12px", color: "#999", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                            </button>
+                            <button type="button" aria-label="Bad suggestion" onClick={() => handleFeedback(msg.id, "negative")} style={{ background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "6px 12px", color: "#999", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+                            </button>
                           </>
                         )}
                       </div>
