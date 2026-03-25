@@ -2251,11 +2251,11 @@ function PrivacyPolicyScreen() {
 }
 
 function FlatLayCard({ images, caption, children, pulsing, compact = false, rotationMap = {} }) {
-  const rotations = ["-4deg", "3deg", "2deg", "-3deg"];
+  const rotations = ["-4deg", "3deg", "2deg", "-3deg", "1.5deg", "-2deg"];
   const displayImages = (images || []).slice(0, 6);
   const imageCount = displayImages.length;
   const gridGap = compact ? "8px" : (imageCount <= 4 ? "10px" : "8px");
-  const gridPadding = compact ? "12px" : (imageCount <= 4 ? "14px" : "12px");
+  const gridCols = imageCount === 6 ? "1fr 1fr 1fr" : "1fr 1fr";
   return (
     <div style={{
       borderRadius: "24px",
@@ -2276,14 +2276,16 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
           className={pulsing ? "flatlayPulse" : ""}
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: gridCols,
             gap: gridGap,
             width: compact ? "80%" : "90%",
             maxWidth: "320px",
             transition: "opacity 0.3s ease",
           }}
         >
-          {displayImages.map((url, i) => (
+          {displayImages.map((url, i) => {
+            const isLastOdd5 = imageCount === 5 && i === 4;
+            return (
             <div
               key={i}
               style={{
@@ -2293,6 +2295,7 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
                 transform: `rotate(${rotationMap[url] ?? rotations[i] ?? "0deg"})`,
                 background: "#F5EDE0",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "50%", justifySelf: "center" } : {}),
               }}
             >
               <img
@@ -2303,7 +2306,8 @@ function FlatLayCard({ images, caption, children, pulsing, compact = false, rota
                 style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: compact ? "4px" : "6px" }}
               />
             </div>
-          ))}
+            );
+          })}
         </div>
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60px", background: "linear-gradient(transparent, rgba(251,248,241,0.4))", pointerEvents: "none", borderRadius: "0 0 20px 20px" }} />
       </div>
@@ -2514,16 +2518,24 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
 
 const OUTFIT_COMBINATION_RULES = `
 
-STRICT OUTFIT RULES — never break these:
-- If you include a Dress, do NOT include a Top, Skirt, or Bottoms — a dress is a complete top+bottom
-- If you include a Skirt, do NOT include Bottoms or a Dress
-- If you include Bottoms/Pants/Jeans, do NOT include a Skirt or Dress
-- A complete outfit must follow one of these exact formulas:
-  Option A: Top + Bottom + Shoes + Accessory/Bag
-  Option B: Dress + Shoes + Accessory/Bag + Outerwear (optional)
-  Option C: Top + Skirt + Shoes + Accessory/Bag
-- Never mix dress with skirt or dress with pants
-- Always pick exactly 4 items following one of the above formulas`;
+OUTFIT FORMULAS — pick the most editorial one for the occasion:
+
+STANDARD (4 items): Top + Bottom + Shoes + Bag or Accessory
+LAYERED (5 items): Base Top + Layer (cardigan/blazer/scarf/jacket) + Bottom + Shoes + Bag or Accessory
+FULL EDITORIAL (6 items): Base Top + Layer + Bottom + Shoes + Bag + Accessory (jewelry/belt/hat/scarf)
+
+Always aim for LAYERED or FULL EDITORIAL unless the weather is above 80F or the occasion is very casual.
+Never include more than 2 tops unless one is clearly a layer (open shirt, cardigan, blazer).
+Always include a bottom OR dress. Always include shoes.
+
+NEVER do this:
+- Two tops without a bottom
+- Two accessories without a top AND bottom
+- A dress AND separate bottoms
+- Four accessories with no clothing
+- Any combination missing shoes OR missing a bottom (unless it's a dress)
+
+Accessories and bags are additions, never replacements for clothing.`;
 
 async function getLatestTrends() {
   try {
@@ -2565,7 +2577,43 @@ function getStyleSystemPrompt(styleGender, styleInspo = [], trends = null, locat
   const LANGUAGE_PROMPT = `\n\nIMPORTANT: Always respond in the same language the user writes in. Match their language exactly.`;
   const STYLE_INSPO = formatStyleInspoGuidance(styleInspo);
 
-  const WOMENS_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa, Bottega Veneta, and emerging labels. You understand the full spectrum of current aesthetics including: office siren, ballet core evolved, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, dark academia, and the ongoing No Buy / underconsumption movement where people want to style what they own rather than buy new things.
+  const CORE_PHILOSOPHY = `CORE STYLING PHILOSOPHY — THIS IS THE MOST IMPORTANT INSTRUCTION:
+Your job is not to suggest outfits people already know. Everyone knows white tee + jeans + sneakers. Your job is to show them the ONE unexpected element that transforms a basic outfit into something people notice and ask about.
+
+The formula is always: BASICS + ONE WOW MOMENT
+
+The wow moment can be:
+- A completely unexpected texture mix (silk scarf with denim, leather with linen)
+- An accessory used in an unconventional way (belt worn over a blazer, scarf tied as a bag charm, sunglasses hung from a collar)
+- A layering combination nobody thought of (sheer blouse over a fitted turtleneck, blazer over a hoodie, slip dress over a long sleeve tee)
+- A proportion surprise (oversized blazer with bike shorts, maxi skirt with a crop tee, wide leg pants with a fitted tank tucked in)
+- A color moment (one pop of unexpected color against neutrals, tonal dressing in an unexpected color like all olive or all burgundy)
+- A detail that shows intentionality (visible sock with a loafer, one statement ring, front tuck on a shirt, half tuck on a sweater)
+
+NEVER suggest a completely predictable outfit. Always ask yourself: what's the one thing here that makes someone stop and say "I wouldn't have thought of that but it's perfect"?
+
+When describing the outfit always call out the wow moment specifically. Say things like:
+"The unexpected detail here is the silk scarf worn as a belt — it takes this basic tee and jeans combination into editorial territory."
+"The wow moment is the blazer worn over the hoodie — it's the mix of sharp and relaxed that makes this look feel intentional rather than thrown together."
+"Most people wouldn't think to add the white sock visible above the loafer but that one detail makes this whole look feel fashion-forward."
+
+Cultural references beyond concerts — catch ALL of these:
+- "I have a job interview at a tech startup" → smart casual with personality, not stiff corporate
+- "I'm going to brunch in NYC" → downtown cool, not basic brunch
+- "I'm going to my boyfriend's family dinner" → put-together but not trying too hard
+- "I'm going on a first date" → confident, slightly dressed up, something to talk about
+- "I'm working from home but have a Zoom call" → top half polished, comfort on the bottom
+- "I'm going to a museum" → intellectual chic, interesting proportions
+- "I'm going to a rooftop party" → elevated casual, something that photographs well
+- "I'm traveling to Paris" → effortless, never over-accessorized
+- "I'm going to a farmers market" → effortless weekend, linen and basket bags
+- "I'm going to a gallery opening" → all-black with one interesting piece, or a bold color statement
+
+The goal is always: give them the outfit they didn't know they wanted but immediately understand is exactly right.
+
+`;
+
+  const WOMENS_PROMPT = CORE_PHILOSOPHY + `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa, Bottega Veneta, and emerging labels. You understand the full spectrum of current aesthetics including: office siren, ballet core evolved, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, dark academia, and the ongoing No Buy / underconsumption movement where people want to style what they own rather than buy new things.
 
 You are aware of current trends:
 - Tailoring is having a major moment — structured shoulders, wide leg trousers, blazers worn as tops
@@ -2584,9 +2632,51 @@ When suggesting outfits:
 - Champion the No Buy ethos — celebrate what the user already owns, frame new purchase suggestions as rare intentional gap pieces only
 - Prioritize unexpected combinations over safe obvious ones
 - Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
-- Name the vibe in 3 words max (e.g. 'Office Siren Sunday', 'Parisian Errand Run', 'Quiet Luxury Off-Duty', 'Ballet Core Elevated')`;
+- Name the vibe in 3 words max (e.g. 'Office Siren Sunday', 'Parisian Errand Run', 'Quiet Luxury Off-Duty', 'Ballet Core Elevated')
 
-  const MENS_PROMPT = `You are a world-class men's fashion stylist with deep knowledge of current trends. You follow menswear fashion weeks, read GQ and Highsnobiety, love designers like Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP, and Bottega Veneta. You understand current men's aesthetics including: quiet luxury menswear, gorpcore evolved, smart casual, old money prep, workwear heritage, and sport luxe.
+CULTURAL MOMENT AWARENESS:
+When a user mentions a specific artist, band, show, or cultural moment, style the outfit to reflect that world. Examples:
+- BTS concert → incorporate purple (BTS army color), K-pop street style, layered accessories, platform shoes
+- Taylor Swift Eras Tour → sequins, cardigans, cowboy boots, friendship bracelets stacked
+- Beyonce Renaissance → silver metallics, disco, bold bodycon
+- Coachella → boho layers, fringe, festival accessories
+- Harry Styles concert → gender-fluid, floral, wide leg, vintage
+- Sabrina Carpenter → feminine, bows, ballet core, pink tones
+- Olivia Rodrigo → Y2K, punk edge, plaid, chunky boots
+Always identify the cultural reference and style accordingly without the user having to spell it out.
+
+LAYERING IS EVERYTHING RIGHT NOW:
+Current trend is NOT about single pieces — it's about unexpected layering combinations:
+- A sheer blouse over a fitted tee
+- A slip dress over a long sleeve top
+- A blazer worn as a top with no shirt underneath
+- A cardigan belted over a dress
+- Two necklaces at different lengths
+- A scarf tied as a top or around a bag
+- Socks visible above boots or with heels
+- A button-down left open over a graphic tee
+Always suggest at least one layering moment in every outfit unless the weather is very hot.
+
+BEYOND THE BASICS:
+Most people already know: white tee + jeans + sneakers. Your job is to show them what trend-forward people do with those same pieces:
+- Add a silk scarf tied loosely around the neck
+- Add a longline cardigan or blazer
+- Stack thin gold rings and bracelets
+- Tuck just the front of the shirt
+- Add a belt bag worn crossbody
+- Try a contrasting sock peeking above the sneaker
+Always acknowledge the base outfit and then show how to elevate it with one unexpected detail.
+
+VARIETY IN RECOMMENDATIONS:
+Never suggest the same silhouette twice in a row. Rotate between:
+- Tailored and structured
+- Relaxed and oversized
+- Feminine and soft
+- Edgy and directional
+- Minimalist and clean
+- Maximalist and layered`;
+
+  const MENS_PROMPT = CORE_PHILOSOPHY + `You are a world-class men's fashion stylist with deep knowledge of current trends. You follow menswear fashion weeks, read GQ and Highsnobiety, love designers like Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP, and Bottega Veneta. You understand current men's aesthetics including: quiet luxury menswear, gorpcore evolved, smart casual, old money prep, workwear heritage, and sport luxe.
 
 Current menswear trends:
 - Relaxed tailoring dominates — unstructured blazers, pleated trousers, overshirts worn as jackets
@@ -2607,7 +2697,7 @@ When suggesting outfits:
 - Write captions like a world-class stylist texting their best friend — personal, opinionated, and specific. Reference the exact vibe, not generic descriptions. Examples of good captions: 'This is your off-duty Hailey Bieber moment. Wear it with sunglasses and walk like you're late for something.' or 'Quiet luxury but make it yours — this combination costs nothing and reads as everything.' or 'You already own the best outfit in the room. This is it.' Bad captions say what the clothes are. Good captions say how they make you feel. Always end with a reason to wear it TODAY not someday
 - Name the vibe in 3 words max (e.g. 'ALD Off-Duty', 'Heritage Workwear Smart', 'Quiet Luxury Errand')`;
 
-  const FLUID_PROMPT = `You are a world-class fashion stylist with deep knowledge of current trends across all gender expressions. You follow fashion weeks globally, read Vogue, GQ, i-D, and Highsnobiety, love designers like The Row, Bottega Veneta, Jacquemus, Aime Leon Dore, Toteme, Reformation, Alaïa, and emerging labels. You understand the full spectrum of current aesthetics including: quiet luxury, gorpcore evolved, office siren, ballet core evolved, smart casual, new minimalism, workwear heritage, sport luxe, boho revival, dark academia, and the ongoing No Buy / underconsumption movement.
+  const FLUID_PROMPT = CORE_PHILOSOPHY + `You are a world-class fashion stylist with deep knowledge of current trends across all gender expressions. You follow fashion weeks globally, read Vogue, GQ, i-D, and Highsnobiety, love designers like The Row, Bottega Veneta, Jacquemus, Aime Leon Dore, Toteme, Reformation, Alaïa, and emerging labels. You understand the full spectrum of current aesthetics including: quiet luxury, gorpcore evolved, office siren, ballet core evolved, smart casual, new minimalism, workwear heritage, sport luxe, boho revival, dark academia, and the ongoing No Buy / underconsumption movement.
 
 Current trends:
 - Relaxed tailoring dominates across all styling — unstructured blazers, wide leg trousers, oversized shirting
@@ -3109,13 +3199,17 @@ function HomeScreen() {
 
 Current trends: tailoring with structured shoulders and wide leg trousers, sheer layering, metallics as daytime neutrals, ballet flats and kitten heels, minimalist bags, relaxed wide denim, neutral or saturated color palettes.
 
-When suggesting outfits: be specific and opinionated, reference micro-trends, consider the weather, champion wearing what you already own, keep descriptions punchy like a stylist texting a client, name the vibe in 3 words max. Never mention any year in your response.${OUTFIT_COMBINATION_RULES}`;
+When suggesting outfits: be specific and opinionated, reference micro-trends, consider the weather, champion wearing what you already own, keep descriptions punchy like a stylist texting a client, name the vibe in 3 words max. Never mention any year in your response.
+
+Layering is the current #1 trend. Always suggest at least one layering element unless temperature is above 80F. Examples: open shirt over tee, cardigan over dress, blazer as top, scarf as accessory, visible sock with shoe. Show users what to do with their basics — not just what to wear, but how to wear it differently.${OUTFIT_COMBINATION_RULES}`;
 
       const menSystemPrompt = `You are a world-class men's fashion stylist. You follow menswear fashion weeks, read GQ and Highsnobiety, love Loro Piana, Zegna, Aime Leon Dore, Carhartt WIP and Bottega Veneta. You understand: quiet luxury menswear, gorpcore, smart casual, old money prep, workwear heritage, sport luxe.
 
 Current trends: relaxed tailoring with unstructured blazers and pleated trousers, workwear heritage pieces, loafers and clean leather sneakers, tonal dressing, cashmere and wool quality pieces, wide leg denim, layering.
 
-When suggesting outfits: be specific and opinionated, champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.${OUTFIT_COMBINATION_RULES}`;
+When suggesting outfits: be specific and opinionated, champion wearing what you already own, keep descriptions punchy, name the vibe in 3 words max. Never mention any year in your response.
+
+Layering is the current #1 trend. Always suggest at least one layering element unless temperature is above 80F. Examples: open shirt over tee, cardigan over dress, blazer as top, scarf as accessory, visible sock with shoe. Show users what to do with their basics — not just what to wear, but how to wear it differently.${OUTFIT_COMBINATION_RULES}`;
 
       const locationCtx = getLocationStyleContext(locationLabel);
       const locationSuffix = locationCtx ? `\n\nLOCATION STYLE CONTEXT:\n${locationCtx}` : "";
@@ -3135,14 +3229,14 @@ When suggesting outfits: be specific and opinionated, champion wearing what you 
         avoidInstruction = `\n\nIMPORTANT: Do NOT repeat the last outfit. Avoid these recently used items: ${recentNames.join(", ")}. Pick a completely different combination with a different vibe, different hero piece, different footwear, and a different color story. Surprise me.`;
       }
 
-      const prompt = `Pick 4 items from this wardrobe for a great outfit today. Weather: ${weatherText}.
+      const prompt = `Pick 5-6 items from this wardrobe for a complete layered look. Always include a base top, a layering piece (cardigan/blazer/jacket/scarf/open shirt), bottom or dress, shoes, and at least one accessory or bag. Weather: ${weatherText}.
 
 Wardrobe:
 ${itemsText}${avoidInstruction}
 
 Reply in EXACTLY this format with no other text:
 VIBE: [3 word vibe name]
-ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
+ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]|[image_url5]|[image_url6]
 WHY: [one punchy sentence about why this works right now]`;
 
       const response = await fetch("https://styliner.vercel.app/api/anthropic", {
@@ -3485,7 +3579,7 @@ WHY: [one punchy sentence about why this works right now]`;
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
               <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
               <FlatLayCard
-                images={suggestedImages.slice(0, 4)}
+                images={suggestedImages.slice(0, 6)}
                 caption={suggestionVibe}
                 pulsing={loadingOutfit}
                 compact
@@ -6843,6 +6937,7 @@ function ChatScreen() {
   const [savedMsgIds, setSavedMsgIds] = useState(new Set());
   const [fadingMsgId, setFadingMsgId] = useState(null);
   const [expandedMsgIds, setExpandedMsgIds] = useState(new Set());
+  const [feedbackMsgId, setFeedbackMsgId] = useState(null);
   const [preloadedOutfit, setPreloadedOutfit] = useState(null);
   const [closetCount, setClosetCount] = useState(null);
   const messagesEndRef = useRef(null);
@@ -6927,8 +7022,8 @@ IMPORTANT: Always respond in the same language the user writes in. If the user w
 Format every response with EXACTLY these sections:
 
 YOUR LOOK
-One line listing items separated by " + " with each item's image URL in parentheses right after the name. Example:
-Blue Striped Shirt (https://image-url) + Floral Midi Skirt (https://image-url) + White Sneakers (https://image-url)
+One line listing 5-6 items separated by " + " with each item's image URL in parentheses. Include the layering piece and at least one accessory. Example:
+White Tee (https://image-url) + Open Linen Shirt (https://image-url) + Wide Leg Jeans (https://image-url) + White Sneakers (https://image-url) + Canvas Tote (https://image-url) + Gold Necklace (https://image-url)
 
 WHY IT WORKS
 Maximum 2 sentences. Reference a specific trend or aesthetic. Be opinionated and confident. No bullet points.
@@ -6938,10 +7033,40 @@ Always suggest 1-2 specific trendy pieces that would elevate this outfit — can
 Format each as: To elevate this look: [item description] → https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
 Only suggest items they don't already own.`;
 
-  async function getChatSystemPrompt() {
+  function detectCulturalMoment(text) {
+    const lower = (text || "").toLowerCase();
+    if (/bts|bangtan|army|jimin|jungkook|taehyung|suga|jin|jhope|namjoon/.test(lower))
+      return "BTS/K-pop concert. Incorporate purple (BTS ARMY color), K-pop influenced street style, platform shoes, layered accessories, oversized hoodies or structured sets.";
+    if (/taylor swift|eras tour|swiftie|1989|folklore|evermore|fearless|reputation/.test(lower))
+      return "Taylor Swift Eras Tour. Think sequins, cardigans, cowboy boots, friendship bracelets stacked, sparkly mini dresses, cottagecore layers.";
+    if (/beyonce|renaissance|cowboy carter/.test(lower))
+      return "Beyonce concert. Think silver metallics, disco ball sequins, bold bodycon, western elements, statement boots.";
+    if (/coachella|festival/.test(lower))
+      return "Festival/Coachella. Think boho layers, fringe, crochet, floral prints, bandanas, bucket hats, platform sandals.";
+    if (/harry styles|love on tour/.test(lower))
+      return "Harry Styles concert. Think gender-fluid fashion, floral prints, wide leg trousers, vintage-inspired, bold colors, platform shoes.";
+    if (/sabrina carpenter/.test(lower))
+      return "Sabrina Carpenter concert. Think hyper-feminine, bows, ballet core, pink tones, corsets, Mary Janes.";
+    if (/olivia rodrigo|sour tour/.test(lower))
+      return "Olivia Rodrigo concert. Think Y2K punk-adjacent, plaid, chunky boots, band tees, mini skirts, dark nail polish.";
+    if (/blackpink|kpop|k-pop|twice|aespa|newjeans|stray kids/.test(lower))
+      return "K-pop concert. Think street style meets high fashion, coordinated sets, platform shoes, mini skirts, statement accessories, lots of layering.";
+    if (/renaissance|disco|70s/.test(lower))
+      return "Disco/70s inspired. Think metallics, flared pants, platform shoes, sequins, bold prints.";
+    if (/wedding|bridal|bride/.test(lower))
+      return "Wedding occasion. Think elegant and appropriate — floral midi, wrap dress, tailored jumpsuit. Never wear white. Dress to celebrate not compete.";
+    if (/job interview|interview/.test(lower))
+      return "Job interview. Think polished and confident — tailored blazer, structured trousers, clean shoes. Power dressing that feels like you.";
+    return "";
+  }
+
+  async function getChatSystemPrompt(userMessage = "", styleMemory = "", personaMemory = "") {
     const trends = await getLatestTrends();
     const locationLabel = localStorage.getItem("styliner_weather_location_label") || "";
-    return getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends, locationLabel) + CHAT_FORMAT_PROMPT;
+    const culturalContext = detectCulturalMoment(userMessage);
+    const basePrompt = getStyleSystemPrompt(styleGenderRef.current, styleInspoRef.current, trends, locationLabel);
+    const culturalAddition = culturalContext ? `\n\nCULTURAL MOMENT DETECTED:\n${culturalContext}\nPrioritize this cultural context in your styling. Make the outfit feel like it belongs at this specific event or moment.\nThe VIBE name MUST reference this cultural moment. 3 words max, editorial and specific, never generic. Bad: "Casual Chic Look". Good: "Purple Army Energy", "Eras Tour Ready", "Desert Festival Bloom".` : "";
+    return basePrompt + culturalAddition + styleMemory + personaMemory + CHAT_FORMAT_PROMPT;
   }
 
   function parseAiResponse(text) {
@@ -7287,6 +7412,31 @@ Only suggest items they don't already own.`;
         `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
       ).join("\n");
 
+      // Fetch style memory from saved outfits
+      const { data: savedLooks } = await supabase
+        .from("saved_outfits")
+        .select("title, description, occasion")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const styleMemory = savedLooks?.length > 0
+        ? `\n\nUSER STYLE MEMORY — This user has saved these looks before, which reveals their taste:\n${savedLooks.map(o => `- ${o.title || o.occasion}: ${o.description || ""}`).join("\n")}\nUse this to inform your suggestions — lean into what they already love.`
+        : "";
+
+      // Fetch style persona
+      const stylePersona = user.user_metadata?.style_persona || "";
+      const userStyleInspo = user.user_metadata?.style_inspo || [];
+      const personaMemory = stylePersona
+        ? `\n\nUSER STYLE PERSONA: This user identifies with ${stylePersona} aesthetic. Their style inspirations are: ${userStyleInspo.join(", ")}. Always lean into this when making suggestions.`
+        : "";
+
+      // Build conversation history for context
+      const recentMessages = messages.slice(-6).map(m => ({
+        role: m.role,
+        content: typeof m.content === "string" ? m.content.slice(0, 500) : "",
+      }));
+
       const result = await runTrackedAnthropicRequest({
         user,
         feature: "chat_generate",
@@ -7294,8 +7444,9 @@ Only suggest items they don't already own.`;
         requestBody: {
           model: "claude-sonnet-4-20250514",
           max_tokens: 1024,
-          system: await getChatSystemPrompt(),
+          system: await getChatSystemPrompt(trimmed, styleMemory, personaMemory),
           messages: [
+            ...recentMessages,
             {
               role: "user",
               content: `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${trimmed}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`,
@@ -7406,7 +7557,7 @@ Only suggest items they don't already own.`;
         requestBody: {
           model: "claude-sonnet-4-20250514",
           max_tokens: 1024,
-          system: await getChatSystemPrompt(),
+          system: await getChatSystemPrompt(occasion),
           messages: [
             {
               role: "user",
@@ -7446,6 +7597,24 @@ Only suggest items they don't already own.`;
     } finally {
       setLoading(false);
       setFadingMsgId(null);
+    }
+  }
+
+  async function handleFeedback(msgId, feedback) {
+    if (isDemoMode || feedbackMsgId === msgId) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from("outfit_feedback").insert({
+        user_id: user.id,
+        conversation_id: activeConvoId,
+        message_id: msgId,
+        feedback,
+      });
+      setFeedbackMsgId(msgId);
+      setTimeout(() => setFeedbackMsgId(null), 2000);
+    } catch (err) {
+      console.error("[ChatScreen] Feedback error:", err);
     }
   }
 
@@ -7987,7 +8156,7 @@ Only suggest items they don't already own.`;
                         <div
                           style={{
                             display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
+                            gridTemplateColumns: imageUrls.length === 6 ? "1fr 1fr 1fr" : "1fr 1fr",
                             gap: "8px",
                             padding: "12px",
                             borderRadius: "20px",
@@ -7995,8 +8164,9 @@ Only suggest items they don't already own.`;
                             marginTop: "10px",
                           }}
                         >
-                          {imageUrls.slice(0, 4).map((url, i) => {
+                          {imageUrls.slice(0, 6).map((url, i) => {
                             const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
+                            const isLastOdd5 = imageUrls.length === 5 && i === 4;
                             return (
                               <div
                                 key={i}
@@ -8007,6 +8177,7 @@ Only suggest items they don't already own.`;
                                   overflow: "hidden",
                                   background: "#fff",
                                   boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
+                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: "50%", justifySelf: "center" } : {}),
                                 }}
                               >
                                 <img src={absoluteUrl} alt={`Outfit item ${i + 1}`}
@@ -8056,6 +8227,18 @@ Only suggest items they don't already own.`;
                         >
                           {isSaved ? "Saved ♥" : "♡ Save Outfit"}
                         </button>
+                      </div>
+
+                      {/* Feedback buttons */}
+                      <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "6px" }}>
+                        {feedbackMsgId === msg.id ? (
+                          <span style={{ fontSize: "12px", color: "#B08A4A", fontWeight: 500 }}>Thanks! I'll remember that</span>
+                        ) : (
+                          <>
+                            <button type="button" onClick={() => handleFeedback(msg.id, "positive")} style={{ fontSize: "12px", background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "4px 10px", color: "#999", cursor: "pointer" }}>👍</button>
+                            <button type="button" onClick={() => handleFeedback(msg.id, "negative")} style={{ fontSize: "12px", background: "transparent", border: "1px solid #e0e0e0", borderRadius: "100px", padding: "4px 10px", color: "#999", cursor: "pointer" }}>👎</button>
+                          </>
+                        )}
                       </div>
 
                       {/* 6. Why this works toggle */}

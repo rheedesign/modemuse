@@ -2,10 +2,6 @@
   "appId": "com.crhee.styliner",
   "appName": "Styliner",
   "webDir": "dist",
-  "server": {
-    "url": "https://styliner.vercel.app",
-    "cleartext": false
-  },
   "ios": {
     "scrollEnabled": false
   }
