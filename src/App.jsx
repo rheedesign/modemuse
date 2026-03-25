@@ -3,6 +3,16 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import supabase from "./supabase";
 
+function useDeviceType() {
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768);
+  useEffect(() => {
+    const handler = () => setIsTablet(window.innerWidth >= 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return { isTablet, isMobile: !isTablet };
+}
+
 function toHttps(url) {
   if (!url) return url;
   return url.replace(/^http:\/\//i, 'https://');
@@ -139,6 +149,7 @@ function AIGeneratedTag({ className = "", style = {} }) {
 
 function BottomNav() {
   const [mounted, setMounted] = useState(false);
+  const { isTablet } = useDeviceType();
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -157,13 +168,15 @@ function BottomNav() {
         left: "50%",
         transform: "translateX(-50%)",
         bottom: 0,
-        width: "min(430px, 100vw)",
+        width: isTablet ? "min(680px, 100vw)" : "min(430px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
         background: "#fff",
         borderTop: "1px solid #f0f0f0",
-        padding: "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
+        padding: isTablet ? "10px 24px calc(20px + env(safe-area-inset-bottom, 20px))" : "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
         transition: "padding 0.1s ease",
+        borderRadius: isTablet ? "20px 20px 0 0" : 0,
+        boxShadow: isTablet ? "0 -4px 20px rgba(0,0,0,0.06)" : "none",
       }}
     >
       <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, margin: 0, padding: 0, listStyle: "none" }}>
@@ -190,6 +203,9 @@ function BottomNav() {
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
 const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
+const TABLET_MAX_WIDTH = "680px";
+const MOBILE_MAX_WIDTH = "430px";
+function getMaxWidth() { return window.innerWidth >= 768 ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH; }
 const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
 const SHEET_BACKDROP_Z_INDEX = 13000;
 const SHEET_Z_INDEX = 13001;
@@ -1318,11 +1334,12 @@ function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
 }
 
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
+  const { isTablet } = useDeviceType();
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[430px] bg-white shadow-sm">
+    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "max-w-[680px]" : "max-w-[430px]"} bg-white shadow-sm`}>
       <main
-        className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen px-5 pb-28`}
-        style={{ paddingTop: PAGE_TOP_PADDING }}
+        className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen pb-28`}
+        style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px" }}
       >
         {children}
       </main>
@@ -3386,6 +3403,7 @@ WHY: [one punchy sentence about why this works right now]`;
   }
 
   const homeRotationMap = getRotationMap(closetDataRef.current);
+  const { isTablet } = useDeviceType();
 
   return (
       <div
@@ -3393,13 +3411,13 @@ WHY: [one punchy sentence about why this works right now]`;
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "430px",
+        maxWidth: isTablet ? "680px" : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F8F3EA 58%, #F0E7D7 100%)",
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))" }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: `max(88px, calc(env(safe-area-inset-top) + 44px)) ${isTablet ? "48px" : "16px"} calc(100px + env(safe-area-inset-bottom, 16px))` }}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           {weather ? (
@@ -4416,9 +4434,11 @@ function ClosetScreen() {
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("recent");
+  const { isTablet: closetIsTablet } = useDeviceType();
   const [closetGridColumns, setClosetGridColumns] = useState(() => {
     const saved = localStorage.getItem("styliner_closet_grid_columns");
-    return saved === "3" ? 3 : 2;
+    if (saved) return Number(saved);
+    return window.innerWidth >= 768 ? 4 : 2;
   });
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
@@ -4761,14 +4781,14 @@ function ClosetScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "430px",
+        maxWidth: closetIsTablet ? "680px" : "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
       }}
     >
       {/* Header */}
-      <div style={{ padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 0" }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${closetIsTablet ? "48px" : "16px"} 0` }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Closet</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
         <DemoModeBanner />
@@ -6577,8 +6597,8 @@ function UploadScreen() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px calc(160px + env(safe-area-inset-bottom, 16px))" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: getMaxWidth(), margin: "0 auto", background: "white" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: `24px ${window.innerWidth >= 768 ? "48px" : "20px"} calc(160px + env(safe-area-inset-bottom, 16px))` }}>
         <DemoModeBanner />
 
         {phase === "tips" && (
@@ -7768,13 +7788,15 @@ Only suggest items they don't already own.`;
     );
   }
 
+  const { isTablet: chatIsTablet } = useDeviceType();
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "430px",
+        maxWidth: chatIsTablet ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH,
         margin: "0 auto",
         background: "white",
         position: "relative",
@@ -8641,6 +8663,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
   }
 
   const groupedOutfits = sortBy === "occasion" ? buildGroups() : [["all", sortedOutfits]];
+  const { isTablet: favIsTablet } = useDeviceType();
 
   return (
     <div
@@ -8648,13 +8671,13 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: "430px",
+        maxWidth: favIsTablet ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH,
         margin: "0 auto",
         background: "white",
         position: "relative",
       }}
     >
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 0` }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "48px" : "16px"} 0` }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
@@ -8776,7 +8799,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                   </div>
                 )}
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: favIsTablet ? "1fr 1fr" : "1fr", gap: favIsTablet ? "16px" : "18px" }}>
                   {groupItems.map((outfit) => (
                     <div
                       key={outfit.id}
