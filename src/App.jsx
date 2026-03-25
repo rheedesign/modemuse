@@ -2535,24 +2535,41 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
 
 const OUTFIT_COMBINATION_RULES = `
 
-OUTFIT FORMULAS — pick the most editorial one for the occasion:
+ABSOLUTE OUTFIT RULES — never break these under any circumstances:
 
-STANDARD (4 items): Top + Bottom + Shoes + Bag or Accessory
-LAYERED (5 items): Base Top + Layer (cardigan/blazer/scarf/jacket) + Bottom + Shoes + Bag or Accessory
-FULL EDITORIAL (6 items): Base Top + Layer + Bottom + Shoes + Bag + Accessory (jewelry/belt/hat/scarf)
+WHAT COUNTS AS A BOTTOM: Pants, jeans, trousers, shorts, skirt, midi skirt, mini skirt
+WHAT COUNTS AS A TOP: T-shirt, blouse, shirt, tank, turtleneck, sweater, cardigan (when worn as main top)
+WHAT COUNTS AS A LAYER: Blazer, jacket, coat, open cardigan, open shirt worn over another top, vest
+WHAT COUNTS AS A ONE-PIECE: Dress, jumpsuit, romper, co-ord set
 
-Always aim for LAYERED or FULL EDITORIAL unless the weather is above 80F or the occasion is very casual.
-Never include more than 2 tops unless one is clearly a layer (open shirt, cardigan, blazer).
-Always include a bottom OR dress. Always include shoes.
+RULE 1 — NEVER combine a dress with a separate skirt. A dress replaces both top and bottom.
+RULE 2 — NEVER have more than one bottom. One skirt OR one pair of pants. Never both.
+RULE 3 — NEVER have more than 2 tops total (one base top + one layer maximum).
+RULE 4 — ALWAYS include shoes.
+RULE 5 — ALWAYS include either a bottom OR a dress/jumpsuit. Never just tops and accessories.
+RULE 6 — Maximum 2 accessories (bag, jewelry, belt, hat, scarf). Never 3+ accessories with no bottoms.
 
-NEVER do this:
-- Two tops without a bottom
-- Two accessories without a top AND bottom
-- A dress AND separate bottoms
-- Four accessories with no clothing
-- Any combination missing shoes OR missing a bottom (unless it's a dress)
+VALID COMBINATIONS ONLY:
+A) Top + Bottom + Shoes + optional Layer + optional 1-2 Accessories
+B) Dress + Shoes + optional Layer + optional 1-2 Accessories
+C) Top + Skirt + Shoes + optional Layer + optional 1-2 Accessories
+D) Jumpsuit/Co-ord + Shoes + optional 1-2 Accessories
 
-Accessories and bags are additions, never replacements for clothing.`;
+INVALID — NEVER do these:
+❌ Dress + Skirt (two bottoms/one-pieces)
+❌ Dress + Pants (two bottoms)
+❌ Two skirts
+❌ T-shirt + Blazer + Skirt + Dress (dress AND separate skirt AND top)
+❌ Three or more tops
+❌ Only tops and accessories with no bottom or dress
+❌ Four accessories with minimal clothing
+
+LAYERING DONE RIGHT:
+✅ T-shirt (base) + Open blazer (layer) + Jeans (bottom) + Sneakers + Bag
+✅ Slip dress (base) + Denim jacket (layer) + Boots + Necklace
+✅ Turtleneck (base) + Leather trousers + Loafers + Belt bag
+✅ Floral dress + Open cardigan (layer) + Sandals + Straw bag
+❌ NEVER: Dress + Midi skirt + T-shirt + Blazer (this is 4 competing pieces)`;
 
 async function getLatestTrends() {
   try {
@@ -7077,6 +7094,22 @@ Only suggest items they don't already own.`;
       return "Wedding occasion. Think elegant and appropriate — floral midi, wrap dress, tailored jumpsuit. Never wear white. Dress to celebrate not compete.";
     if (/job interview|interview/.test(lower))
       return "Job interview. Think polished and confident — tailored blazer, structured trousers, clean shoes. Power dressing that feels like you.";
+    if (/jw anderson|jonathan anderson/.test(lower))
+      return "JW Anderson aesthetic. Think unexpected whimsy meets high fashion — quirky prints, oversized proportions, intellectual dressing with a sense of humor. Mix something serious with something playful. A structured blazer with a novelty bag. Classic trousers with an unexpected knitwear piece. Always one element that makes you look twice.";
+    if (/bottega|bottega veneta/.test(lower))
+      return "Bottega Veneta quiet luxury. Think intrecciato leather, muted sophisticated palette, no logos, impeccable quality. Understated but expensive. Let the cut and fabric do the talking.";
+    if (/the row/.test(lower))
+      return "The Row minimalism. Think perfect proportions, neutral palette, nothing extraneous. Every piece earns its place. Cashmere, silk, clean lines. Looks effortless but is deeply considered.";
+    if (/jacquemus/.test(lower))
+      return "Jacquemus Mediterranean chic. Think mini proportions, sun-soaked palette, sculptural bags, bare skin, playful silhouettes. Very French South of France energy.";
+    if (/vetements|balenciaga|demna/.test(lower))
+      return "Demna-era Balenciaga or Vetements. Think ironic oversized proportions, streetwear elevated to high fashion, logo play, unexpected silhouettes. Fashion that has a point of view.";
+    if (/comme des garcons|rei kawakubo|cdg/.test(lower))
+      return "Comme des Garçons. Think deconstructed, avant-garde, anti-fashion fashion. Asymmetry, unusual proportions, black as a base, something that challenges conventional beauty. Intellectual dressing.";
+    if (/prada|miu miu/.test(lower))
+      return "Prada/Miu Miu aesthetic. Think retro-inflected intellectualism, unexpected fabric combinations, ballet flats, micro minis, cardigans, the nerd-chic formula. Looks wrong but feels completely right.";
+    if (/ala[iï]a/.test(lower))
+      return "Alaïa aesthetic. Think body-conscious silhouettes, architectural precision, confident femininity. Nothing frivolous — every piece sculpts and celebrates the body.";
     return "";
   }
 
@@ -7116,6 +7149,13 @@ Only suggest items they don't already own.`;
       itemNames = yourLookMatch[1].trim();
       imageUrls.forEach((url) => { itemNames = itemNames.replaceAll(url, ""); });
       itemNames = itemNames.replace(/\([^)]*\)/g, "").replace(/\s+\+\s+/g, " + ").replace(/\s{2,}/g, " ").trim();
+      itemNames = itemNames.replace(/VIBE:.*$/i, '').replace(/\bVIBE\b.*$/i, '').trim();
+      // Validate: dress takes priority over skirt
+      const hasDress = /\b(dress|jumpsuit|romper)\b/i.test(itemNames);
+      const hasSkirt = /\b(skirt|midi skirt|mini skirt)\b/i.test(itemNames);
+      if (hasDress && hasSkirt) {
+        itemNames = itemNames.replace(/\s*\+\s*[^+]*(skirt|midi)[^+]*/gi, '').trim();
+      }
     }
     if (whyMatch) {
       whyText = whyMatch[1].trim();
@@ -8136,7 +8176,7 @@ Only suggest items they don't already own.`;
                   const isFading = fadingMsgId === msg.id;
                   const isSaved = savedMsgIds.has(msg.id);
                   const isExpanded = expandedMsgIds.has(msg.id);
-                  const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).filter(Boolean) : [];
+                  const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0 && s.length < 40 && !s.toLowerCase().includes('vibe')) : [];
                   const shortCaption = whyText ? whyText.split(". ")[0] + "." : "";
                   return (
                     <div ref={msgIndex === messages.length - 1 ? latestAssistantRef : undefined} className={isFading ? "chat-fade-out" : "chat-fade-in"}>
