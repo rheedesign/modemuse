@@ -224,7 +224,7 @@ const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
 const CHAT_DRAWER_Z_INDEX = 12003;
 const CHAT_COMPOSER_Z_INDEX = 12001;
-const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(80px + env(safe-area-inset-bottom, 16px))";
+const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(60px + env(safe-area-inset-bottom, 0px))";
 const AI_USAGE_TABLE = "ai_usage_events";
 const AI_USAGE_DAILY_LIMIT = 10;
 const AI_USAGE_TOTAL_LIMIT = 30;
@@ -5068,9 +5068,35 @@ function ClosetScreen() {
       }}
     >
       {/* Header */}
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${closetIsTablet ? "48px" : "16px"} 0` }}>
-        <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Closet</h1>
-        <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${closetIsTablet ? "24px" : "16px"} 0` }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Closet</h1>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>{items.length} item{items.length !== 1 ? "s" : ""}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/upload")}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              border: "none",
+              background: "#B08A4A",
+              color: "white",
+              fontSize: "24px",
+              fontWeight: 300,
+              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(176,138,74,0.35)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            +
+          </button>
+        </div>
         <DemoModeBanner />
 
         {/* Re-analyze button */}
@@ -5098,7 +5124,7 @@ function ClosetScreen() {
         )}
 
         {/* Filter + Sort buttons */}
-        <div style={{ display: "flex", gap: "6px", marginTop: "14px" }}>
+        <div style={{ display: "flex", gap: "12px", marginTop: "14px", width: "100%" }}>
           <button
             type="button"
             onClick={() => setFilterSheetOpen(true)}
@@ -5346,32 +5372,6 @@ function ClosetScreen() {
         )}
       </div>
 
-      {/* Floating + button */}
-      <button
-        type="button"
-        onClick={() => navigate("/upload")}
-        style={{
-          position: "fixed",
-          bottom: "calc(100px + env(safe-area-inset-bottom, 16px))",
-          right: "max(16px, calc((100vw - 430px) / 2 + 16px))",
-          width: "52px",
-          height: "52px",
-          borderRadius: "50%",
-          border: "none",
-          background: "#B08A4A",
-          color: "white",
-          fontSize: "28px",
-          fontWeight: 300,
-          cursor: "pointer",
-          boxShadow: "0 4px 16px rgba(176,138,74,0.35)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 50,
-        }}
-      >
-        +
-      </button>
 
       {/* Filter bottom sheet */}
       {filterSheetOpen && (
@@ -8365,7 +8365,7 @@ COLORS: ${rule.colors}
       {/* Header */}
       <div
         style={{
-          padding: chatIsTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 32px 16px` : `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
+          padding: chatIsTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 24px 16px` : `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -8432,14 +8432,13 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 32px calc(160px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(160px + env(safe-area-inset-bottom, 16px))",
+          padding: chatIsTablet ? "16px 24px calc(140px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(140px + env(safe-area-inset-bottom, 16px))",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
           width: "100%",
-          maxWidth: chatIsTablet ? "680px" : "none",
-          marginLeft: "auto",
-          marginRight: "auto",
+          maxWidth: "none",
+          alignItems: "flex-start",
         }}
       >
         {isDemoMode && <DemoModeBanner />}
@@ -8866,19 +8865,16 @@ COLORS: ${rule.colors}
         style={{
           position: "fixed",
           bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
-          left: "50%",
-          transform: "translateX(-50%)",
+          left: 0,
+          right: 0,
           width: "100%",
-          maxWidth: chatIsTablet ? "680px" : "430px",
-          padding: "12px 16px",
-          borderTop: "1px solid #eee",
+          padding: chatIsTablet ? "12px 24px" : "12px 16px",
+          borderTop: "1px solid #f0f0f0",
           display: "flex",
           gap: "8px",
           alignItems: "center",
           background: "white",
           zIndex: CHAT_COMPOSER_Z_INDEX,
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.04)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
@@ -9179,7 +9175,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         position: "relative",
       }}
     >
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "48px" : "16px"} 0`, maxWidth: favIsTablet ? TABLET_CONTENT_WIDTH : "none", margin: favIsTablet ? "0 auto" : undefined, width: "100%" }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "24px" : "16px"} 0`, maxWidth: favIsTablet ? TABLET_CONTENT_WIDTH : "none", margin: favIsTablet ? "0 auto" : undefined, width: "100%" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
