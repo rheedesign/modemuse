@@ -1623,33 +1623,38 @@ function SignUpScreen() {
     setError("");
     setIsSubmitting(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName.trim() || undefined,
-          style_gender: styleGender,
-          style_inspo: normalizeStyleInspoSelection(styleInspo),
-          style_persona: stylePersona || undefined,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName.trim() || undefined,
+            style_gender: styleGender,
+            style_inspo: normalizeStyleInspoSelection(styleInspo),
+            style_persona: stylePersona || undefined,
+          },
         },
-      },
-    });
+      });
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (error) {
-      setError(error.message);
-      return;
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      navigate("/starter-wardrobe", {
+        replace: true,
+        state: {
+          styleGender,
+          styleInspo: normalizeStyleInspoSelection(styleInspo),
+        },
+      });
+    } catch (err) {
+      setIsSubmitting(false);
+      setError(err.message || "Something went wrong. Please try again.");
     }
-
-    navigate("/starter-wardrobe", {
-      replace: true,
-      state: {
-        styleGender,
-        styleInspo: normalizeStyleInspoSelection(styleInspo),
-      },
-    });
   }
 
   return (
@@ -1661,7 +1666,47 @@ function SignUpScreen() {
         </div>
         <h2 className="text-center text-2xl font-bold text-gray-900">Create your account</h2>
         <p className="mt-1 text-center text-sm text-gray-600">Start building your digital wardrobe.</p>
-        <form className="mt-8 space-y-4" onSubmit={handleSignUp}>
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'apple',
+                  options: { redirectTo: 'https://styliner.vercel.app' }
+                });
+                if (error) console.error(error);
+              } catch (err) { console.error(err); }
+            }}
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "100px",
+              border: "1.5px solid #e0e0e0",
+              background: "black",
+              color: "white",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              marginBottom: "16px"
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 814 1000" fill="white">
+              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-127.4C46 790.8 0 663.9 0 541.8c0-207.4 135.4-316.8 268.1-316.8 71 0 130.3 46.9 173.8 46.9 42.3 0 109.1-49.9 190.3-49.9 30.5 0 110.1 2.6 170.7 78.2zm-130.8-73.4c-28.1-36.1-75.4-64.9-134-64.9-9.6 0-19.3 1.3-28.9 3.2 26.8-37.5 75.1-77.7 140.4-77.7 6.4 0 12.9.6 19.3 1.3-3.2 12.9-16.7 68.7 3.2 138.1z"/>
+            </svg>
+            Continue with Apple
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
+            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
+            <span style={{ fontSize: "12px", color: "#999", fontWeight: 500 }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
+          </div>
+        </div>
+        <form className="space-y-4" onSubmit={handleSignUp}>
           <Field
             label="First Name"
             name="firstName"
@@ -1995,34 +2040,44 @@ function LogInScreen() {
     setError("");
     setIsSubmitting(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (signInError) {
-      setError(signInError.message);
-      return;
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      navigate("/home", { replace: true });
+    } catch (err) {
+      setIsSubmitting(false);
+      setError(err.message || "Something went wrong. Please try again.");
     }
-
-    navigate("/home", { replace: true });
   }
 
   async function handleResetPassword(event) {
     event.preventDefault();
     setResetError("");
     setResetSubmitting(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: "https://styliner.vercel.app/reset-password",
-    });
-    setResetSubmitting(false);
-    if (error) {
-      setResetError(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: "https://styliner.vercel.app/reset-password",
+      });
+      setResetSubmitting(false);
+      if (error) {
+        setResetError(error.message);
+        return;
+      }
+      setResetSuccess(true);
+    } catch (err) {
+      setResetSubmitting(false);
+      setResetError(err.message || "Something went wrong. Please try again.");
     }
-    setResetSuccess(true);
   }
 
   return (
@@ -2035,8 +2090,49 @@ function LogInScreen() {
         <h2 className="text-center text-2xl font-bold text-gray-900">{forgotMode ? "Reset password" : "Welcome back"}</h2>
         <p className="mt-1 text-center text-sm text-gray-600">{forgotMode ? "Enter your email to receive a reset link" : "Log in to continue with Styliner"}</p>
 
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'apple',
+                  options: { redirectTo: 'https://styliner.vercel.app' }
+                });
+                if (error) console.error(error);
+              } catch (err) { console.error(err); }
+            }}
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "100px",
+              border: "1.5px solid #e0e0e0",
+              background: "black",
+              color: "white",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              marginBottom: "16px"
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 814 1000" fill="white">
+              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-127.4C46 790.8 0 663.9 0 541.8c0-207.4 135.4-316.8 268.1-316.8 71 0 130.3 46.9 173.8 46.9 42.3 0 109.1-49.9 190.3-49.9 30.5 0 110.1 2.6 170.7 78.2zm-130.8-73.4c-28.1-36.1-75.4-64.9-134-64.9-9.6 0-19.3 1.3-28.9 3.2 26.8-37.5 75.1-77.7 140.4-77.7 6.4 0 12.9.6 19.3 1.3-3.2 12.9-16.7 68.7 3.2 138.1z"/>
+            </svg>
+            Continue with Apple
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
+            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
+            <span style={{ fontSize: "12px", color: "#999", fontWeight: 500 }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
+          </div>
+        </div>
+
         {forgotMode ? (
-          <div className="mt-8 space-y-4">
+          <div className="space-y-4">
             {resetSuccess ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
                 <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111", marginBottom: "8px" }}>Check your email for a reset link!</p>
@@ -2068,7 +2164,7 @@ function LogInScreen() {
             )}
           </div>
         ) : (
-          <form className="mt-8 space-y-4" onSubmit={handleLogIn}>
+          <form className="space-y-4" onSubmit={handleLogIn}>
             <Field
               label="Email"
               name="email"
@@ -2138,16 +2234,21 @@ function ResetPasswordScreen() {
     }
 
     setIsSubmitting(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-    setIsSubmitting(false);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      setIsSubmitting(false);
 
-    if (updateError) {
-      setError(updateError.message);
-      return;
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+
+      setSuccess(true);
+      setTimeout(() => navigate("/home", { replace: true }), 2000);
+    } catch (err) {
+      setIsSubmitting(false);
+      setError(err.message || "Something went wrong. Please try again.");
     }
-
-    setSuccess(true);
-    setTimeout(() => navigate("/home", { replace: true }), 2000);
   }
 
   return (
