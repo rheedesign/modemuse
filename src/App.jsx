@@ -168,7 +168,7 @@ function BottomNav() {
         left: "50%",
         transform: "translateX(-50%)",
         bottom: 0,
-        width: isTablet ? "min(680px, 100vw)" : "min(430px, 100vw)",
+        width: isTablet ? "100%" : "min(430px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
         background: "#fff",
@@ -203,9 +203,14 @@ function BottomNav() {
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
 const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
-const TABLET_MAX_WIDTH = "680px";
+const TABLET_MAX_WIDTH = "100%";
 const MOBILE_MAX_WIDTH = "430px";
+const TABLET_CONTENT_WIDTH = "680px";
 function getMaxWidth() { return window.innerWidth >= 768 ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH; }
+function getSheetStyle(isTablet) {
+  if (isTablet) return { position: "fixed", top: "50%", left: "50%", transform: "translateX(-50%) translateY(-50%)", width: "min(600px, 90vw)", maxHeight: "80vh", borderRadius: "24px", zIndex: SHEET_Z_INDEX, background: "white", boxShadow: "0 25px 60px rgba(0,0,0,0.25)" };
+  return { position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: MOBILE_MAX_WIDTH, margin: "0 auto", borderRadius: "24px 24px 0 0", zIndex: SHEET_Z_INDEX, background: "white", maxHeight: SHEET_MAX_HEIGHT };
+}
 const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
 const SHEET_BACKDROP_Z_INDEX = 13000;
 const SHEET_Z_INDEX = 13001;
@@ -1336,7 +1341,7 @@ function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
   const { isTablet } = useDeviceType();
   return (
-    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "max-w-[680px]" : "max-w-[430px]"} bg-white shadow-sm`}>
+    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "" : "max-w-[430px]"} bg-white shadow-sm`}>
       <main
         className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen pb-28`}
         style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px" }}
@@ -1443,26 +1448,41 @@ function OnboardingSplash() {
     <div
       style={{
         minHeight: "100dvh",
-        maxWidth: "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #C6A05C 0%, #D6B77A 100%)",
         color: "white",
-        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)",
         boxSizing: "border-box",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: window.innerWidth >= 768 ? "row" : "column",
         justifyContent: "space-between",
+        ...(window.innerWidth >= 768
+          ? { alignItems: "stretch" }
+          : { maxWidth: "430px", padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)" }),
       }}
     >
-      <div style={{ textAlign: "center", paddingTop: "30px" }}>
-        <div style={{ fontSize: "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em" }}>STYLINER</div>
-        <p style={{ margin: "14px 0 0", fontSize: "26px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2 }}>Your clothes are already an outfit.</p>
-        <p style={{ marginTop: "8px", fontSize: "18px", fontWeight: 400, color: "rgba(255,255,255,0.85)" }}>We just find it.</p>
+      <div style={{
+        ...(window.innerWidth >= 768
+          ? { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "48px 40px", background: "linear-gradient(180deg, #C6A05C 0%, #B8913F 100%)" }
+          : { textAlign: "center", paddingTop: "30px" }),
+      }}>
+        <div style={{ fontSize: window.innerWidth >= 768 ? "56px" : "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em", textAlign: "center" }}>STYLINER</div>
+        <p style={{ margin: "14px 0 0", fontSize: window.innerWidth >= 768 ? "32px" : "26px", fontWeight: 800, color: "rgba(255,255,255,1)", lineHeight: 1.2, textAlign: "center" }}>Your clothes are already an outfit.</p>
+        <p style={{ marginTop: "8px", fontSize: window.innerWidth >= 768 ? "20px" : "18px", fontWeight: 400, color: "rgba(255,255,255,0.85)", textAlign: "center" }}>We just find it.</p>
+        {window.innerWidth >= 768 && !showGenderPicker && (
+          <div style={{ marginTop: "32px" }}>
+            <OnboardingIllustration />
+          </div>
+        )}
       </div>
 
+      <div style={{
+        ...(window.innerWidth >= 768
+          ? { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "48px 40px", background: "white", color: "#111111" }
+          : {}),
+      }}>
       {showGenderPicker ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "20px 0" }}>
-          <p style={{ fontSize: "17px", fontWeight: 700, margin: 0, textAlign: "center" }}>I'm styling for...</p>
+          <p style={{ fontSize: "17px", fontWeight: 700, margin: 0, textAlign: "center", color: window.innerWidth >= 768 ? "#111111" : "white" }}>I'm styling for...</p>
           {[
             { value: "womens", label: "Women's" },
             { value: "mens", label: "Men's" },
@@ -1477,10 +1497,10 @@ function OnboardingSplash() {
                 maxWidth: "280px",
                 padding: "16px 20px",
                 borderRadius: "100px",
-                border: "2px solid rgba(255,255,255,0.5)",
-                background: "rgba(255,255,255,0.15)",
-                backdropFilter: "blur(8px)",
-                color: "white",
+                border: window.innerWidth >= 768 ? "2px solid #B08A4A" : "2px solid rgba(255,255,255,0.5)",
+                background: window.innerWidth >= 768 ? "#F5EDE0" : "rgba(255,255,255,0.15)",
+                backdropFilter: window.innerWidth >= 768 ? "none" : "blur(8px)",
+                color: window.innerWidth >= 768 ? "#B08A4A" : "white",
                 fontSize: "16px",
                 fontWeight: 700,
                 cursor: "pointer",
@@ -1494,26 +1514,30 @@ function OnboardingSplash() {
           <button
             type="button"
             onClick={() => setShowGenderPicker(false)}
-            style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: 600, cursor: "pointer", marginTop: "8px" }}
+            style={{ background: "transparent", border: "none", color: window.innerWidth >= 768 ? "#888" : "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: 600, cursor: "pointer", marginTop: "8px" }}
           >
             Back
           </button>
         </div>
       ) : (
+        <>
+        {window.innerWidth < 768 && (
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0" }}>
           <OnboardingIllustration />
         </div>
+        )}
+        </>
       )}
 
       {!showGenderPicker && (
-        <div style={{ display: "grid", gap: "14px", paddingBottom: "6px" }}>
+        <div style={{ display: "grid", gap: "14px", paddingBottom: "6px", maxWidth: window.innerWidth >= 768 ? "340px" : "none", width: "100%" }}>
           <NavLink to="/signup" className="block" style={{ textDecoration: "none" }}>
-            <PillButton variant="outline" style={{ background: "#fff", color: "#8A6A3C", border: "1px solid rgba(255,255,255,0.68)", boxShadow: "0 12px 24px rgba(92,58,18,0.10)" }}>
+            <PillButton variant="outline" style={{ background: window.innerWidth >= 768 ? "#B08A4A" : "#fff", color: window.innerWidth >= 768 ? "white" : "#8A6A3C", border: window.innerWidth >= 768 ? "none" : "1px solid rgba(255,255,255,0.68)", boxShadow: "0 12px 24px rgba(92,58,18,0.10)" }}>
               Sign Up
             </PillButton>
           </NavLink>
           <NavLink to="/login" className="block" style={{ textDecoration: "none" }}>
-            <PillButton variant="outline" style={{ background: "rgba(255,255,255,0.38)", color: "#111111", border: "1px solid rgba(255,255,255,0.72)" }}>
+            <PillButton variant="outline" style={{ background: window.innerWidth >= 768 ? "white" : "rgba(255,255,255,0.38)", color: "#111111", border: window.innerWidth >= 768 ? "1.5px solid #e0e0e0" : "1px solid rgba(255,255,255,0.72)" }}>
               Log In
             </PillButton>
           </NavLink>
@@ -1523,7 +1547,7 @@ function OnboardingSplash() {
             style={{
               background: "transparent",
               border: "none",
-              color: "rgba(255,255,255,1)",
+              color: window.innerWidth >= 768 ? "#B08A4A" : "rgba(255,255,255,1)",
               fontSize: "15px",
               fontWeight: 700,
               cursor: "pointer",
@@ -1535,12 +1559,13 @@ function OnboardingSplash() {
             See it in action →
           </button>
           <div style={{ textAlign: "center", paddingTop: "2px" }}>
-            <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.92)", textDecoration: "none" }}>
+            <NavLink to="/privacy" style={{ fontSize: "12px", fontWeight: 700, color: window.innerWidth >= 768 ? "#999" : "rgba(255,255,255,0.92)", textDecoration: "none" }}>
               Terms and privacy policy
             </NavLink>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -1659,7 +1684,7 @@ function SignUpScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", maxWidth: "480px", margin: "0 auto" }}>
         <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
@@ -2082,7 +2107,7 @@ function LogInScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", maxWidth: "480px", margin: "0 auto" }}>
         <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
@@ -3596,7 +3621,7 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: isTablet ? "680px" : "430px",
+        maxWidth: isTablet ? TABLET_MAX_WIDTH : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F8F3EA 58%, #F0E7D7 100%)",
         position: "relative",
@@ -4051,25 +4076,16 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
         <>
           <div
             onClick={() => setProfileSheetOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX, maxWidth: "430px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX }}
           />
           <div
             style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxWidth: "430px",
-              margin: "0 auto",
-              background: "white",
-              borderRadius: "24px 24px 0 0",
+              ...getSheetStyle(isTablet),
               padding: "20px 20px 0",
-              zIndex: SHEET_Z_INDEX,
-              maxHeight: SHEET_MAX_HEIGHT,
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
-              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+              boxShadow: isTablet ? "0 25px 60px rgba(0,0,0,0.25)" : "0 -4px 24px rgba(0,0,0,0.12)",
               isolation: "isolate",
             }}
           >
@@ -4236,25 +4252,15 @@ Only include URLs from the wardrobe list above. Never invent URLs.`;
         <>
           <div
             onClick={() => setLocationSheetOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX, maxWidth: "430px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX }}
           />
           <div
             style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxWidth: "430px",
-              margin: "0 auto",
-              background: "white",
-              borderRadius: "24px 24px 0 0",
+              ...getSheetStyle(isTablet),
               padding: "20px 20px 0",
-              zIndex: SHEET_Z_INDEX,
-              maxHeight: SHEET_MAX_HEIGHT,
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
-              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
               isolation: "isolate",
             }}
           >
@@ -5318,18 +5324,8 @@ function ClosetScreen() {
         <>
           <div onClick={() => setFilterSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: SHEET_BACKDROP_Z_INDEX }} />
           <div style={{
-            position: "fixed",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxWidth: "430px",
-            background: "white",
-            borderRadius: "24px 24px 0 0",
+            ...getSheetStyle(closetIsTablet),
             padding: "20px 20px 16px",
-            zIndex: SHEET_Z_INDEX,
-            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-            maxHeight: SHEET_MAX_HEIGHT,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -5483,18 +5479,8 @@ function ClosetScreen() {
         <>
           <div onClick={() => setSortSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: SHEET_BACKDROP_Z_INDEX }} />
           <div style={{
-            position: "fixed",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxWidth: "430px",
-            background: "white",
-            borderRadius: "24px 24px 0 0",
+            ...getSheetStyle(closetIsTablet),
             padding: "20px 20px 16px",
-            zIndex: SHEET_Z_INDEX,
-            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-            maxHeight: SHEET_MAX_HEIGHT,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -5558,19 +5544,21 @@ function ClosetScreen() {
           {/* Bottom sheet */}
           <div
             style={{
-              position: "fixed",
-              bottom: 0,
-              left: "50%",
-              transform: `translateX(-50%) translateY(${actionSheetVisible ? "0" : "100%"})`,
-              width: "100%",
-              maxWidth: "430px",
+              ...(closetIsTablet ? {
+                position: "fixed", top: "50%", left: "50%",
+                transform: `translateX(-50%) translateY(${actionSheetVisible ? "-50%" : "100%"})`,
+                width: "min(600px, 90vw)", borderRadius: "24px",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.25)", zIndex: 13000,
+              } : {
+                position: "fixed", bottom: 0, left: "50%",
+                transform: `translateX(-50%) translateY(${actionSheetVisible ? "0" : "100%"})`,
+                width: "100%", maxWidth: "430px", borderRadius: "20px 20px 0 0",
+                boxShadow: "0 -8px 40px rgba(0,0,0,0.15)", zIndex: 13000,
+              }),
               background: "white",
-              borderRadius: "20px 20px 0 0",
-              boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
-              zIndex: 13000,
               transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
               paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
-              maxHeight: SHEET_MAX_HEIGHT,
+              maxHeight: closetIsTablet ? "80vh" : SHEET_MAX_HEIGHT,
               overflowY: "auto",
               WebkitOverflowScrolling: "touch",
             }}
@@ -5881,7 +5869,7 @@ function ItemDetailScreen() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? TABLET_MAX_WIDTH : "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "#999", fontSize: "14px" }}>Loading...</p>
       </div>
     );
@@ -5889,7 +5877,7 @@ function ItemDetailScreen() {
 
   if (!item) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? TABLET_MAX_WIDTH : "430px", margin: "0 auto", background: "white", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "#999", fontSize: "14px" }}>Item not found.</p>
         <button onClick={() => navigate("/closet")} style={{ marginTop: "12px", background: "none", border: "none", color: "#B08A4A", fontWeight: 600, cursor: "pointer", fontSize: "14px" }}>Back to Closet</button>
       </div>
@@ -5897,7 +5885,7 @@ function ItemDetailScreen() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: "430px", margin: "0 auto", background: "white" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? TABLET_MAX_WIDTH : "430px", margin: "0 auto", background: "white" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: "0 0 calc(180px + env(safe-area-inset-bottom, 16px))" }}>
         {/* Back button */}
         <button
@@ -6263,21 +6251,12 @@ function ItemDetailScreen() {
         <>
           <div
             onClick={() => !merging && setMergeModalOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX, maxWidth: "430px", margin: "0 auto" }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX }}
           />
           <div
             style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxWidth: "430px",
-              margin: "0 auto",
-              background: "white",
-              borderRadius: "24px 24px 0 0",
+              ...getSheetStyle(window.innerWidth >= 768),
               padding: "20px 20px 32px",
-              zIndex: SHEET_Z_INDEX,
-              maxHeight: SHEET_MAX_HEIGHT,
               display: "flex",
               flexDirection: "column",
             }}
@@ -7165,7 +7144,7 @@ function UploadScreen() {
 
       {/* Bottom CTA — fixed */}
       {phase === "pick" && selectedFiles.length > 0 && (
-        <div style={{ position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)", width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50, textAlign: "center" }}>
+        <div style={{ position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)", width: "calc(100% - 40px)", maxWidth: window.innerWidth >= 768 ? "600px" : "430px", zIndex: 50, textAlign: "center" }}>
           <button onClick={handleAnalyze} style={{
             width: "100%",
             padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
@@ -7182,7 +7161,7 @@ function UploadScreen() {
       {phase === "confirm" && (
         <button onClick={handleSave} style={{
           position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 16px))", left: "50%", transform: "translateX(-50%)",
-          width: "calc(100% - 40px)", maxWidth: "430px", zIndex: 50,
+          width: "calc(100% - 40px)", maxWidth: window.innerWidth >= 768 ? "600px" : "430px", zIndex: 50,
           padding: "14px", borderRadius: "100px", background: "#B08A4A", border: "none",
           color: "white", fontWeight: "600", fontSize: "15px", cursor: "pointer",
           boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
@@ -8269,7 +8248,7 @@ COLORS: ${rule.colors}
           top: 0,
           left: 0,
           bottom: 0,
-          width: "300px",
+          width: chatIsTablet ? "360px" : "300px",
           background: "white",
           zIndex: CHAT_DRAWER_Z_INDEX,
           transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
@@ -8398,6 +8377,9 @@ COLORS: ${rule.colors}
           display: "flex",
           flexDirection: "column",
           gap: "12px",
+          maxWidth: chatIsTablet ? "700px" : "none",
+          marginLeft: "auto",
+          marginRight: "auto",
         }}
       >
         {isDemoMode && <DemoModeBanner />}
@@ -8820,7 +8802,7 @@ COLORS: ${rule.colors}
           left: "50%",
           transform: "translateX(-50%)",
           width: "100%",
-          maxWidth: "430px",
+          maxWidth: chatIsTablet ? "700px" : "430px",
           padding: "12px 16px",
           borderTop: "1px solid #eee",
           display: "flex",
@@ -8886,18 +8868,9 @@ COLORS: ${rule.colors}
           />
           <div
             style={{
-              position: "fixed",
-              bottom: 0,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "100%",
-              maxWidth: "430px",
-              background: "white",
-              borderRadius: "24px 24px 0 0",
+              ...getSheetStyle(chatIsTablet),
               padding: "24px 20px 32px",
-              zIndex: SHEET_Z_INDEX,
-              boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-              maxHeight: SHEET_MAX_HEIGHT,
+              boxShadow: chatIsTablet ? "0 25px 60px rgba(0,0,0,0.25)" : "0 -4px 24px rgba(0,0,0,0.12)",
               overflowY: "auto",
             }}
           >
@@ -9133,7 +9106,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         position: "relative",
       }}
     >
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "48px" : "16px"} 0` }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "48px" : "16px"} 0`, maxWidth: favIsTablet ? TABLET_CONTENT_WIDTH : "none", margin: favIsTablet ? "0 auto" : undefined, width: "100%" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
@@ -9244,7 +9217,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
             )}
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div style={{ display: favIsTablet ? "grid" : "flex", gridTemplateColumns: favIsTablet ? "1fr 1fr" : undefined, flexDirection: favIsTablet ? undefined : "column", gap: "18px" }}>
             {groupedOutfits.map(([groupKey, groupItems]) => (
               <div key={groupKey} style={{ marginBottom: sortBy === "occasion" ? "6px" : 0 }}>
                 {sortBy === "occasion" && (
@@ -9381,18 +9354,8 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         <>
           <div onClick={() => setFilterSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: SHEET_BACKDROP_Z_INDEX }} />
           <div style={{
-            position: "fixed",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxWidth: "430px",
-            background: "white",
-            borderRadius: "24px 24px 0 0",
+            ...getSheetStyle(favIsTablet),
             padding: "20px 20px 16px",
-            zIndex: SHEET_Z_INDEX,
-            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-            maxHeight: SHEET_MAX_HEIGHT,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -9459,18 +9422,8 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         <>
           <div onClick={() => setSortSheetOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: SHEET_BACKDROP_Z_INDEX }} />
           <div style={{
-            position: "fixed",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxWidth: "430px",
-            background: "white",
-            borderRadius: "24px 24px 0 0",
+            ...getSheetStyle(favIsTablet),
             padding: "20px 20px 16px",
-            zIndex: SHEET_Z_INDEX,
-            boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-            maxHeight: SHEET_MAX_HEIGHT,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
