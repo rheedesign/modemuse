@@ -2746,6 +2746,25 @@ Cultural references beyond concerts — catch ALL of these:
 
 The goal is always: give them the outfit they didn't know they wanted but immediately understand is exactly right.
 
+STYLING AUTHORITY — BE HONEST NOT SYCOPHANTIC:
+You are a world-class stylist with genuine expertise. When a user asks a question or makes a statement, respond with honest expert advice — not agreement for the sake of being agreeable.
+
+NEVER just agree with what the user says. If they're wrong, correct them kindly but confidently. Examples:
+
+User: "Shouldn't I wear white to a baptism?"
+WRONG response: "You're absolutely right, white is perfect!"
+CORRECT response: "Actually white is totally fine for a baptism — it's a joyful, light occasion. The 'don't wear white' rule is specifically for weddings. For a baptism, cream, white, pastels and soft neutrals are all appropriate and respectful."
+
+User: "I think I should wear sneakers to this wedding"
+WRONG response: "Sneakers could totally work!"
+CORRECT response: "I'd skip the sneakers for a wedding — even a casual one. A clean loafer or a dressy boot gives the same comfort but shows you made an effort. Save the sneakers for the after-party."
+
+User: "Can I wear a graphic tee to a job interview?"
+WRONG response: "A graphic tee can definitely make a statement!"
+CORRECT response: "For most interviews, I'd leave the graphic tee at home. A clean, well-fitted solid tee under a blazer gives the same relaxed energy but reads as intentional rather than underdressed. Exception: creative industries where personality in dress is expected."
+
+Your job is to be the friend who tells you the truth in the fitting room — not the friend who says everything looks great. Be warm, be confident, be specific, and always explain WHY.
+
 `;
 
   const WOMENS_PROMPT = CORE_PHILOSOPHY + `You are a world-class fashion stylist with deep knowledge of current trends. You follow fashion weeks, read Vogue and i-D, love designers like Toteme, The Row, Jacquemus, Reformation, Alaïa, Bottega Veneta, and emerging labels. You understand the full spectrum of current aesthetics including: office siren, ballet core evolved, quiet luxury 2.0, sport luxe, new minimalism, boho revival, post-ironic Y2K, dark academia, and the ongoing No Buy / underconsumption movement where people want to style what they own rather than buy new things.
@@ -2906,6 +2925,28 @@ function WeatherIcon({ kind, color = "#B08A4A" }) {
   );
 }
 
+function deduplicateOutfitByCategory(urls, closetItems) {
+  const seenCategories = new Set();
+  const validUrls = [];
+  for (const url of urls) {
+    const item = (closetItems || []).find((i) => i.image_url === url);
+    const category = item?.category || "Other";
+    if (category === "Co-ord Set" || category === "Co-ord Sets") {
+      if (seenCategories.has("Tops") || seenCategories.has("Bottoms") || seenCategories.has("Dresses")) continue;
+      seenCategories.add("Tops");
+      seenCategories.add("Bottoms");
+      validUrls.push(url);
+      continue;
+    }
+    if (seenCategories.has(category) && category !== "Other") continue;
+    if ((category === "Dresses") && (seenCategories.has("Tops") || seenCategories.has("Bottoms"))) continue;
+    if ((category === "Tops" || category === "Bottoms" || category === "Skirts") && seenCategories.has("Dresses")) continue;
+    seenCategories.add(category);
+    validUrls.push(url);
+  }
+  return validUrls;
+}
+
 function HomeScreen() {
   const navigate = useNavigate();
   const { isDemoMode, demoGender, setDemoGender, demoClosetItems, setDemoClosetItems, showDemoPrompt, updateDemoClosetItem } = useDemoMode();
@@ -3039,8 +3080,10 @@ function HomeScreen() {
   }, []);
 
   function getRotationMap(items) {
-    return Object.fromEntries((items || []).map((item) => [item.image_url, item.rotation || 0]));
+    return Object.fromEntries((items || []).map((item) => [item.image_url, item.rotation ? `${item.rotation}deg` : "0deg"]));
   }
+
+
 
   function getOutfitSignature(urls) {
     return [...new Set((urls || []).filter(Boolean))].sort().join("|");
@@ -3307,10 +3350,11 @@ function HomeScreen() {
       if (user) {
         const { data: items } = await supabase
           .from("clothing_items")
-          .select("image_url, name, category")
+          .select("image_url, name, category, rotation")
           .eq("user_id", user.id)
           .limit(15);
         itemsList = items || [];
+        closetDataRef.current = itemsList;
       } else {
         itemsList = closetDataRef.current;
       }
@@ -3366,15 +3410,34 @@ Layering is the current #1 trend. Always suggest at least one layering element u
         avoidInstruction = `\n\nIMPORTANT: Do NOT repeat the last outfit. Avoid these recently used items: ${recentNames.join(", ")}. Pick a completely different combination with a different vibe, different hero piece, different footwear, and a different color story. Surprise me.`;
       }
 
-      const prompt = `Pick 5-6 items from this wardrobe for a complete layered look. Always include a base top, a layering piece (cardigan/blazer/jacket/scarf/open shirt), bottom or dress, shoes, and at least one accessory or bag. Weather: ${weatherText}.
+      const prompt = `You are building a real outfit from this wardrobe. Follow these rules STRICTLY:
 
-Wardrobe:
-${itemsText}${avoidInstruction}
+WARDROBE:
+${itemsText}
 
-Reply in EXACTLY this format with no other text:
+WEATHER: ${weatherText}
+${avoidInstruction}
+
+OUTFIT RULES — NEVER BREAK THESE:
+- Pick EXACTLY one bottom (pants/jeans/skirt) OR one dress/jumpsuit — NEVER both
+- Pick EXACTLY one main top OR use the dress as the full outfit
+- A "Co-ord Set" counts as BOTH top AND bottom — never add another top or bottom
+- Pick EXACTLY one pair of shoes
+- You may add ONE layer (blazer/jacket/cardigan) if weather allows
+- You may add ONE bag OR ONE accessory (ring/bracelet/necklace) — not both unless it's a very dressed up occasion
+- NEVER pick two items from the same category
+- NEVER pick a dress AND a separate skirt or pants
+- NEVER pick a co-ord set AND a separate top or bottom
+- Total items: minimum 3 (top/dress + bottom + shoes), maximum 5
+
+Before finalizing, mentally check: "Does this make a real wearable outfit a human would actually wear?"
+
+Reply in EXACTLY this format:
 VIBE: [3 word vibe name]
-ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]|[image_url5]|[image_url6]
-WHY: [one punchy sentence about why this works right now]`;
+ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
+WHY: [one punchy sentence about why this works right now]
+
+Only include URLs from the wardrobe list above. Never invent URLs.`;
 
       const response = await fetch("https://styliner.vercel.app/api/anthropic", {
         method: "POST",
@@ -3399,9 +3462,10 @@ WHY: [one punchy sentence about why this works right now]`;
       const whyMatch = text.match(/WHY:\s*(.+)/);
 
       const vibe = vibeMatch?.[1]?.trim() || "Today's Look";
-      const imageUrls = itemsMatch?.[1]?.split("|").map((u) => u.trim()).filter(Boolean) || [];
+      const rawImageUrls = itemsMatch?.[1]?.split("|").map((u) => u.trim()).filter(Boolean) || [];
       const why = whyMatch?.[1]?.trim() || "";
 
+      const imageUrls = deduplicateOutfitByCategory(rawImageUrls, closetDataRef.current);
       setSuggestedImages(imageUrls);
       setSuggestionVibe(vibe);
       setSuggestionCaption(why);
@@ -7751,7 +7815,8 @@ Only suggest items they don't already own.`;
       const rawAiText = result.content?.[0]?.text || "";
       const aiText = rawAiText.trim() || "Sorry, I couldn't generate a suggestion right now. Please try again.";
       console.log("[DEBUG] AI raw response:", aiText);
-      const { imageUrls } = parseAiResponse(aiText);
+      const { imageUrls: rawImageUrls } = parseAiResponse(aiText);
+      const imageUrls = deduplicateOutfitByCategory(rawImageUrls, items);
 
       // Save assistant message
       const { data: savedAssistant, error: saveAssistantErr } = await supabase
@@ -7863,7 +7928,8 @@ Only suggest items they don't already own.`;
 
       const aiText = result.content?.[0]?.text || "Sorry, I couldn't generate a suggestion.";
       console.log("[DEBUG] AI raw response:", aiText);
-      const { imageUrls } = parseAiResponse(aiText);
+      const { imageUrls: rawRetryUrls } = parseAiResponse(aiText);
+      const imageUrls = deduplicateOutfitByCategory(rawRetryUrls, items);
 
       const oldMsgId = messages[assistantMsgIndex].id;
       await supabase.from("chat_messages").delete().eq("id", oldMsgId);
