@@ -1,3 +1,33 @@
+const RSS_FEEDS = [
+  "https://www.whowhatwear.com/rss",
+  "https://www.refinery29.com/rss.xml",
+  "https://www.instyle.com/rss/all.xml",
+];
+
+function extractRssText(xml) {
+  const items = [];
+  const itemRegex = /<item[\s>][\s\S]*?<\/item>/gi;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const block = match[0];
+    const title = block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "";
+    const desc = block.match(/<description[^>]*>([\s\S]*?)<\/description>/i)?.[1] || "";
+    const clean = (title + " " + desc)
+      .replace(/<!\[CDATA\[/g, "")
+      .replace(/\]\]>/g, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (clean) items.push(clean);
+  }
+  return items.join("\n");
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -26,17 +56,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch trend content
-    const trendResponse = await fetch("https://www.whowhatwear.com/fashion/trends", {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; Styliner/1.0)" },
-    });
+    // 1. Fetch trend content from multiple RSS feeds in parallel
+    const feedResults = await Promise.allSettled(
+      RSS_FEEDS.map((url) =>
+        fetch(url, {
+          headers: { "User-Agent": "Styliner/1.0 RSS Reader" },
+        }).then((r) => {
+          if (!r.ok) throw new Error(`${url} returned ${r.status}`);
+          return r.text();
+        })
+      )
+    );
 
-    if (!trendResponse.ok) {
-      return res.status(502).json({ error: `Failed to fetch trends: ${trendResponse.status}` });
+    const feedTexts = feedResults
+      .filter((r) => r.status === "fulfilled")
+      .map((r) => extractRssText(r.value));
+
+    const successCount = feedTexts.length;
+    const failedFeeds = feedResults
+      .map((r, i) => (r.status === "rejected" ? RSS_FEEDS[i] : null))
+      .filter(Boolean);
+
+    if (successCount === 0) {
+      return res.status(502).json({ error: "All RSS feeds failed", failedFeeds });
     }
 
-    const html = await trendResponse.text();
-    const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 8000);
+    const text = feedTexts.join("\n\n").slice(0, 8000);
 
     // 2. Ask Anthropic to summarize trends
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -52,7 +97,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "user",
-            content: `You are a fashion trend analyst. Based on this scraped content from Who What Wear, extract the latest fashion trends.\n\nContent:\n${text}\n\nReturn ONLY a JSON object with these keys:\n- womens_trends: 6 bullet points of current women's fashion trends\n- mens_trends: 6 bullet points of current men's fashion trends\n- fluid_trends: 6 bullet points of current gender-fluid/unisex fashion trends\n\nEach bullet must start with "•" and be one punchy, specific sentence about a trend happening right now. Be specific about colors, silhouettes, brands, or pieces. No preamble, no markdown code fences, just the raw JSON object.`,
+            content: `You are a fashion trend analyst. Based on this content scraped from fashion RSS feeds (Who What Wear, Refinery29, InStyle), extract the latest fashion trends.\n\nContent:\n${text}\n\nReturn ONLY a JSON object with these keys:\n- womens_trends: 6 bullet points of current women's fashion trends\n- mens_trends: 6 bullet points of current men's fashion trends\n- fluid_trends: 6 bullet points of current gender-fluid/unisex fashion trends\n\nEach bullet must start with "•" and be one punchy, specific sentence about a trend happening right now. Be specific about colors, silhouettes, brands, or pieces. No preamble, no markdown code fences, just the raw JSON object.`,
           },
         ],
       }),
@@ -107,7 +152,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: `Supabase insert failed: ${errText.slice(0, 200)}` });
     }
 
-    return res.status(200).json({ success: true, trends });
+    return res.status(200).json({ success: true, trends, feedsUsed: successCount, feedsFailed: failedFeeds });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
