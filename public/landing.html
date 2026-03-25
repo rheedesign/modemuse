@@ -249,19 +249,6 @@
       overflow: hidden;
     }
 
-    .phone-frame::before {
-      content: "";
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 26px;
-      background: #1a1a1a;
-      border-radius: 20px;
-      z-index: 10;
-    }
-
     .phone-frame::after {
       content: "";
       position: absolute;
@@ -312,6 +299,39 @@
       font-size: 13px;
       color: var(--gray);
       margin-top: 4px;
+    }
+
+    /* ── EDITORIAL ── */
+    .editorial {
+      padding: 80px 24px;
+      background: var(--warm-white);
+      border-top: 1px solid rgba(176, 138, 74, 0.2);
+      border-bottom: 1px solid rgba(176, 138, 74, 0.2);
+    }
+
+    .editorial h2 {
+      text-align: center;
+      font-size: clamp(26px, 5vw, 38px);
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 40px;
+      letter-spacing: -0.5px;
+    }
+
+    .editorial-body {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .editorial-body p {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #3A352E;
+      margin-bottom: 28px;
+    }
+
+    .editorial-body p:last-child {
+      margin-bottom: 0;
     }
 
     /* ── MANIFESTO ── */
@@ -727,6 +747,16 @@
         <div class="stat-value">0 ads</div>
         <div class="stat-label">ever</div>
       </div>
+    </div>
+  </section>
+
+  <!-- EDITORIAL -->
+  <section class="editorial">
+    <h2>Dressed by data. Styled by you.</h2>
+    <div class="editorial-body">
+      <p>Every Monday, Styliner scans the latest from Vogue, Who What Wear, and the runways &mdash; so your outfit suggestions are always pulling from what's actually trending right now. Not last season. Not last year. Right now.</p>
+      <p>Then we mix that with your local weather and where you are in the world. A rainy Tuesday in London hits different than a sunny Saturday in Miami. Your outfit should too.</p>
+      <p>And when you need something specific &mdash; a garden wedding, a first date, a Monday that needs to feel like a Friday &mdash; just chat. Your AI stylist pulls from your actual closet and builds the look. No shopping required.</p>
     </div>
   </section>
 
