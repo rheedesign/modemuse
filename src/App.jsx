@@ -224,7 +224,7 @@ const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
 const CHAT_DRAWER_Z_INDEX = 12003;
 const CHAT_COMPOSER_Z_INDEX = 12001;
-const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(60px + env(safe-area-inset-bottom, 0px))";
+const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(64px + env(safe-area-inset-bottom, 0px))";
 const AI_USAGE_TABLE = "ai_usage_events";
 const AI_USAGE_DAILY_LIMIT = 10;
 const AI_USAGE_TOTAL_LIMIT = 30;
@@ -8432,7 +8432,7 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 24px calc(140px + env(safe-area-inset-bottom, 16px))" : "16px 16px calc(140px + env(safe-area-inset-bottom, 16px))",
+          padding: chatIsTablet ? "16px 24px calc(130px + env(safe-area-inset-bottom, 0px))" : "16px 16px calc(130px + env(safe-area-inset-bottom, 0px))",
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -8868,13 +8868,13 @@ COLORS: ${rule.colors}
           left: 0,
           right: 0,
           width: "100%",
-          padding: chatIsTablet ? "12px 24px" : "12px 16px",
+          padding: chatIsTablet ? "10px 24px" : "10px 16px",
           borderTop: "1px solid #f0f0f0",
           display: "flex",
           gap: "8px",
           alignItems: "center",
           background: "white",
-          zIndex: CHAT_COMPOSER_Z_INDEX,
+          zIndex: 50,
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
@@ -9175,7 +9175,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         position: "relative",
       }}
     >
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "24px" : "16px"} 0`, maxWidth: favIsTablet ? TABLET_CONTENT_WIDTH : "none", margin: favIsTablet ? "0 auto" : undefined, width: "100%" }}>
+      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "24px" : "16px"} 0`, textAlign: "left" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
@@ -9183,7 +9183,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         <DemoModeBanner />
       </div>
 
-      <div style={{ display: "flex", gap: "8px", marginTop: "14px", padding: "0 16px" }}>
+      <div style={{ display: "flex", gap: "8px", marginTop: "14px", padding: favIsTablet ? "0 24px" : "0 16px" }}>
         <button
           type="button"
           onClick={() => setFilterSheetOpen(true)}
@@ -9319,97 +9319,91 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                       </div>
 
                       <div style={{ padding: "10px 4px 2px" }}>
-                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ marginBottom: "8px" }}>
-                              <AIGeneratedTag />
-                            </div>
-                            <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
-                              {getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))}
-                            </p>
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                padding: "3px 9px",
-                                borderRadius: "999px",
-                                background: "rgba(176,138,74,0.08)",
-                                color: "#8A6A3C",
-                                fontSize: "10px",
-                                fontWeight: 700,
-                                letterSpacing: "0.05em",
-                                textTransform: "uppercase",
-                                marginTop: "6px",
-                              }}
-                            >
-                              {getLookbookContextTag(outfit, getConversationTitleForOutfit(outfit.created_at))}
-                            </span>
-                            <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#8A8798", whiteSpace: "nowrap" }}>Saved {formatDate(outfit.created_at)}</p>
-                            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { styleItemMessage: `Style me an outfit like my ${getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))} look` } }); }}
-                                style={{
-                                  border: "1px solid #E6D8BF",
-                                  background: "white",
-                                  color: "#B08A4A",
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  padding: "5px 12px",
-                                  borderRadius: "100px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Style this again →
-                              </button>
-                              <button
-                                type="button"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  const title = getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at));
-                                  const shareData = { title, text: "Check out this outfit from Styliner", url: "https://styliner.vercel.app" };
-                                  if (navigator.share) {
-                                    try { await navigator.share(shareData); } catch {}
-                                  } else {
-                                    try { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); setShareCopiedId(outfit.id); setTimeout(() => setShareCopiedId(null), 2000); } catch {}
-                                  }
-                                }}
-                                style={{
-                                  border: "1px solid #E6D8BF",
-                                  background: "white",
-                                  color: "#B08A4A",
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  padding: "5px 12px",
-                                  borderRadius: "100px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {shareCopiedId === outfit.id ? "Copied!" : "Share Look"}
-                              </button>
-                            </div>
-                          </div>
+                        <div style={{ marginBottom: "8px" }}>
+                          <AIGeneratedTag />
+                        </div>
+                        <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+                          {getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))}
+                        </p>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            padding: "3px 9px",
+                            borderRadius: "999px",
+                            background: "rgba(176,138,74,0.08)",
+                            color: "#8A6A3C",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            letterSpacing: "0.05em",
+                            textTransform: "uppercase",
+                            marginTop: "6px",
+                          }}
+                        >
+                          {getLookbookContextTag(outfit, getConversationTitleForOutfit(outfit.created_at))}
+                        </span>
+                        <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#8A8798", whiteSpace: "nowrap" }}>Saved {formatDate(outfit.created_at)}</p>
+                        <div style={{ display: "flex", gap: "8px", marginTop: "8px", alignItems: "center" }}>
                           <button
                             type="button"
-                            onClick={() => handleRemoveOutfit(outfit.id)}
+                            onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { styleItemMessage: `Style me an outfit like my ${getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))} look` } }); }}
+                            style={{
+                              border: "1px solid #E6D8BF",
+                              background: "white",
+                              color: "#B08A4A",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              padding: "5px 12px",
+                              borderRadius: "100px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Style this again →
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const title = getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at));
+                              const shareData = { title, text: "Check out this outfit from Styliner", url: "https://styliner.vercel.app" };
+                              if (navigator.share) {
+                                try { await navigator.share(shareData); } catch {}
+                              } else {
+                                try { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); setShareCopiedId(outfit.id); setTimeout(() => setShareCopiedId(null), 2000); } catch {}
+                              }
+                            }}
+                            style={{
+                              border: "1px solid #E6D8BF",
+                              background: "white",
+                              color: "#B08A4A",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              padding: "5px 12px",
+                              borderRadius: "100px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {shareCopiedId === outfit.id ? "Copied!" : "Share Look"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRemoveOutfit(outfit.id); }}
                             aria-label="Remove look"
                             title="Remove"
                             style={{
-                              width: "34px",
-                              height: "34px",
-                              borderRadius: "50%",
-                              border: "1px solid rgba(176,138,74,0.24)",
-                              background: "rgba(176,138,74,0.06)",
-                              color: "#B08A4A",
-                              display: "flex",
+                              border: "1px solid #e0e0e0",
+                              background: "white",
+                              color: "#999",
+                              fontSize: "12px",
+                              padding: "6px 12px",
+                              borderRadius: "100px",
+                              cursor: "pointer",
+                              display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              cursor: "pointer",
-                              flexShrink: 0,
-                              marginTop: "-2px",
                             }}
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <line x1="18" y1="6" x2="6" y2="18" />
                               <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
