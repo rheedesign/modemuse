@@ -168,7 +168,7 @@ function BottomNav() {
         left: "50%",
         transform: "translateX(-50%)",
         bottom: 0,
-        width: isTablet ? "100%" : "min(430px, 100vw)",
+        width: isTablet ? "min(768px, 100vw)" : "min(430px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
         background: "#fff",
@@ -205,7 +205,7 @@ function BottomNav() {
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
 const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
-const TABLET_MAX_WIDTH = "100%";
+const TABLET_MAX_WIDTH = "768px";
 const MOBILE_MAX_WIDTH = "430px";
 const TABLET_CONTENT_WIDTH = "680px";
 function getMaxWidth() { return window.innerWidth >= 768 ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH; }
@@ -1348,7 +1348,7 @@ function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
   const { isTablet } = useDeviceType();
   return (
-    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "" : "max-w-[430px]"} bg-white shadow-sm`}>
+    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "max-w-[768px]" : "max-w-[430px]"} bg-white shadow-sm`}>
       <main
         className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen pb-28`}
         style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px" }}
@@ -1473,7 +1473,7 @@ function OnboardingSplash() {
           : { textAlign: "center", paddingTop: "30px" }),
       }}>
         <div style={{ fontSize: window.innerWidth >= 768 ? "56px" : "42px", lineHeight: 1, fontWeight: 800, letterSpacing: "0.08em", textAlign: "center" }}>STYLINER</div>
-        <p style={{ margin: "14px 0 0", fontSize: window.innerWidth >= 768 ? "32px" : "22px", fontWeight: 700, color: "rgba(255,255,255,1)", lineHeight: 1.2, textAlign: "center" }}>Your clothes are already an outfit.</p>
+        <p style={{ margin: "14px 0 0", fontSize: window.innerWidth >= 768 ? "28px" : "18px", fontWeight: 700, color: "rgba(255,255,255,1)", lineHeight: 1.2, textAlign: "center", whiteSpace: "nowrap" }}>Your clothes are already an outfit.</p>
         <p style={{ marginTop: "8px", fontSize: window.innerWidth >= 768 ? "20px" : "18px", fontWeight: 400, color: "rgba(255,255,255,0.85)", textAlign: "center" }}>We just find it.</p>
         {window.innerWidth >= 768 && !showGenderPicker && (
           <div style={{ marginTop: "32px" }}>
@@ -1485,7 +1485,7 @@ function OnboardingSplash() {
       <div style={{
         ...(window.innerWidth >= 768
           ? { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "48px 40px", background: "white", color: "#111111" }
-          : {}),
+          : { flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }),
       }}>
       {showGenderPicker ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "20px 0" }}>
@@ -1529,7 +1529,7 @@ function OnboardingSplash() {
       ) : (
         <>
         {window.innerWidth < 768 && (
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <OnboardingIllustration />
         </div>
         )}
@@ -1583,8 +1583,8 @@ function OnboardingIllustration() {
       src="/branding/Opening.svg"
       alt="Styliner"
       style={{
-        width: "calc(100% - 48px)",
-        maxWidth: "390px",
+        width: "calc(100% - 32px)",
+        maxWidth: "380px",
         height: "auto",
         display: "block",
         margin: "0 auto",
@@ -2386,7 +2386,7 @@ function PrivacyPolicyScreen() {
             },
             {
               title: "Your controls",
-              body: "You can update profile info, delete saved looks, remove closet items, and log out at any time. Contact us if you want data removed.",
+              body: "You can update profile info, delete saved looks, remove closet items, and log out at any time. To permanently delete your account and all associated data, use the Delete Account option in your profile settings.",
             },
           ].map((section) => (
             <div key={section.title} style={{ borderRadius: "20px", background: "rgba(255,255,255,0.82)", border: "1px solid rgba(176,138,74,0.14)", padding: "16px" }}>
@@ -3002,6 +3002,8 @@ function HomeScreen() {
   const [countdownText, setCountdownText] = useState("");
   const DAILY_LOOK_LIMIT = 10;
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [deleteConfirmStep, setDeleteConfirmStep] = useState(0); // 0=hidden, 1=first confirm, 2=final confirm
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [editStyleGender, setEditStyleGender] = useState("womens");
   const [editStyleInspo, setEditStyleInspo] = useState([]);
@@ -4128,7 +4130,7 @@ Only use URLs from the wardrobe list above.`;
       {profileSheetOpen && (
         <>
           <div
-            onClick={() => setProfileSheetOpen(false)}
+            onClick={() => { setProfileSheetOpen(false); setDeleteConfirmStep(0); }}
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: SHEET_BACKDROP_Z_INDEX }}
           />
           <div
@@ -4250,6 +4252,32 @@ Only use URLs from the wardrobe list above.`;
                   subtitle="Pick up to 3 vibes"
                 />
               </div>
+
+              {/* Delete Account */}
+              {!isDemoMode && (
+                <div style={{ marginBottom: "24px", paddingTop: "16px", borderTop: "1px solid #f0f0f0" }}>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmStep(1)}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "100px",
+                      border: "1.5px solid #e74c3c",
+                      background: "white",
+                      color: "#e74c3c",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete Account
+                  </button>
+                  <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#999", textAlign: "center", lineHeight: 1.4 }}>
+                    Permanently deletes all your data including closet, conversations, and saved looks.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Save button */}
@@ -4299,6 +4327,163 @@ Only use URLs from the wardrobe list above.`;
             </div>
           </div>
         </>
+      )}
+
+      {/* Delete account confirmation modal — rendered via portal to avoid WKWebView z-index clipping */}
+      {deleteConfirmStep > 0 && createPortal(
+        <>
+          <div
+            onClick={() => { if (!deleteInProgress) { setDeleteConfirmStep(0); } }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 14000 }}
+          />
+          <div style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(340px, 85vw)",
+            background: "white",
+            borderRadius: "20px",
+            padding: "28px 24px 20px",
+            zIndex: 14001,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          }}>
+            {deleteConfirmStep === 1 && (
+              <>
+                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(231,76,60,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </div>
+                <h3 style={{ margin: "0 0 8px", fontSize: "17px", fontWeight: 700, color: "#111", textAlign: "center" }}>Delete your account?</h3>
+                <p style={{ margin: "0 0 20px", fontSize: "13px", color: "#666", lineHeight: 1.5, textAlign: "center" }}>
+                  This will permanently remove all your closet items, conversations, saved outfits, and account data. This cannot be undone.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmStep(2)}
+                    style={{ width: "100%", padding: "13px", borderRadius: "100px", border: "none", background: "#e74c3c", color: "white", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    Continue
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmStep(0)}
+                    style={{ width: "100%", padding: "13px", borderRadius: "100px", border: "1.5px solid #ddd", background: "white", color: "#333", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+            {deleteConfirmStep === 2 && (
+              <>
+                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(231,76,60,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3 style={{ margin: "0 0 8px", fontSize: "17px", fontWeight: 700, color: "#e74c3c", textAlign: "center" }}>This is permanent</h3>
+                <p style={{ margin: "0 0 20px", fontSize: "13px", color: "#666", lineHeight: 1.5, textAlign: "center" }}>
+                  All your data will be permanently deleted and your account will be removed. You will not be able to recover it.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <button
+                    type="button"
+                    disabled={deleteInProgress}
+                    onClick={async () => {
+                      setDeleteInProgress(true);
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) return;
+                        const userId = user.id;
+                        const { data: { session } } = await supabase.auth.getSession();
+
+                        // 1. Fetch all clothing items to get Cloudinary public_ids
+                        const { data: clothingItems } = await supabase
+                          .from("clothing_items")
+                          .select("public_id")
+                          .eq("user_id", userId);
+                        const publicIds = (clothingItems || [])
+                          .map((item) => item.public_id)
+                          .filter((id) => id && !id.startsWith("starter-"));
+
+                        // 2. Delete images from Cloudinary via server-side API
+                        if (publicIds.length > 0 && session?.access_token) {
+                          try {
+                            await fetch("/api/delete-cloudinary-images", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${session.access_token}`,
+                              },
+                              body: JSON.stringify({ publicIds }),
+                            });
+                          } catch (cloudinaryErr) {
+                            // Log but don't block account deletion if image cleanup fails
+                            console.error("[DeleteAccount] Cloudinary cleanup error:", cloudinaryErr);
+                          }
+                        }
+
+                        // 3. Delete all user data from database tables
+                        await Promise.all([
+                          supabase.from("chat_messages").delete().eq("user_id", userId),
+                          supabase.from("outfit_feedback").delete().eq("user_id", userId),
+                        ]);
+                        await Promise.all([
+                          supabase.from("saved_outfits").delete().eq("user_id", userId),
+                          supabase.from("conversations").delete().eq("user_id", userId),
+                          supabase.from("clothing_items").delete().eq("user_id", userId),
+                          supabase.from("ai_usage_events").delete().eq("user_id", userId),
+                        ]);
+                        const { error: rpcError } = await supabase.rpc("delete_own_account");
+                        if (rpcError) console.error("[DeleteAccount] RPC error:", rpcError);
+                        Object.keys(localStorage).forEach((key) => {
+                          if (key.startsWith("styliner_")) localStorage.removeItem(key);
+                        });
+                        await supabase.auth.signOut();
+                        setDeleteConfirmStep(0);
+                        setDeleteInProgress(false);
+                        setProfileSheetOpen(false);
+                        navigate("/", { replace: true });
+                      } catch (err) {
+                        console.error("[DeleteAccount] Error:", err);
+                        setDeleteInProgress(false);
+                        setDeleteConfirmStep(0);
+                        setProfileSheetOpen(false);
+                        navigate("/", { replace: true, state: { deleteError: true } });
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "13px",
+                      borderRadius: "100px",
+                      border: "none",
+                      background: deleteInProgress ? "#ccc" : "#e74c3c",
+                      color: "white",
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      cursor: deleteInProgress ? "default" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    {deleteInProgress ? "Deleting..." : "Delete my account"}
+                  </button>
+                  {!deleteInProgress && (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmStep(0)}
+                      style={{ width: "100%", padding: "13px", borderRadius: "100px", border: "1.5px solid #ddd", background: "white", color: "#333", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}
+                    >
+                      Go back
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </>,
+        document.body
       )}
 
       {locationSheetOpen && (
@@ -6866,7 +7051,7 @@ function UploadScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? "100%" : "430px", margin: "0 auto", background: "white" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: `24px ${window.innerWidth >= 768 ? "48px" : "20px"} calc(160px + env(safe-area-inset-bottom, 16px))` }}>
+      <div style={{ flex: 1, overflowY: "auto", paddingTop: PAGE_TOP_PADDING, paddingLeft: window.innerWidth >= 768 ? "48px" : "20px", paddingRight: window.innerWidth >= 768 ? "48px" : "20px", paddingBottom: "calc(160px + env(safe-area-inset-bottom, 16px))" }}>
         <DemoModeBanner />
 
         {phase === "tips" && (
@@ -8373,6 +8558,8 @@ COLORS: ${rule.colors}
           background: "white",
           flexShrink: 0,
           width: "100%",
+          position: "relative",
+          zIndex: 60,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -8401,20 +8588,23 @@ COLORS: ${rule.colors}
           <button
             type="button"
             onClick={startNewChat}
+            onTouchEnd={(e) => { e.preventDefault(); startNewChat(); }}
             aria-label="New chat"
             title="New chat"
             style={{
               background: "rgba(176,138,74,0.10)",
               border: "1px solid rgba(176,138,74,0.14)",
               color: "#B08A4A",
-              width: "34px",
-              height: "34px",
+              width: "44px",
+              height: "44px",
               borderRadius: "999px",
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "inset 0 0 0 1px rgba(176,138,74,0.04)",
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -8437,8 +8627,8 @@ COLORS: ${rule.colors}
           flexDirection: "column",
           gap: "12px",
           width: "100%",
-          maxWidth: chatIsTablet ? "680px" : "100%",
-          margin: chatIsTablet ? "0 auto" : "0",
+          maxWidth: "100%",
+          margin: "0",
         }}
       >
         {isDemoMode && <DemoModeBanner />}
@@ -8679,7 +8869,8 @@ COLORS: ${rule.colors}
                             background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
                             marginTop: "10px",
                             overflow: "hidden",
-                            maxWidth: chatIsTablet ? "480px" : "100%",
+                            maxWidth: "100%",
+                            width: "100%",
                           }}
                         >
                           {imageUrls.slice(0, 6).map((url, i) => {
@@ -8880,9 +9071,10 @@ COLORS: ${rule.colors}
         style={{
           position: "fixed",
           bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
-          left: 0,
-          right: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
           width: "100%",
+          maxWidth: chatIsTablet ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH,
           padding: chatIsTablet ? "10px 24px" : "10px 16px",
           borderTop: "1px solid #f0f0f0",
           display: "flex",
@@ -8890,6 +9082,7 @@ COLORS: ${rule.colors}
           alignItems: "center",
           background: "white",
           zIndex: 50,
+          boxSizing: "border-box",
           opacity: drawerOpen ? 0.72 : 1,
           transition: "opacity 0.2s ease",
         }}
@@ -8925,6 +9118,9 @@ COLORS: ${rule.colors}
             cursor: loading ? "default" : "pointer",
             color: "white",
             opacity: loading ? 0.6 : 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
           aria-label="Send message"
           data-send-btn="true"
