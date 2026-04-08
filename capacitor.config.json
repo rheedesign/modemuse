@@ -2,7 +2,9 @@
   "appId": "com.crhee.styliner",
   "appName": "Styliner",
   "webDir": "dist",
+  "backgroundColor": "#FBF8F1",
   "ios": {
-    "scrollEnabled": false
+    "scrollEnabled": false,
+    "backgroundColor": "#FBF8F1"
   }
 }

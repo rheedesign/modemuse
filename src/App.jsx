@@ -168,12 +168,13 @@ function BottomNav() {
         left: "50%",
         transform: "translateX(-50%)",
         bottom: 0,
-        width: isTablet ? "min(768px, 100vw)" : "min(430px, 100vw)",
+        width: isTablet ? "100%" : "min(430px, 100vw)",
         zIndex: 12000,
         pointerEvents: "auto",
-        background: "#fff",
+        background: "#FFFFFF",
         borderTop: "1px solid #f0f0f0",
-        padding: isTablet ? "10px 24px calc(20px + env(safe-area-inset-bottom, 20px))" : "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
+        padding: isTablet ? "14px 24px calc(env(safe-area-inset-bottom, 20px))" : "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
+        minHeight: isTablet ? "72px" : undefined,
         transition: "padding 0.1s ease",
         borderRadius: isTablet ? "20px 20px 0 0" : 0,
         boxShadow: isTablet ? "0 -4px 20px rgba(0,0,0,0.06)" : "none",
@@ -182,10 +183,10 @@ function BottomNav() {
       <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isTablet ? "24px" : 0, margin: 0, padding: 0, listStyle: "none", maxWidth: isTablet ? "480px" : "none", marginLeft: "auto", marginRight: "auto" }}>
         {items.map((item) => (
           <li key={item.to}>
-            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 py-1 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap" }}>
+            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 py-1 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap", minHeight: isTablet ? "44px" : undefined, minWidth: isTablet ? "64px" : undefined, transition: "opacity 0.05s ease" }} onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }} onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }} onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}>
               {({ isActive }) => (
                 <>
-                  <div style={isTablet ? { transform: "scale(1.2)" } : {}}>
+                  <div style={isTablet ? { width: "28px", height: "28px" } : {}} className={isTablet ? "[&>svg]:w-7 [&>svg]:h-7" : ""}>
                     <item.icon active={isActive} />
                   </div>
                   <span className={isActive ? "text-primary font-medium" : "text-gray-500"} style={{ fontSize: isTablet ? "13px" : "clamp(10px, 2.5vw, 12px)" }}>{item.label}</span>
@@ -205,7 +206,7 @@ function BottomNav() {
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
 const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
-const TABLET_MAX_WIDTH = "768px";
+const TABLET_MAX_WIDTH = "100%";
 const MOBILE_MAX_WIDTH = "430px";
 const TABLET_CONTENT_WIDTH = "680px";
 function getMaxWidth() { return window.innerWidth >= 768 ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH; }
@@ -1348,7 +1349,7 @@ function getHeroAccentClass({ tempF, weatherCode, windSpeed }) {
 function AppShell({ children, gradient = false, hideBottomNav = false }) {
   const { isTablet } = useDeviceType();
   return (
-    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "max-w-[768px]" : "max-w-[430px]"} bg-white shadow-sm`}>
+    <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "" : "max-w-[430px]"} bg-white shadow-sm`}>
       <main
         className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen pb-28`}
         style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px" }}
@@ -2706,7 +2707,17 @@ LAYERING DONE RIGHT:
 ✅ Slip dress (base) + Denim jacket (layer) + Boots + Necklace
 ✅ Turtleneck (base) + Leather trousers + Loafers + Belt bag
 ✅ Floral dress + Open cardigan (layer) + Sandals + Straw bag
-❌ NEVER: Dress + Midi skirt + T-shirt + Blazer (this is 4 competing pieces)`;
+❌ NEVER: Dress + Midi skirt + T-shirt + Blazer (this is 4 competing pieces)
+
+OUTFIT COMPLETENESS — every suggestion MUST include ALL of the following:
+1. A TOP (shirt, blouse, sweater, turtleneck, tank, cardigan, jacket worn over something)
+2. A BOTTOM (pants, jeans, trousers, skirt, shorts) OR a ONE-PIECE that replaces both top and bottom (dress, jumpsuit, romper, co-ord set). A skirt paired with a top counts as complete.
+3. FOOTWEAR (shoes, heels, sneakers, boots, sandals, flats, loafers, mules) OR at least one accessory (bag, jewelry, belt, hat, scarf)
+
+If the user's wardrobe does not contain enough items to build a complete outfit — for example, no bottoms, no dresses, and no skirts — respond with:
+"I don't have enough pieces in your wardrobe to build a complete outfit. Try adding more bottoms or shoes."
+
+Never return an outfit suggestion that is missing a bottom or a one-piece equivalent. Never return an outfit that has only tops and accessories.`;
 
 async function getLatestTrends() {
   try {
@@ -3237,7 +3248,12 @@ function HomeScreen() {
   async function loadWeatherForCurrentLocation() {
     return new Promise((resolve) => {
       if (!navigator.geolocation) { resolve(null); return; }
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(null); } };
+      // Fallback timeout — don't let geolocation block the outfit load
+      const timer = setTimeout(() => { console.warn("[Location] Geolocation timed out after 5s"); done(); }, 5000);
       navigator.geolocation.getCurrentPosition(async (pos) => {
+        clearTimeout(timer);
         try {
           const { latitude, longitude } = pos.coords;
           const cityName = await loadWeatherFromCoordinates(latitude, longitude);
@@ -3245,8 +3261,8 @@ function HomeScreen() {
         } catch {
           // Keep the UI usable even if reverse geocoding fails.
         }
-        resolve(null);
-      }, (err) => { console.warn("[Location] Geolocation denied or failed:", err?.message || err); resolve(null); });
+        done();
+      }, (err) => { clearTimeout(timer); console.warn("[Location] Geolocation denied or failed:", err?.message || err); done(); }, { timeout: 5000 });
     });
   }
 
@@ -3531,7 +3547,7 @@ Only use URLs from the wardrobe list above.`;
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
       const hasBottom = parsedItems.some(i => /pants|jeans|trouser|skirt|shorts/i.test((i.category || '') + ' ' + (i.name || '')));
       const hasDress = parsedItems.some(i => /dress|jumpsuit|romper|co-ord/i.test((i.category || '') + ' ' + (i.name || '')));
-      const hasShoes = parsedItems.some(i => /shoes|heels|sneakers|boots|sandals|loafer|flat/i.test((i.category || '') + ' ' + (i.name || '')));
+      const hasShoes = parsedItems.some(i => /shoes|heels|sneakers|boots|sandals|loafer|flat|mules/i.test((i.category || '') + ' ' + (i.name || '')));
 
       if ((!hasBottom && !hasDress) || !hasShoes) {
         console.warn("Invalid outfit generated — missing bottom or shoes, retrying...");
@@ -3673,13 +3689,13 @@ Only use URLs from the wardrobe list above.`;
         flexDirection: "column",
         height: "100dvh",
         width: "100%",
-        maxWidth: isTablet ? "none" : "430px",
+        maxWidth: isTablet ? TABLET_MAX_WIDTH : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F8F3EA 58%, #F0E7D7 100%)",
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", display: isTablet ? "flex" : "block", flexDirection: isTablet ? "column" : undefined, justifyContent: isTablet ? "center" : undefined, padding: isTablet ? `max(88px, calc(env(safe-area-inset-top) + 44px)) 48px calc(100px + env(safe-area-inset-bottom, 16px))` : `max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))` }}>
+      <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 48px calc(100px + env(safe-area-inset-bottom, 16px))` : `max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))` }}>
         <div style={isTablet ? { maxWidth: "560px", margin: "0 auto", width: "100%" } : {}}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
@@ -3708,9 +3724,9 @@ Only use URLs from the wardrobe list above.`;
                   if (t === null || t === undefined) return "";
                   return useCelsius ? Math.round((t - 32) * 5 / 9) : Math.round(t);
                 })()}
-                <button type="button" onClick={() => { if (useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 400 : 700, color: useCelsius ? "#bbb" : "#111111", lineHeight: 1 }}>°F</button>
+                <button type="button" onClick={() => { if (useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: "6px", cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 400 : 700, color: useCelsius ? "#bbb" : "#111111", lineHeight: 1, minWidth: "32px", minHeight: "32px" }}>°F</button>
                 <span style={{ color: "#ccc", margin: "0 1px", userSelect: "none", fontSize: "11px" }}>|</span>
-                <button type="button" onClick={() => { if (!useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 700 : 400, color: useCelsius ? "#111111" : "#bbb", lineHeight: 1 }}>°C</button>
+                <button type="button" onClick={() => { if (!useCelsius) toggleTempUnit(); }} style={{ background: "none", border: "none", padding: "6px", cursor: "pointer", fontSize: "12px", fontWeight: useCelsius ? 700 : 400, color: useCelsius ? "#111111" : "#bbb", lineHeight: 1, minWidth: "32px", minHeight: "32px" }}>°C</button>
                 <span style={{ margin: "0 2px", color: "#ccc" }}>·</span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                   <span>{locationLabel || weatherRef.current.cityName}</span>
@@ -3725,14 +3741,16 @@ Only use URLs from the wardrobe list above.`;
                     style={{
                       border: "none",
                       background: "transparent",
-                      padding: 0,
-                      margin: 0,
+                      padding: "8px",
+                      margin: "-8px",
                       cursor: "pointer",
                       color: "#B08A4A",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
+                      minWidth: "44px",
+                      minHeight: "44px",
                     }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -3798,7 +3816,7 @@ Only use URLs from the wardrobe list above.`;
                 setEditStyleInspo(styleInspoRef.current);
                 setProfileSheetOpen(true);
               }}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "10px", margin: "-10px", display: "flex", alignItems: "center", minWidth: "44px", minHeight: "44px", justifyContent: "center" }}
               aria-label="Edit profile"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -5246,7 +5264,7 @@ function ClosetScreen() {
         display: "flex",
         flexDirection: "column",
         height: "100dvh",
-        maxWidth: closetIsTablet ? "100%" : "430px",
+        maxWidth: closetIsTablet ? TABLET_MAX_WIDTH : "430px",
         margin: "0 auto",
         background: "white",
         position: "relative",
@@ -5375,8 +5393,8 @@ function ClosetScreen() {
                   aria-label={opt.label}
                   title={opt.label}
                   style={{
-                    width: "40px",
-                    height: "40px",
+                    width: "44px",
+                    height: "44px",
                     borderRadius: "12px",
                     border: active ? "1.5px solid #B08A4A" : "1px solid #e0e0e0",
                     background: active ? "#F5EDE0" : "white",
@@ -5425,24 +5443,32 @@ function ClosetScreen() {
               onClick={() => setSearchQuery("")}
               style={{
                 position: "absolute",
-                right: "10px",
+                right: "2px",
                 top: "50%",
                 transform: "translateY(-50%)",
-                background: "rgba(0,0,0,0.1)",
+                background: "transparent",
                 border: "none",
                 borderRadius: "50%",
+                width: "44px",
+                height: "44px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+              }}
+            >
+              <span style={{
                 width: "20px",
                 height: "20px",
-                cursor: "pointer",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.1)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "12px",
                 color: "#666",
-                padding: 0,
-              }}
-            >
-              ✕
+              }}>✕</span>
             </button>
           )}
         </div>
@@ -5513,7 +5539,7 @@ function ClosetScreen() {
                 }}
               >
                 {groupItems.map((item) => (
-                  <div key={item.id} style={{ cursor: "pointer", minWidth: 0, overflow: "hidden", position: "relative" }}>
+                  <div key={item.id} style={{ cursor: "pointer", minWidth: 0, overflow: "hidden", position: "relative", transition: "opacity 0.05s ease" }} onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }} onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }} onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}>
                     <div onClick={() => navigate(`/closet/${item.id}`)}>
                       <ClosetItemImage url={item.image_url} name={item.name} rotation={item.rotation} />
                     </div>
@@ -5521,15 +5547,20 @@ function ClosetScreen() {
                       type="button"
                       onClick={(e) => { e.stopPropagation(); openActionSheet(item); }}
                       style={{
-                        position: "absolute", top: "6px", right: "6px",
-                        width: "28px", height: "28px", borderRadius: "50%",
-                        background: "rgba(255,255,255,0.9)", border: "none",
+                        position: "absolute", top: "0px", right: "0px",
+                        width: "44px", height: "44px", borderRadius: "50%",
+                        background: "transparent", border: "none",
                         cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)", zIndex: 2,
-                        fontSize: "14px", color: "#555", letterSpacing: "1px", lineHeight: 1, padding: 0,
+                        zIndex: 2, padding: 0,
                       }}
                     >
-                      •••
+                      <span style={{
+                        width: "28px", height: "28px", borderRadius: "50%",
+                        background: "rgba(255,255,255,0.9)",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "14px", color: "#555", letterSpacing: "1px", lineHeight: 1,
+                      }}>•••</span>
                     </button>
                     <p
                       style={{
@@ -7051,6 +7082,32 @@ function UploadScreen() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", maxWidth: window.innerWidth >= 768 ? "100%" : "430px", margin: "0 auto", background: "white" }}>
+      {/* Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          position: "absolute",
+          top: "max(72px, calc(env(safe-area-inset-top) + 32px))",
+          left: "16px",
+          zIndex: 5,
+          width: "36px",
+          height: "36px",
+          borderRadius: "50%",
+          border: "none",
+          background: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(8px)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+        aria-label="Go back"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
       <div style={{ flex: 1, overflowY: "auto", paddingTop: PAGE_TOP_PADDING, paddingLeft: window.innerWidth >= 768 ? "48px" : "20px", paddingRight: window.innerWidth >= 768 ? "48px" : "20px", paddingBottom: "calc(160px + env(safe-area-inset-bottom, 16px))" }}>
         <DemoModeBanner />
 
@@ -7434,12 +7491,13 @@ function ChatScreen() {
   // Fix iOS keyboard pushing content
   useEffect(() => {
     const metaViewport = document.querySelector('meta[name=viewport]');
+    const originalContent = metaViewport?.getAttribute('content') || '';
     if (metaViewport) {
-      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content');
+      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content');
     }
     return () => {
       if (metaViewport) {
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        metaViewport.setAttribute('content', originalContent);
       }
     };
   }, []);
@@ -8585,33 +8643,6 @@ COLORS: ${rule.colors}
               <svg width="18" height="18" viewBox="0 0 24 24" fill={activeConvo.is_starred ? "#B08A4A" : "none"} stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
           )}
-          <button
-            type="button"
-            onClick={startNewChat}
-            onTouchEnd={(e) => { e.preventDefault(); startNewChat(); }}
-            aria-label="New chat"
-            title="New chat"
-            style={{
-              background: "rgba(176,138,74,0.10)",
-              border: "1px solid rgba(176,138,74,0.14)",
-              color: "#B08A4A",
-              width: "44px",
-              height: "44px",
-              borderRadius: "999px",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "inset 0 0 0 1px rgba(176,138,74,0.04)",
-              touchAction: "manipulation",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -8622,13 +8653,20 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 24px calc(130px + env(safe-area-inset-bottom, 0px))" : "16px 16px calc(130px + env(safe-area-inset-bottom, 0px))",
+          padding: chatIsTablet ? "16px 0 calc(130px + env(safe-area-inset-bottom, 0px))" : "16px 16px calc(130px + env(safe-area-inset-bottom, 0px))",
+          width: "100%",
+        }}
+      >
+      <div
+        style={{
           display: "flex",
           flexDirection: "column",
           gap: "12px",
           width: "100%",
-          maxWidth: "100%",
-          margin: "0",
+          maxWidth: chatIsTablet ? "680px" : "100%",
+          margin: chatIsTablet ? "0 auto" : "0",
+          padding: chatIsTablet ? "0 24px" : "0",
+          boxSizing: "border-box",
         }}
       >
         {isDemoMode && <DemoModeBanner />}
@@ -8765,7 +8803,12 @@ COLORS: ${rule.colors}
 
             {hasCloset !== false && (
               <div
-                style={{
+                style={chatIsTablet ? {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                  gap: "12px",
+                  marginTop: "16px",
+                } : {
                   display: "flex",
                   flexWrap: "wrap",
                   gap: "8px",
@@ -8780,13 +8823,30 @@ COLORS: ${rule.colors}
                       setInputValue(occasion);
                       setTimeout(() => inputRef.current?.focus(), 0);
                     }}
-                    style={{
+                    onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }}
+                    onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }}
+                    onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+                    style={chatIsTablet ? {
+                      border: "1px solid #ddd",
+                      borderRadius: "100px",
+                      padding: "10px 16px",
+                      fontSize: "13px",
+                      background: "white",
+                      cursor: "pointer",
+                      minHeight: "44px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      transition: "opacity 0.05s ease",
+                    } : {
                       border: "1px solid #ddd",
                       borderRadius: "100px",
                       padding: "6px 14px",
                       fontSize: "13px",
                       background: "white",
                       cursor: "pointer",
+                      transition: "opacity 0.05s ease",
                     }}
                   >
                     {occasion}
@@ -9065,21 +9125,20 @@ COLORS: ${rule.colors}
           </>
         )}
       </div>
+      </div>
 
       {/* Input bar */}
       <div
         style={{
           position: "fixed",
           bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
-          left: "50%",
-          transform: "translateX(-50%)",
+          left: 0,
+          right: 0,
           width: "100%",
           maxWidth: chatIsTablet ? TABLET_MAX_WIDTH : MOBILE_MAX_WIDTH,
-          padding: chatIsTablet ? "10px 24px" : "10px 16px",
+          margin: chatIsTablet ? "0 auto" : undefined,
+          padding: 0,
           borderTop: "1px solid #f0f0f0",
-          display: "flex",
-          gap: "8px",
-          alignItems: "center",
           background: "white",
           zIndex: 50,
           boxSizing: "border-box",
@@ -9087,46 +9146,48 @@ COLORS: ${rule.colors}
           transition: "opacity 0.2s ease",
         }}
       >
-        <div style={{ position: "relative", flex: 1 }}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
-            placeholder="Outfit For Today..."
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", maxWidth: chatIsTablet ? "680px" : "100%", margin: "0 auto", padding: chatIsTablet ? "10px 24px" : "10px 16px", boxSizing: "border-box", width: "100%" }}>
+          <div style={{ position: "relative", flex: 1 }}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
+              placeholder="Outfit For Today..."
+              style={{
+                width: "100%",
+                borderRadius: "100px",
+                border: "1px solid #ddd",
+                padding: "10px 16px",
+                fontSize: "14px",
+                outline: "none",
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={loading}
             style={{
-              width: "100%",
-              borderRadius: "100px",
-              border: "1px solid #ddd",
-              padding: "10px 16px",
-              fontSize: "14px",
-              outline: "none",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "#B08A4A",
+              border: "none",
+              cursor: loading ? "default" : "pointer",
+              color: "white",
+              opacity: loading ? 0.6 : 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
+            aria-label="Send message"
+            data-send-btn="true"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={loading}
-          style={{
-            width: "44px",
-            height: "44px",
-            borderRadius: "50%",
-            background: "#B08A4A",
-            border: "none",
-            cursor: loading ? "default" : "pointer",
-            color: "white",
-            opacity: loading ? 0.6 : 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          aria-label="Send message"
-          data-send-btn="true"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
       </div>
       {/* Occasion bottom sheet */}
       {occasionSheet && (
@@ -9497,7 +9558,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
             )}
           </div>
         ) : (
-          <div style={{ display: favIsTablet ? "grid" : "flex", gridTemplateColumns: favIsTablet ? "1fr 1fr" : undefined, flexDirection: favIsTablet ? undefined : "column", gap: "18px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             {groupedOutfits.map(([groupKey, groupItems]) => (
               <div key={groupKey} style={{ marginBottom: sortBy === "occasion" ? "6px" : 0 }}>
                 {sortBy === "occasion" && (
@@ -9508,7 +9569,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                   </div>
                 )}
 
-                <div style={{ display: "grid", gridTemplateColumns: favIsTablet ? "1fr 1fr" : "1fr", gap: favIsTablet ? "16px" : "18px", alignItems: "stretch" }}>
+                <div style={{ display: "grid", gridTemplateColumns: favIsTablet ? "repeat(3, 1fr)" : "1fr", gap: favIsTablet ? "16px" : "18px", alignItems: "stretch" }}>
                   {groupItems.map((outfit) => (
                     <div
                       key={outfit.id}
@@ -9554,22 +9615,29 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                           {getLookbookContextTag(outfit, getConversationTitleForOutfit(outfit.created_at))}
                         </span>
                         <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#8A8798", whiteSpace: "nowrap" }}>Saved {formatDate(outfit.created_at)}</p>
-                        <div style={{ display: "flex", gap: "8px", marginTop: "8px", alignItems: "center" }}>
+                        <div style={{ display: "flex", gap: "8px", marginTop: "8px", alignItems: "center", flexWrap: "wrap" }}>
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { styleItemMessage: `Style me an outfit like my ${getLookbookDisplayTitle(outfit, getConversationTitleForOutfit(outfit.created_at))} look` } }); }}
+                            onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }}
+                            onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }}
+                            onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                             style={{
                               border: "1px solid #E6D8BF",
                               background: "white",
                               color: "#B08A4A",
                               fontSize: "12px",
                               fontWeight: 600,
-                              padding: "5px 12px",
+                              padding: "10px 16px",
                               borderRadius: "100px",
                               cursor: "pointer",
+                              whiteSpace: "nowrap",
+                              minWidth: "130px",
+                              textAlign: "center",
+                              transition: "opacity 0.05s ease",
                             }}
                           >
-                            Style this again →
+                            Style again →
                           </button>
                           <button
                             type="button"
@@ -9583,15 +9651,22 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                                 try { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); setShareCopiedId(outfit.id); setTimeout(() => setShareCopiedId(null), 2000); } catch {}
                               }
                             }}
+                            onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }}
+                            onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }}
+                            onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                             style={{
                               border: "1px solid #E6D8BF",
                               background: "white",
                               color: "#B08A4A",
                               fontSize: "12px",
                               fontWeight: 600,
-                              padding: "5px 12px",
+                              padding: "10px 16px",
                               borderRadius: "100px",
                               cursor: "pointer",
+                              whiteSpace: "nowrap",
+                              minWidth: "100px",
+                              textAlign: "center",
+                              transition: "opacity 0.05s ease",
                             }}
                           >
                             {shareCopiedId === outfit.id ? "Copied!" : "Share Look"}
@@ -9599,22 +9674,28 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleRemoveOutfit(outfit.id); }}
+                            onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }}
+                            onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }}
+                            onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                             aria-label="Remove look"
                             title="Remove"
                             style={{
                               border: "1px solid #e0e0e0",
                               background: "white",
                               color: "#999",
-                              fontSize: "12px",
-                              padding: "6px 12px",
-                              borderRadius: "100px",
+                              width: "44px",
+                              height: "44px",
+                              borderRadius: "50%",
                               cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
+                              padding: 0,
+                              flexShrink: 0,
+                              transition: "opacity 0.05s ease",
                             }}
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <line x1="18" y1="6" x2="6" y2="18" />
                               <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
