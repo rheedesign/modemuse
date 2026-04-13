@@ -4,7 +4,6 @@
   "webDir": "dist",
   "backgroundColor": "#FBF8F1",
   "ios": {
-    "scrollEnabled": false,
     "backgroundColor": "#FBF8F1"
   }
 }

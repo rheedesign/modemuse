@@ -57,5 +57,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.crhee.styliner</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>styliner</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

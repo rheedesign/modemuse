@@ -23,16 +23,16 @@ html, body, #root {
 }
 
 html {
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
   font-family: "DM Sans", sans-serif;
   background-color: #fbf8f1;
   color: #111111;
 }
 
 #root {
-  overflow: hidden;
+  overflow-x: hidden;
 }

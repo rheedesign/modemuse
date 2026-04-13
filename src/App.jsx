@@ -1706,7 +1706,7 @@ function SignUpScreen() {
               try {
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: 'apple',
-                  options: { redirectTo: 'https://styliner.vercel.app' }
+                  options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
                 });
                 if (error) console.error(error);
               } catch (err) { console.error(err); }
@@ -2130,7 +2130,7 @@ function LogInScreen() {
               try {
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: 'apple',
-                  options: { redirectTo: 'https://styliner.vercel.app' }
+                  options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
                 });
                 if (error) console.error(error);
               } catch (err) { console.error(err); }
@@ -9913,6 +9913,26 @@ function AppRouter() {
       isMounted = false;
       subscription.unsubscribe();
     };
+  }, []);
+
+  // Deep-link handler: catch styliner://auth/callback from Sign in with Apple
+  useEffect(() => {
+    let unlisten;
+    import('@capacitor/app').then(({ App: CapApp }) => {
+      unlisten = CapApp.addListener('appUrlOpen', async ({ url }) => {
+        if (!url.startsWith('styliner://auth/callback')) return;
+        try {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.close();
+        } catch (_) {}
+        const params = new URL(url.replace('styliner://', 'https://placeholder/'));
+        const code = params.searchParams.get('code');
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+        }
+      });
+    });
+    return () => { if (unlisten) unlisten.then(h => h.remove()); };
   }, []);
 
   useEffect(() => {

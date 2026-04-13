@@ -1,18 +1,28 @@
 PODS:
   - Capacitor (8.2.0):
     - CapacitorCordova
+  - CapacitorApp (8.1.0):
+    - Capacitor
+  - CapacitorBrowser (8.0.3):
+    - Capacitor
   - CapacitorCordova (8.2.0)
   - CapacitorShare (8.0.1):
     - Capacitor
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
 
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorShare:
@@ -20,9 +30,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Capacitor: c04568d0798e8c9a481d70e8d3df1f7fe1966549
+  CapacitorApp: a4d8d936cc4390859a3766f141048abe55d4076f
+  CapacitorBrowser: f42210052d25867e64cda9ee28906ca830835ebe
   CapacitorCordova: a9ac88d84a1f5280f33b349fe50fce1902683ac0
   CapacitorShare: 8a565649d321a05a1ae8b525b2a9b4f2d92c70ce
 
-PODFILE CHECKSUM: 19b40bb22df6bf19e40ac30ca2c52a2dc21e0212
+PODFILE CHECKSUM: cffb50da8bfc1866bd4beb113a354c777f2cda18
 
 COCOAPODS: 1.16.2
