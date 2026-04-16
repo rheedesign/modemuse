@@ -173,17 +173,18 @@ function BottomNav() {
         pointerEvents: "auto",
         background: "#FFFFFF",
         borderTop: "1px solid #f0f0f0",
-        padding: isTablet ? "14px 24px calc(env(safe-area-inset-bottom, 20px))" : "8px 8px calc(20px + env(safe-area-inset-bottom, 20px))",
-        minHeight: isTablet ? "72px" : undefined,
-        transition: "padding 0.1s ease",
+        paddingTop: 0,
+        paddingLeft: isTablet ? "24px" : "8px",
+        paddingRight: isTablet ? "24px" : "8px",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
         borderRadius: isTablet ? "20px 20px 0 0" : 0,
         boxShadow: isTablet ? "0 -4px 20px rgba(0,0,0,0.06)" : "none",
       }}
     >
-      <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isTablet ? "24px" : 0, margin: 0, padding: 0, listStyle: "none", maxWidth: isTablet ? "480px" : "none", marginLeft: "auto", marginRight: "auto" }}>
+      <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isTablet ? "24px" : 0, margin: 0, padding: 0, listStyle: "none", maxWidth: isTablet ? "480px" : "none", marginLeft: "auto", marginRight: "auto", height: isTablet ? "56px" : "48px", alignItems: "center" }}>
         {items.map((item) => (
           <li key={item.to}>
-            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 py-1 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap", minHeight: isTablet ? "44px" : undefined, minWidth: isTablet ? "64px" : undefined, transition: "opacity 0.05s ease" }} onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }} onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }} onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}>
+            <NavLink to={item.to} className="flex flex-col items-center justify-center gap-0.5 text-xs" style={{ textAlign: "center", whiteSpace: "nowrap", height: isTablet ? "56px" : "48px", minWidth: isTablet ? "64px" : undefined, transition: "opacity 0.05s ease" }} onPointerDown={(e) => { e.currentTarget.style.opacity = "0.7"; }} onPointerUp={(e) => { e.currentTarget.style.opacity = "1"; }} onPointerLeave={(e) => { e.currentTarget.style.opacity = "1"; }}>
               {({ isActive }) => (
                 <>
                   <div style={isTablet ? { width: "28px", height: "28px" } : {}} className={isTablet ? "[&>svg]:w-7 [&>svg]:h-7" : ""}>
@@ -205,7 +206,7 @@ function BottomNav() {
 
 const SHEET_BOTTOM_OFFSET = 0;
 const SHEET_MAX_HEIGHT = "calc(100dvh - 96px)";
-const PAGE_TOP_PADDING = "max(80px, calc(env(safe-area-inset-top) + 40px))";
+const PAGE_TOP_PADDING = "calc(env(safe-area-inset-top, 59px) + 16px)";
 const TABLET_MAX_WIDTH = "100%";
 const MOBILE_MAX_WIDTH = "430px";
 const TABLET_CONTENT_WIDTH = "680px";
@@ -214,7 +215,7 @@ function getSheetStyle(isTablet) {
   if (isTablet) return { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(560px, 90vw)", maxHeight: "85vh", overflowY: "auto", borderRadius: "24px", zIndex: SHEET_Z_INDEX, background: "white", boxShadow: "0 24px 80px rgba(0,0,0,0.2)" };
   return { position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: MOBILE_MAX_WIDTH, margin: "0 auto", borderRadius: "24px 24px 0 0", zIndex: SHEET_Z_INDEX, background: "white", maxHeight: SHEET_MAX_HEIGHT };
 }
-const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 16px) + 90px)";
+const BOTTOM_NAV_STACK_OFFSET = "calc(env(safe-area-inset-bottom, 0px) + 48px)";
 function getImageRotation(imageUrl, closetItems) {
   if (!imageUrl || !closetItems) return 0;
   const item = closetItems.find(i => i.image_url === imageUrl);
@@ -225,7 +226,7 @@ const SHEET_Z_INDEX = 13001;
 const CHAT_DRAWER_BACKDROP_Z_INDEX = 12002;
 const CHAT_DRAWER_Z_INDEX = 12003;
 const CHAT_COMPOSER_Z_INDEX = 12001;
-const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(72px + env(safe-area-inset-bottom, 0px))";
+const CHAT_COMPOSER_BOTTOM_OFFSET = "calc(48px + env(safe-area-inset-bottom, 0px))";
 const AI_USAGE_TABLE = "ai_usage_events";
 const AI_USAGE_DAILY_LIMIT = 10;
 const AI_USAGE_TOTAL_LIMIT = 30;
@@ -1351,8 +1352,8 @@ function AppShell({ children, gradient = false, hideBottomNav = false }) {
   return (
     <div className={`relative mx-auto min-h-screen w-full ${isTablet ? "" : "max-w-[430px]"} bg-white shadow-sm`}>
       <main
-        className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen pb-28`}
-        style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px" }}
+        className={`${gradient ? "bg-gradient-to-b from-[#FBF8F1] via-[#F7F1E7] to-[#EFE3D0]" : "bg-white"} min-h-screen`}
+        style={{ paddingTop: PAGE_TOP_PADDING, paddingLeft: isTablet ? "48px" : "20px", paddingRight: isTablet ? "48px" : "20px", paddingBottom: "calc(48px + env(safe-area-inset-bottom, 0px) + 16px)" }}
       >
         {children}
       </main>
@@ -1465,7 +1466,7 @@ function OnboardingSplash() {
         justifyContent: "space-between",
         ...(window.innerWidth >= 768
           ? { alignItems: "stretch" }
-          : { maxWidth: "430px", padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)" }),
+          : { maxWidth: "430px", padding: "calc(env(safe-area-inset-top, 59px) + 16px) 22px calc(env(safe-area-inset-bottom, 0px) + 20px)" }),
       }}
     >
       <div style={{
@@ -1692,8 +1693,8 @@ function SignUpScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", maxWidth: "480px", margin: "0 auto" }}>
-        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)", maxWidth: "480px", margin: "0 auto" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 59px) + 6px)", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -1704,11 +1705,15 @@ function SignUpScreen() {
             type="button"
             onClick={async () => {
               try {
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: 'apple',
                   options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
                 });
-                if (error) console.error(error);
+                if (error) { console.error(error); return; }
+                if (data?.url) {
+                  const { Browser } = await import('@capacitor/browser');
+                  await Browser.open({ url: data.url, presentationStyle: 'popover' });
+                }
               } catch (err) { console.error(err); }
             }}
             style={{
@@ -1909,14 +1914,14 @@ function StarterWardrobeScreen() {
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F7F1E7 56%, #EFE3D0 100%)",
         color: "#111111",
-        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)",
+        padding: "calc(env(safe-area-inset-top, 59px) + 16px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <div style={{ position: "relative", textAlign: "center", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
-        <button type="button" onClick={() => navigate("/signup")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(176,138,74,0.10)", border: "1px solid rgba(176,138,74,0.20)", color: "#B08A4A", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", textAlign: "center", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)" }}>
+        <button type="button" onClick={() => navigate("/signup")} style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 59px) + 6px)", left: 0, background: "rgba(176,138,74,0.10)", border: "1px solid rgba(176,138,74,0.20)", color: "#B08A4A", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <LogoWordmark compact centered />
       </div>
 
@@ -2115,8 +2120,8 @@ function LogInScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", maxWidth: "480px", margin: "0 auto" }}>
-        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "max(16px, calc(env(safe-area-inset-top) + 6px))", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
+      <div style={{ position: "relative", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)", maxWidth: "480px", margin: "0 auto" }}>
+        <button type="button" onClick={() => navigate("/")} style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 59px) + 6px)", left: 0, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: "100px", padding: "8px 14px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>← Back</button>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -2128,11 +2133,15 @@ function LogInScreen() {
             type="button"
             onClick={async () => {
               try {
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: 'apple',
                   options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
                 });
-                if (error) console.error(error);
+                if (error) { console.error(error); return; }
+                if (data?.url) {
+                  const { Browser } = await import('@capacitor/browser');
+                  await Browser.open({ url: data.url, presentationStyle: 'popover' });
+                }
               } catch (err) { console.error(err); }
             }}
             style={{
@@ -2286,7 +2295,7 @@ function ResetPasswordScreen() {
 
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ position: "relative", paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))" }}>
+      <div style={{ position: "relative", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)" }}>
         <div className="mb-8">
           <LogoWordmark compact centered />
         </div>
@@ -2344,7 +2353,7 @@ function ResetPasswordScreen() {
 function PrivacyPolicyScreen() {
   return (
     <AppShell gradient hideBottomNav>
-      <div style={{ paddingTop: "max(72px, calc(env(safe-area-inset-top) + 32px))", paddingBottom: "24px" }}>
+      <div style={{ paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)", paddingBottom: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
           <LogoWordmark compact />
           <NavLink
@@ -2417,9 +2426,9 @@ function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = f
       boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
       overflow: "hidden",
       position: "relative",
-      padding: "20px",
+      padding: compact ? "14px" : "20px",
     }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: compact ? "6px" : "10px" }}>
         <AIGeneratedTag style={{ fontSize: "9px", padding: "3px 8px", opacity: 0.5, letterSpacing: "0.14em" }} />
       </div>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", position: "relative", overflow: "hidden", borderRadius: "12px" }}>
@@ -2430,7 +2439,7 @@ function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = f
             gridTemplateColumns: gridCols,
             gap: gridGap,
             width: "100%",
-            maxWidth: compact ? "320px" : "100%",
+            maxWidth: compact ? "280px" : "100%",
             transition: "opacity 0.3s ease",
           }}
         >
@@ -2464,12 +2473,12 @@ function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = f
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60px", background: "linear-gradient(transparent, rgba(251,248,241,0.4))", pointerEvents: "none", borderRadius: "0 0 20px 20px" }} />
       </div>
       {(caption || subtitle || children) && (
-        <div style={{ textAlign: "center", borderTop: "1px solid rgba(176,138,74,0.12)", paddingTop: "12px", marginTop: "4px" }}>
+        <div style={{ textAlign: "center", borderTop: "1px solid rgba(176,138,74,0.12)", paddingTop: compact ? "8px" : "12px", marginTop: "4px" }}>
           {caption && (
-            <p style={{ margin: "12px 0 0", fontSize: "14px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{caption}</p>
+            <p style={{ margin: compact ? "4px 0 0" : "12px 0 0", fontSize: compact ? "13px" : "14px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{caption}</p>
           )}
           {subtitle && (
-            <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", textAlign: "center", margin: "4px 16px 12px", lineHeight: 1.5 }}>{subtitle}</p>
+            <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", textAlign: "center", margin: compact ? "2px 16px 6px" : "4px 16px 12px", lineHeight: 1.4 }}>{subtitle}</p>
           )}
           {children}
         </div>
@@ -2538,17 +2547,17 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
       }}
     >
       {/* Header */}
-      <div style={{ position: "relative", padding: "16px 20px 0" }}>
+      <div style={{ position: "relative", padding: "16px 20px 0", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)" }}>
         <button
           type="button"
           onClick={handleClose}
           aria-label="Close outfit"
           style={{
             position: "absolute",
-            top: "16px",
+            top: "calc(env(safe-area-inset-top, 59px) + 16px)",
             right: "16px",
-            width: "36px",
-            height: "36px",
+            width: "44px",
+            height: "44px",
             borderRadius: "50%",
             border: "none",
             background: "#FAF7F0",
@@ -2606,13 +2615,14 @@ function OutfitDetailModal({ images, vibe, caption, onClose, onNavigateChat, onG
           )}
         </div>
 
-        {/* Bottom CTA — sticky inside scroll container, sits above bottom nav */}
+        {/* Bottom CTA — sticky inside scroll container */}
         <div style={{
           position: "sticky",
           bottom: 0,
           left: 0,
           right: 0,
-          padding: "16px 20px calc(20px + env(safe-area-inset-bottom, 0px) + 70px)",
+          padding: "16px 20px",
+          paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
           background: "linear-gradient(transparent, white 30%)",
           zIndex: 1,
         }}>
@@ -2710,14 +2720,19 @@ LAYERING DONE RIGHT:
 ❌ NEVER: Dress + Midi skirt + T-shirt + Blazer (this is 4 competing pieces)
 
 OUTFIT COMPLETENESS — every suggestion MUST include ALL of the following:
-1. A TOP (shirt, blouse, sweater, turtleneck, tank, cardigan, jacket worn over something)
-2. A BOTTOM (pants, jeans, trousers, skirt, shorts) OR a ONE-PIECE that replaces both top and bottom (dress, jumpsuit, romper, co-ord set). A skirt paired with a top counts as complete.
-3. FOOTWEAR (shoes, heels, sneakers, boots, sandals, flats, loafers, mules) OR at least one accessory (bag, jewelry, belt, hat, scarf)
+1. A TOP (shirt, blouse, sweater, turtleneck, tank, cardigan, jacket worn over something) — REQUIRED unless outfit contains a dress, jumpsuit, or romper
+2. A BOTTOM (pants, jeans, trousers, skirt, shorts) OR a ONE-PIECE that replaces both top and bottom (dress, jumpsuit, romper, co-ord set)
+3. FOOTWEAR (shoes, heels, sneakers, boots, sandals, flats, loafers, mules)
+
+CRITICAL SKIRT RULE — A skirt is a BOTTOM, not a complete outfit. A skirt ALWAYS requires a top.
+Valid: skirt + blouse + boots. Invalid: skirt + boots + accessory (missing top).
+If you pick a skirt, you MUST also pick a top (shirt, blouse, tee, sweater, tank, etc.).
+Only a dress, jumpsuit, or romper can replace both top and bottom.
 
 If the user's wardrobe does not contain enough items to build a complete outfit — for example, no bottoms, no dresses, and no skirts — respond with:
 "I don't have enough pieces in your wardrobe to build a complete outfit. Try adding more bottoms or shoes."
 
-Never return an outfit suggestion that is missing a bottom or a one-piece equivalent. Never return an outfit that has only tops and accessories.`;
+Never return an outfit suggestion that is missing a top (unless it has a dress/jumpsuit/romper). Never return an outfit missing a bottom or one-piece equivalent.`;
 
 async function getLatestTrends() {
   try {
@@ -2845,6 +2860,35 @@ When a user mentions a specific artist, band, show, or cultural moment, style th
 - Sabrina Carpenter → feminine, bows, ballet core, pink tones
 - Olivia Rodrigo → Y2K, punk edge, plaid, chunky boots
 Always identify the cultural reference and style accordingly without the user having to spell it out.
+
+EVENT VIBE MAPPING — before selecting ANY items, identify the event type and apply the appropriate vibe filter. The vibe determines which items are appropriate. Do NOT mix vibes — a festival outfit should never include corporate pieces, and a formal outfit should never include festival pieces.
+
+FESTIVAL / CONCERT (Coachella, music festival, outdoor concert, rave, block party):
+  Vibe: bohemian, free-spirited, fun, comfortable, expressive
+  Prioritize: flowy dresses, denim shorts, crop tops, boots, sneakers, crossbody bags, fun accessories, hats, sunglasses, graphic tees, fringe, crochet, jumpsuits
+  Avoid: structured blazers, formal handbags, office wear, anything that reads corporate or dressy, pencil skirts, formal dresses
+
+FORMAL / OFFICE (work, meeting, dinner, gala, interview, presentation):
+  Vibe: polished, sophisticated, structured
+  Prioritize: blazers, tailored trousers, blouses, heels, structured bags, midi dresses, pencil skirts
+  Avoid: casual streetwear, festival pieces, graphic tees, ripped denim, sneakers (unless fashion sneakers for creative offices)
+
+CASUAL / EVERYDAY (brunch, errands, coffee, shopping, weekend):
+  Vibe: relaxed, put-together but comfortable
+  Prioritize: jeans, casual tops, sneakers, crossbody bags, knit layers, comfortable dresses
+  Avoid: overly formal pieces, sequins, heavy blazers
+
+DATE NIGHT (romantic dinner, drinks, rooftop bar):
+  Vibe: elevated, feminine/sharp, intentional
+  Prioritize: dresses, heels, statement pieces, interesting textures, jewelry
+  Avoid: overly casual pieces, activewear, bulky outerwear
+
+ATHLETIC / OUTDOOR (hiking, gym, sport, active day):
+  Vibe: functional, comfortable, performance
+  Prioritize: activewear, sneakers, practical bags, sporty layers
+  Avoid: formal wear, delicate fabrics, heels
+
+When the user mentions a specific event, artist, venue, or occasion — infer the vibe FIRST, then select ONLY items that match that energy from their wardrobe. If no items match the vibe well, say so honestly rather than suggesting mismatched items. Always explain WHY each item fits the occasion in the outfit description.
 
 LAYERING IS EVERYTHING RIGHT NOW:
 Current trend is NOT about single pieces — it's about unexpected layering combinations:
@@ -3498,10 +3542,12 @@ MANDATORY OUTFIT RULES — NEVER BREAK THESE:
 ✓ MAXIMUM 5 items: top + layer + bottom + shoes + accessory
 
 BEFORE RESPONDING — mentally check your outfit:
-- Do I have a bottom OR a dress? If not, pick one.
-- Do I have shoes? If not, pick shoes.
-- Do I have a top or dress? If not, pick one.
+- Do I have a top (shirt, blouse, tee, sweater, tank) OR a dress/jumpsuit? If not, STOP and pick a top.
+- Do I have a bottom (pants, jeans, skirt, shorts) OR a dress/jumpsuit? If not, STOP and pick one.
+- Do I have shoes? If not, STOP and pick shoes.
 - Am I including a blazer/jacket WITHOUT a shirt under it? If so, add a top.
+- Did I pick a skirt without a top? A skirt is NOT a top. STOP and add a top.
+${isRetry ? `\nCRITICAL RETRY — your previous outfit was rejected for missing a top, bottom, or shoes. You MUST include all three this time. Double-check before responding. A skirt + boots + accessory is INVALID — it needs a top.` : ''}
 
 WEATHER RULE: If temperature is above 75F skip heavy layers. If below 60F always add outerwear.
 
@@ -3509,8 +3555,9 @@ Reply in EXACTLY this format with no extra text:
 VIBE: [3 word editorial vibe name]
 CAPTION: [one witty, fashion-forward sentence about why this outfit is perfect for today. Reference the actual weather, day of the week, or season. Make it feel like a stylist texting a friend. Under 20 words. No em dashes.]
 ITEMS: [image_url1]|[image_url2]|[image_url3]|[image_url4]
-WHY: [one punchy sentence]
+WHY: [one punchy sentence. No em dashes.]
 
+Never use em dashes (—) anywhere in your response. Use commas, periods, or rewrite instead.
 Only use URLs from the wardrobe list above.`;
 
       const response = await fetch("https://styliner.vercel.app/api/anthropic", {
@@ -3543,18 +3590,29 @@ Only use URLs from the wardrobe list above.`;
 
       const imageUrls = deduplicateOutfitByCategory(rawImageUrls, closetDataRef.current);
 
-      // Post-processing validation: ensure outfit has bottom/dress + shoes
+      // Post-processing validation: ensure outfit has top + bottom/dress + shoes
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
-      const hasBottom = parsedItems.some(i => /pants|jeans|trouser|skirt|shorts/i.test((i.category || '') + ' ' + (i.name || '')));
-      const hasDress = parsedItems.some(i => /dress|jumpsuit|romper|co-ord/i.test((i.category || '') + ' ' + (i.name || '')));
-      const hasShoes = parsedItems.some(i => /shoes|heels|sneakers|boots|sandals|loafer|flat|mules/i.test((i.category || '') + ' ' + (i.name || '')));
+      const catAndName = (i) => ((i.category || '') + ' ' + (i.name || '') + ' ' + (i.subcategory || '')).toLowerCase();
+      const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic)\b/i.test(catAndName(i)));
+      const hasBottom = parsedItems.some(i => /\b(pants|jeans|trouser|skirt|shorts|legging)\b/i.test(catAndName(i)));
+      const hasOnePiece = parsedItems.some(i => /\b(dress|jumpsuit|romper|co-ord|coord|overalls)\b/i.test(catAndName(i)));
+      const hasShoes = parsedItems.some(i => /\b(shoes|heels|sneakers|boots|sandals|loafer|flat|mules|slides|pumps|oxfords|derby)\b/i.test(catAndName(i)));
+      const needsTop = !hasTop && !hasOnePiece;
+      const needsBottom = !hasBottom && !hasOnePiece;
+      const needsShoes = !hasShoes;
+      const isInvalid = needsTop || needsBottom || needsShoes;
 
-      if ((!hasBottom && !hasDress) || !hasShoes) {
-        console.warn("Invalid outfit generated — missing bottom or shoes, retrying...");
+      if (isInvalid) {
+        const missing = [needsTop && "top", needsBottom && "bottom", needsShoes && "shoes"].filter(Boolean).join(", ");
+        console.warn(`Invalid outfit — missing: ${missing}. isRetry=${isRetry}`);
         if (!isRetry) {
           fetchOutfitSuggestion(true);
           return;
         }
+        // Retry also failed — show error instead of topless/incomplete outfit
+        setSuggestedImages([]);
+        setOutfitError(true);
+        return;
       }
 
       setSuggestedImages(imageUrls);
@@ -3695,7 +3753,7 @@ Only use URLs from the wardrobe list above.`;
         position: "relative",
       }}
     >
-      <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 48px calc(100px + env(safe-area-inset-bottom, 16px))` : `max(88px, calc(env(safe-area-inset-top) + 44px)) 16px calc(100px + env(safe-area-inset-bottom, 16px))` }}>
+      <div style={{ flex: 1, height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isTablet ? `calc(env(safe-area-inset-top, 59px) + 16px) 48px calc(56px + env(safe-area-inset-bottom, 0px))` : `calc(env(safe-area-inset-top, 47px) + 24px) 16px calc(48px + env(safe-area-inset-bottom, 0px))` }}>
         <div style={isTablet ? { maxWidth: "560px", margin: "0 auto", width: "100%" } : {}}>
         {/* Weather pill with inline unit toggle */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
@@ -3789,37 +3847,14 @@ Only use URLs from the wardrobe list above.`;
         </div>
 
         {/* Headline */}
-        <div style={{ padding: "14px 24px 0", textAlign: "center", position: "relative" }}>
-          <button
-            type="button"
-            onClick={() => {
-              if (isDemoMode) {
-                showDemoPrompt({
-                  title: "Sign up to save your wardrobe settings",
-                  message: "Create an account to keep your profile and style inspirations.",
-                });
-                return;
-              }
-              setNameInput(userName);
-              setEditStyleGender(styleGenderRef.current);
-              setEditStyleInspo(styleInspoRef.current);
-              setProfileSheetOpen(true);
-            }}
-            style={{ position: "absolute", right: 0, top: "14px", background: "rgba(255,255,255,0.7)", border: "1px solid rgba(176,138,74,0.18)", borderRadius: "100px", padding: "8px 14px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", minWidth: "44px", minHeight: "44px" }}
-            aria-label="Account settings"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#B08A4A" }}>Settings</span>
-          </button>
+        <div style={{ padding: "8px 24px 0", textAlign: "center", position: "relative" }}>
           <h1 style={{ margin: 0, fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 800, color: "#111111", lineHeight: "1.2" }}>
             What will you<br />wear today?
           </h1>
         </div>
 
         {/* User avatar + name */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 24px 0", textAlign: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "6px 24px 0", textAlign: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111111" }}>
             {userName ? `${userName}'s Closet` : "My Closet"}
@@ -3839,14 +3874,12 @@ Only use URLs from the wardrobe list above.`;
                 setEditStyleInspo(styleInspoRef.current);
                 setProfileSheetOpen(true);
               }}
-              style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(176,138,74,0.25)", cursor: "pointer", padding: "6px 12px", margin: 0, borderRadius: "100px", display: "flex", alignItems: "center", gap: "6px", minWidth: "44px", minHeight: "44px", justifyContent: "center" }}
-              aria-label="Account settings"
+              style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(176,138,74,0.25)", cursor: "pointer", padding: 0, margin: 0, borderRadius: "100px", display: "flex", alignItems: "center", justifyContent: "center", width: "44px", height: "44px" }}
+              aria-label="Settings"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M20 21a8 8 0 1 0-16 0" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "#B08A4A" }}>Account</span>
             </button>
             {isAdminEmail(userEmail) && (
               <span
@@ -3870,7 +3903,7 @@ Only use URLs from the wardrobe list above.`;
         </div>
 
         {/* Daily outfit suggestion */}
-        <div style={{ padding: "16px 16px 24px" }}>
+        <div style={{ padding: "10px 16px 0" }}>
           {loadingOutfit ? (
             <div
               style={{
@@ -4795,7 +4828,7 @@ function AdminUsageScreen() {
         maxWidth: window.innerWidth >= 768 ? "100%" : "430px",
         margin: "0 auto",
         background: "linear-gradient(180deg, #FBF8F1 0%, #F5EFE4 100%)",
-        padding: "max(72px, calc(env(safe-area-inset-top) + 32px)) 16px calc(120px + env(safe-area-inset-bottom, 16px))",
+        padding: "calc(env(safe-area-inset-top, 59px) + 16px) 16px calc(120px + env(safe-area-inset-bottom, 16px))",
         boxSizing: "border-box",
       }}
     >
@@ -5296,7 +5329,7 @@ function ClosetScreen() {
       }}
     >
       {/* Header */}
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${closetIsTablet ? "24px" : "16px"} 0` }}>
+      <div style={{ padding: `calc(env(safe-area-inset-top, 59px) + 16px) ${closetIsTablet ? "24px" : "16px"} 0` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>My Closet</h1>
@@ -6187,7 +6220,7 @@ function ItemDetailScreen() {
           onClick={() => navigate("/closet")}
           style={{
             position: "absolute",
-            top: "max(72px, calc(env(safe-area-inset-top) + 32px))",
+            top: "calc(env(safe-area-inset-top, 59px) + 16px)",
             left: "16px",
             zIndex: 5,
             width: "36px",
@@ -7112,7 +7145,7 @@ function UploadScreen() {
         onClick={() => navigate(-1)}
         style={{
           position: "absolute",
-          top: "max(72px, calc(env(safe-area-inset-top) + 32px))",
+          top: "calc(env(safe-area-inset-top, 59px) + 16px)",
           left: "16px",
           zIndex: 5,
           width: "36px",
@@ -7601,7 +7634,15 @@ Maximum 2 sentences. Reference a specific trend or aesthetic. Be opinionated and
 COMPLETE THE LOOK
 Always suggest 1-2 specific trendy pieces that would elevate this outfit — can be anything: jacket, shoes, bag, top, jewelry, pants. Keep each suggestion to one line: item name + why it elevates the look.
 Format each as: To elevate this look: [item description] → https://www.google.com/search?tbm=shop&q=item+name+here (replace spaces with +)
-Only suggest items they don't already own.`;
+Only suggest items they don't already own.
+
+WRITING STYLE: Never use em dashes (—) in any section. Use commas, periods, or rewrite the sentence instead. Keep descriptions punchy and clean.
+
+STYLE TIP (only when user mentions a specific occasion):
+If the user mentions a specific occasion, event, or activity (festival, concert, wedding, date night, vacation, brunch, office, party, coachella, gym, hiking, etc.), add this section at the very end of your response:
+
+STYLE TIP
+One conversational sentence suggesting 2-3 specific generic items (no brand names) that would elevate this look for the occasion. Example: "A crochet top or fringe bag would take this from casual to full festival energy." Only include this for occasion-specific requests. Skip it for general styling questions.`;
 
   function detectCulturalMoment(text) {
     const lower = (text || "").toLowerCase();
@@ -7611,14 +7652,16 @@ Only suggest items they don't already own.`;
       return "Taylor Swift Eras Tour. Think sequins, cardigans, cowboy boots, friendship bracelets stacked, sparkly mini dresses, cottagecore layers.";
     if (/beyonce|renaissance|cowboy carter/.test(lower))
       return "Beyonce concert. Think silver metallics, disco ball sequins, bold bodycon, western elements, statement boots.";
-    if (/coachella|festival/.test(lower))
-      return "Festival/Coachella. Think boho layers, fringe, crochet, floral prints, bandanas, bucket hats, platform sandals.";
+    if (/coachella|festival|bonnaroo|lollapalooza|glastonbury|edc|burning man/.test(lower))
+      return "Festival/Coachella. Think boho layers, fringe, crochet, floral prints, bandanas, bucket hats, platform sandals, denim shorts, crop tops, sneakers, crossbody bags. AVOID: structured blazers, formal handbags, pencil skirts, office wear, anything corporate or dressy. This is an OUTDOOR FESTIVAL — prioritize comfort, movement, and expressive style.";
     if (/harry styles|love on tour/.test(lower))
       return "Harry Styles concert. Think gender-fluid fashion, floral prints, wide leg trousers, vintage-inspired, bold colors, platform shoes.";
     if (/sabrina carpenter/.test(lower))
       return "Sabrina Carpenter concert. Think hyper-feminine, bows, ballet core, pink tones, corsets, Mary Janes.";
     if (/olivia rodrigo|sour tour/.test(lower))
       return "Olivia Rodrigo concert. Think Y2K punk-adjacent, plaid, chunky boots, band tees, mini skirts, dark nail polish.";
+    if (/justin bieber|bieber/.test(lower))
+      return "Justin Bieber concert. Think casual cool streetwear — oversized tees, relaxed denim, sneakers, dad caps, gold chains, crossbody bags. Drew House/Purpose Tour energy. AVOID: formal blazers, heels, structured office wear.";
     if (/blackpink|kpop|k-pop|twice|aespa|newjeans|stray kids/.test(lower))
       return "K-pop concert. Think street style meets high fashion, coordinated sets, platform shoes, mini skirts, statement accessories, lots of layering.";
     if (/renaissance|disco|70s/.test(lower))
@@ -7687,23 +7730,28 @@ COLORS: ${rule.colors}
   function selectRelevantItems(items, userMessage, limit = 20) {
     if (items.length <= limit) return items;
     const lower = (userMessage || "").toLowerCase();
+    const isFestival = /concert|festival|coachella|rave|block party|outdoor show|music event/i.test(lower);
+    const isFormal = /formal|wedding|ceremony|gala|dinner|office|work|meeting|interview/i.test(lower);
+    const isCasual = /casual|weekend|brunch|picnic|errands|coffee/i.test(lower);
+    const isDate = /date|romantic|drinks|rooftop/i.test(lower);
     const scored = items.map((item) => {
       let score = 0;
-      const cat = (item.category || "").toLowerCase();
-      const name = (item.name || "").toLowerCase();
-      if (/formal|wedding|ceremony|gala|dinner/.test(lower)) {
-        if (/dress|blazer|heels|formal/.test(cat + name)) score += 3;
+      const catName = ((item.category || "") + " " + (item.name || "")).toLowerCase();
+      // Always include shoes/bags as options
+      if (/shoes|heels|sneakers|boots|sandals|bag|purse/.test(catName)) score += 2;
+      if (isFestival) {
+        if (/denim|shorts|crop|tank|tee|t-shirt|sneakers|boots|crossbody|hat|sunglasses|jumpsuit|romper|graphic|fringe|flowy|sandals/.test(catName)) score += 4;
+        if (/blazer|formal|structured|pencil|office|suit|briefcase/.test(catName)) score -= 3;
+      } else if (isFormal) {
+        if (/blazer|trouser|blouse|formal|heels|dress|pencil|structured/.test(catName)) score += 4;
+        if (/sneakers|graphic|ripped|hoodie|sweatpant|crop/.test(catName)) score -= 3;
+      } else if (isCasual) {
+        if (/jeans|sneakers|tee|casual|cardigan|loafer|knit/.test(catName)) score += 3;
+      } else if (isDate) {
+        if (/dress|heels|jewelry|statement|silk|satin/.test(catName)) score += 3;
+      } else {
+        if (/dress|top|heels|bag/.test(catName)) score += 1;
       }
-      if (/casual|weekend|brunch|picnic/.test(lower)) {
-        if (/jeans|sneakers|tee|casual/.test(cat + name)) score += 3;
-      }
-      if (/office|work|meeting|interview/.test(lower)) {
-        if (/blazer|trouser|blouse|formal/.test(cat + name)) score += 3;
-      }
-      if (/concert|festival|party|night/.test(lower)) {
-        if (/dress|top|heels|bag/.test(cat + name)) score += 3;
-      }
-      if (/shoes|heels|sneakers|boots|sandals|bag|purse/.test(cat)) score += 2;
       return { ...item, _score: score };
     });
     return scored.sort((a, b) => b._score - a._score).slice(0, limit).map(({ _score, ...item }) => item);
@@ -7751,8 +7799,9 @@ COLORS: ${rule.colors}
     let shopText = "";
 
     const yourLookMatch = clean.match(/YOUR LOOK\s*\n([\s\S]*?)(?=\n\s*WHY IT WORKS|$)/i);
-    const whyMatch = clean.match(/WHY IT WORKS\s*\n([\s\S]*?)(?=\n\s*COMPLETE THE LOOK|$)/i);
-    const shopMatch = clean.match(/COMPLETE THE LOOK\s*\n([\s\S]*?)$/i);
+    const whyMatch = clean.match(/WHY IT WORKS\s*\n([\s\S]*?)(?=\n\s*COMPLETE THE LOOK|\n\s*STYLE TIP|$)/i);
+    const shopMatch = clean.match(/COMPLETE THE LOOK\s*\n([\s\S]*?)(?=\n\s*STYLE TIP|$)/i);
+    const styleTipMatch = clean.match(/STYLE TIP\s*\n([\s\S]*?)$/i);
 
     if (yourLookMatch) {
       itemNames = yourLookMatch[1].trim();
@@ -7776,12 +7825,18 @@ COLORS: ${rule.colors}
       imageUrls.forEach((url) => { shopText = shopText.replaceAll(url, ""); });
       shopText = shopText.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
     }
+    let styleTipText = "";
+    if (styleTipMatch) {
+      styleTipText = styleTipMatch[1].trim();
+      imageUrls.forEach((url) => { styleTipText = styleTipText.replaceAll(url, ""); });
+      styleTipText = styleTipText.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
+    }
 
     let description = clean;
     imageUrls.forEach((url) => { description = description.replaceAll(url, ""); });
     description = description.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim();
 
-    return { imageUrls, itemNames, whyText, shopText, description };
+    return { imageUrls, itemNames, whyText, shopText, styleTipText, description };
   }
 
   function renderTextWithLinks(text) {
@@ -8541,6 +8596,20 @@ COLORS: ${rule.colors}
 
   const { isTablet: chatIsTablet } = useDeviceType();
 
+  // Track keyboard height via visualViewport for iOS Capacitor
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function onResize() {
+      const offset = window.innerHeight - vv.height;
+      setKeyboardOffset(offset > 50 ? offset : 0);
+    }
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => { vv.removeEventListener("resize", onResize); vv.removeEventListener("scroll", onResize); };
+  }, []);
+
   return (
     <div
       style={{
@@ -8584,7 +8653,7 @@ COLORS: ${rule.colors}
           boxShadow: drawerOpen ? "4px 0 20px rgba(0,0,0,0.1)" : "none",
         }}
       >
-        <div style={{ padding: "16px", paddingTop: "max(60px, calc(env(safe-area-inset-top) + 16px))", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
+        <div style={{ padding: "16px", paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
           <strong style={{ fontSize: "15px", color: "#111111" }}>Conversations</strong>
           <button type="button" aria-label="Close conversations" onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", fontSize: "18px", color: "#999", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
@@ -8633,7 +8702,10 @@ COLORS: ${rule.colors}
       {/* Header */}
       <div
         style={{
-          padding: chatIsTablet ? `max(72px, calc(env(safe-area-inset-top) + 32px)) 24px 16px` : `max(72px, calc(env(safe-area-inset-top) + 32px)) 16px 16px`,
+          paddingTop: "calc(env(safe-area-inset-top, 59px) + 16px)",
+          paddingLeft: chatIsTablet ? "24px" : "16px",
+          paddingRight: chatIsTablet ? "24px" : "16px",
+          paddingBottom: "16px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -8678,7 +8750,7 @@ COLORS: ${rule.colors}
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          padding: chatIsTablet ? "16px 0 calc(130px + env(safe-area-inset-bottom, 0px))" : "16px 16px calc(130px + env(safe-area-inset-bottom, 0px))",
+          padding: chatIsTablet ? "16px 0 calc(130px + env(safe-area-inset-bottom, 0px))" : `16px 16px ${keyboardOffset > 0 ? (keyboardOffset + 70) + "px" : "calc(130px + env(safe-area-inset-bottom, 0px))"}`,
           width: "100%",
         }}
       >
@@ -8899,7 +8971,7 @@ COLORS: ${rule.colors}
                     {msg.content}
                   </div>
                 ) : (() => {
-                  const { imageUrls, itemNames, whyText, shopText } = parseAiResponse(msg.content);
+                  const { imageUrls, itemNames, whyText, shopText, styleTipText } = parseAiResponse(msg.content);
                   const isFading = fadingMsgId === msg.id;
                   const isSaved = savedMsgIds.has(msg.id);
                   const isExpanded = expandedMsgIds.has(msg.id);
@@ -8917,7 +8989,7 @@ COLORS: ${rule.colors}
 
                       {/* 2. Short caption */}
                       {shortCaption && (
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#6b6578", fontStyle: "italic", lineHeight: "1.45", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#6b6578", fontStyle: "italic", lineHeight: "1.45" }}>
                           {shortCaption}
                         </p>
                       )}
@@ -9108,6 +9180,24 @@ COLORS: ${rule.colors}
                         </div>
                       )}
 
+                      {/* 8. Style tip card */}
+                      {styleTipText && (
+                        <div style={{
+                          marginTop: "10px",
+                          padding: "12px 14px",
+                          borderRadius: "16px",
+                          background: "#F5EDE0",
+                          fontSize: "13px",
+                          fontStyle: "italic",
+                          color: "#5a4a3a",
+                          lineHeight: "1.5",
+                        }}>
+                          <span style={{ fontStyle: "normal", marginRight: "4px" }}>{"\u2726"}</span>
+                          <span style={{ fontWeight: 600, fontStyle: "normal" }}>Style tip: </span>
+                          {styleTipText}
+                        </div>
+                      )}
+
                       {isDemoMode && (
                         <div
                           onClick={() => navigate("/signup")}
@@ -9156,7 +9246,7 @@ COLORS: ${rule.colors}
       <div
         style={{
           position: "fixed",
-          bottom: CHAT_COMPOSER_BOTTOM_OFFSET,
+          bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : CHAT_COMPOSER_BOTTOM_OFFSET,
           left: 0,
           right: 0,
           width: "100%",
@@ -9168,7 +9258,7 @@ COLORS: ${rule.colors}
           zIndex: 50,
           boxSizing: "border-box",
           opacity: drawerOpen ? 0.72 : 1,
-          transition: "opacity 0.2s ease",
+          transition: keyboardOffset > 0 ? "none" : "opacity 0.2s ease",
         }}
       >
         <div style={{ display: "flex", gap: "8px", alignItems: "center", maxWidth: chatIsTablet ? "680px" : "100%", margin: "0 auto", padding: chatIsTablet ? "10px 24px" : "10px 16px", boxSizing: "border-box", width: "100%" }}>
@@ -9472,7 +9562,7 @@ function getConversationTitleForOutfit(outfitCreatedAt) {
         position: "relative",
       }}
     >
-      <div style={{ padding: `max(72px, calc(env(safe-area-inset-top) + 32px)) ${favIsTablet ? "24px" : "16px"} 0`, textAlign: "left" }}>
+      <div style={{ padding: `calc(env(safe-area-inset-top, 59px) + 16px) ${favIsTablet ? "24px" : "16px"} 0`, textAlign: "left" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(18px, 4.5vw, 22px)", fontWeight: 700, color: "#111111" }}>Lookbook</h1>
         <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#888" }}>
           {savedOutfits.length} saved look{savedOutfits.length !== 1 ? "s" : ""}
