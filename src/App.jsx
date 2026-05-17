@@ -1700,51 +1700,7 @@ function SignUpScreen() {
         </div>
         <h2 className="text-center text-2xl font-bold text-gray-900">Create your account</h2>
         <p className="mt-1 text-center text-sm text-gray-600">Start building your digital wardrobe.</p>
-        <div className="mt-8">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                  provider: 'apple',
-                  options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
-                });
-                if (error) { console.error(error); return; }
-                if (data?.url) {
-                  const { Browser } = await import('@capacitor/browser');
-                  await Browser.open({ url: data.url, presentationStyle: 'popover' });
-                }
-              } catch (err) { console.error(err); }
-            }}
-            style={{
-              width: "100%",
-              padding: "14px 16px",
-              borderRadius: "100px",
-              border: "1.5px solid #e0e0e0",
-              background: "black",
-              color: "white",
-              fontSize: "15px",
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              marginBottom: "16px"
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 814 1000" fill="white">
-              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-127.4C46 790.8 0 663.9 0 541.8c0-207.4 135.4-316.8 268.1-316.8 71 0 130.3 46.9 173.8 46.9 42.3 0 109.1-49.9 190.3-49.9 30.5 0 110.1 2.6 170.7 78.2zm-130.8-73.4c-28.1-36.1-75.4-64.9-134-64.9-9.6 0-19.3 1.3-28.9 3.2 26.8-37.5 75.1-77.7 140.4-77.7 6.4 0 12.9.6 19.3 1.3-3.2 12.9-16.7 68.7 3.2 138.1z"/>
-            </svg>
-            Continue with Apple
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
-            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
-            <span style={{ fontSize: "12px", color: "#999", fontWeight: 500 }}>or</span>
-            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
-          </div>
-        </div>
-        <form className="space-y-4" onSubmit={handleSignUp}>
+        <form className="mt-8 space-y-4" onSubmit={handleSignUp}>
           <Field
             label="First Name"
             name="firstName"
@@ -2128,51 +2084,6 @@ function LogInScreen() {
         <h2 className="text-center text-2xl font-bold text-gray-900">{forgotMode ? "Reset password" : "Welcome back"}</h2>
         <p className="mt-1 text-center text-sm text-gray-600">{forgotMode ? "Enter your email to receive a reset link" : "Log in to continue with Styliner"}</p>
 
-        <div className="mt-8">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                  provider: 'apple',
-                  options: { redirectTo: 'styliner://auth/callback', skipBrowserRedirect: true }
-                });
-                if (error) { console.error(error); return; }
-                if (data?.url) {
-                  const { Browser } = await import('@capacitor/browser');
-                  await Browser.open({ url: data.url, presentationStyle: 'popover' });
-                }
-              } catch (err) { console.error(err); }
-            }}
-            style={{
-              width: "100%",
-              padding: "14px 16px",
-              borderRadius: "100px",
-              border: "1.5px solid #e0e0e0",
-              background: "black",
-              color: "white",
-              fontSize: "15px",
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              marginBottom: "16px"
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 814 1000" fill="white">
-              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-127.4C46 790.8 0 663.9 0 541.8c0-207.4 135.4-316.8 268.1-316.8 71 0 130.3 46.9 173.8 46.9 42.3 0 109.1-49.9 190.3-49.9 30.5 0 110.1 2.6 170.7 78.2zm-130.8-73.4c-28.1-36.1-75.4-64.9-134-64.9-9.6 0-19.3 1.3-28.9 3.2 26.8-37.5 75.1-77.7 140.4-77.7 6.4 0 12.9.6 19.3 1.3-3.2 12.9-16.7 68.7 3.2 138.1z"/>
-            </svg>
-            Continue with Apple
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
-            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
-            <span style={{ fontSize: "12px", color: "#999", fontWeight: 500 }}>or</span>
-            <div style={{ flex: 1, height: "1px", background: "#e0e0e0" }} />
-          </div>
-        </div>
-
         {forgotMode ? (
           <div className="space-y-4">
             {resetSuccess ? (
@@ -2374,29 +2285,29 @@ function PrivacyPolicyScreen() {
         </div>
         <h2 style={{ margin: "0 0 10px", fontSize: "26px", lineHeight: 1.1, fontWeight: 800, color: "#111111" }}>Privacy Policy</h2>
         <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#6f675d", lineHeight: 1.6 }}>
-          This is a simple summary of how Lookset handles data.
+          This is a simple summary of how Styliner handles data.
         </p>
         <div style={{ display: "grid", gap: "12px" }}>
           {[
             {
               title: "What we collect",
-              body: "Account details, wardrobe images you upload, saved looks, chat prompts, and usage logs needed to run the app and improve styling features.",
+              body: "Account details, clothing photos you upload (sent to our AI provider for outfit generation), saved looks, chat prompts, and usage logs needed to run the app and improve styling features.",
             },
             {
               title: "How we use it",
               body: "To generate outfit suggestions, save your closet and lookbook, personalize styling preferences, show admin usage metrics, and support app operations.",
             },
             {
-              title: "AI content",
-              body: "When Lookset generates styling suggestions, the app labels those results as AI-generated in the UI.",
+              title: "AI processing",
+              body: "Styliner uses the Anthropic Claude API to generate outfit suggestions. When you request a suggestion, we send Anthropic the following: photos of your clothing items (via secure Cloudinary URLs), item names, categories and tags, your style preferences, your chat messages, and city-level weather data. Anthropic processes this data only to return a response and does not use it to train their models. Your email address and account ID are never sent to Anthropic. You can review Anthropic's privacy practices at anthropic.com/legal/privacy.",
             },
             {
-              title: "Sharing",
-              body: "We do not sell personal data. We may share data only with service providers needed to operate the app, such as Supabase and AI providers.",
+              title: "Third-party services",
+              body: "We use the following third-party services to operate Styliner: Supabase (authentication and database), Cloudinary (photo storage and delivery), Anthropic (AI outfit suggestions), and Vercel (app hosting). We do not sell your personal data.",
             },
             {
               title: "Your controls",
-              body: "You can update profile info, delete saved looks, remove closet items, and log out at any time. To permanently delete your account and all associated data, use the Delete Account option in your profile settings.",
+              body: "You can update your profile, delete saved looks, and remove wardrobe items at any time. To permanently delete your account and all associated data \u2014 including your Supabase account, wardrobe photos in Cloudinary, and outfit history \u2014 use Settings \u2192 Account \u2192 Delete Account. Deletion is immediate and permanent.",
             },
           ].map((section) => (
             <div key={section.title} style={{ borderRadius: "20px", background: "rgba(255,255,255,0.82)", border: "1px solid rgba(176,138,74,0.14)", padding: "16px" }}>
@@ -2405,6 +2316,7 @@ function PrivacyPolicyScreen() {
             </div>
           ))}
         </div>
+        <p style={{ margin: "18px 0 0", fontSize: "12px", color: "#9a9088", textAlign: "center" }}>Last updated: April 2026</p>
       </div>
     </AppShell>
   );
@@ -3564,7 +3476,7 @@ Only use URLs from the wardrobe list above.`;
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-  
+
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
@@ -3575,8 +3487,19 @@ Only use URLs from the wardrobe list above.`;
         }),
       });
 
+      if (!response.ok) {
+        console.error(`[Suggestion API] HTTP ${response.status}: ${response.statusText}`);
+        const errorBody = await response.text().catch(() => "");
+        console.error("[Suggestion API] Response body:", errorBody);
+        throw new Error(`Suggestion API returned ${response.status}`);
+      }
+
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
+
+      if (!text) {
+        console.error("[Suggestion API] Empty response content:", JSON.stringify(data));
+      }
 
       const vibeMatch = text.match(/VIBE:\s*(.+)/);
       const captionMatch = text.match(/CAPTION:\s*(.+)/);
@@ -3606,7 +3529,7 @@ Only use URLs from the wardrobe list above.`;
         const missing = [needsTop && "top", needsBottom && "bottom", needsShoes && "shoes"].filter(Boolean).join(", ");
         console.warn(`Invalid outfit — missing: ${missing}. isRetry=${isRetry}`);
         if (!isRetry) {
-          fetchOutfitSuggestion(true);
+          await fetchOutfitSuggestion(true);
           return;
         }
         // Retry also failed — show error instead of topless/incomplete outfit
@@ -4068,13 +3991,15 @@ Only use URLs from the wardrobe list above.`;
                 textAlign: "center",
               }}
             >
-              {itemCount === 0 ? (
+              {itemCount < 5 ? (
                 <>
                   <p style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 700, color: "#111111" }}>
-                    Your starter wardrobe is ready
+                    {itemCount === 0 ? "Your starter wardrobe is ready" : "Add a few more items to unlock styling"}
                   </p>
                   <p style={{ margin: "0 0 20px", fontSize: "13px", lineHeight: "1.5", color: "#888" }}>
-                    Add your own clothes to get personalized suggestions
+                    {itemCount === 0
+                      ? "Add your own clothes to get personalized suggestions"
+                      : `You have ${itemCount} item${itemCount !== 1 ? "s" : ""}. Add at least ${5 - itemCount} more for outfit suggestions.`}
                   </p>
                   <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                     <button
@@ -4092,7 +4017,7 @@ Only use URLs from the wardrobe list above.`;
                         boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
                       }}
                     >
-                      Upload My Clothes
+                      Upload {itemCount === 0 ? "My Clothes" : "Items"}
                     </button>
                     <button
                       type="button"
@@ -4115,15 +4040,15 @@ Only use URLs from the wardrobe list above.`;
               ) : (
                 <>
                   <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                    Add more items to your closet to get daily suggestions <span style={{ color: "#B08A4A" }}>✦</span>
+                    Couldn't generate a suggestion right now
                   </p>
                   <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#888" }}>
-                    You have {itemCount} item{itemCount !== 1 ? "s" : ""} — try adding a few more for better outfits.
+                    Something went wrong on our end. Your {itemCount} items are ready to style.
                   </p>
                   <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
                     <button
                       type="button"
-                      onClick={() => navigate("/upload")}
+                      onClick={() => fetchOutfitSuggestion()}
                       style={{
                         border: "none",
                         background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
@@ -4134,22 +4059,6 @@ Only use URLs from the wardrobe list above.`;
                         fontWeight: 600,
                         cursor: "pointer",
                         boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-                      }}
-                    >
-                      Upload Items
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fetchOutfitSuggestion()}
-                      style={{
-                        border: "1.5px solid #B08A4A",
-                        background: "transparent",
-                        color: "#B08A4A",
-                        borderRadius: "100px",
-                        padding: "10px 20px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
                       }}
                     >
                       Try Again
@@ -10011,10 +9920,18 @@ function AppRouter() {
   useEffect(() => {
     let isMounted = true;
 
+    const timeout = setTimeout(() => {
+      if (isMounted) setIsAuthLoading(false);
+    }, 5000);
+
     supabase.auth.getSession().then(({ data }) => {
+      clearTimeout(timeout);
       if (!isMounted) return;
       setSession(data.session);
       setIsAuthLoading(false);
+    }).catch(() => {
+      clearTimeout(timeout);
+      if (isMounted) setIsAuthLoading(false);
     });
 
     const {
@@ -10030,25 +9947,6 @@ function AppRouter() {
     };
   }, []);
 
-  // Deep-link handler: catch styliner://auth/callback from Sign in with Apple
-  useEffect(() => {
-    let unlisten;
-    import('@capacitor/app').then(({ App: CapApp }) => {
-      unlisten = CapApp.addListener('appUrlOpen', async ({ url }) => {
-        if (!url.startsWith('styliner://auth/callback')) return;
-        try {
-          const { Browser } = await import('@capacitor/browser');
-          await Browser.close();
-        } catch (_) {}
-        const params = new URL(url.replace('styliner://', 'https://placeholder/'));
-        const code = params.searchParams.get('code');
-        if (code) {
-          await supabase.auth.exchangeCodeForSession(code);
-        }
-      });
-    });
-    return () => { if (unlisten) unlisten.then(h => h.remove()); };
-  }, []);
 
   useEffect(() => {
     if (session) {
