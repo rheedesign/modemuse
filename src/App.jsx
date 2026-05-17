@@ -907,12 +907,18 @@ function getStarterClosetPreset(styleGender) {
   return STARTER_CLOSET_PRESETS[styleGender] || STARTER_CLOSET_PRESETS.womens;
 }
 
+function buildCutoutUrl(imageUrl) {
+  if (!imageUrl || !imageUrl.includes('/upload/')) return null;
+  return imageUrl.replace('/upload/', '/upload/e_background_removal/');
+}
+
 function buildStarterClosetItems(styleGender, userId) {
   const preset = getStarterClosetPreset(styleGender);
   const prefix = styleGender || "womens";
   return preset.map((item, index) => ({
     user_id: userId,
     image_url: item.image_url,
+    cutout_url: buildCutoutUrl(item.image_url),
     public_id: `starter-${prefix}-${index}`,
     name: item.name,
     category: item.category,
@@ -6869,6 +6875,7 @@ function UploadScreen() {
           .insert({
             user_id: user.id,
             image_url: item.imageUrl,
+            cutout_url: buildCutoutUrl(item.imageUrl),
             public_id: item.publicId,
             name: item.name || "Clothing Item",
             category: item.category || "Tops",
