@@ -2331,8 +2331,8 @@ function PrivacyPolicyScreen() {
 // --- Editorial Collage Component ---
 const COLLAGE_LAYOUT_DEFAULT = [
   { role: "hero",    x: 3,  y: -2, widthPct: 47, heightPct: 68, rotation: 0, z: 3 },
-  { role: "bottom",  x: 22, y: 9,  widthPct: 56, heightPct: 81, rotation: 0, z: 2 },
-  { role: "top",     x: 56, y: 5,  widthPct: 58, heightPct: 48, rotation: 0, z: 4 },
+  { role: "bottom",  x: 13, y: 1,  widthPct: 56, heightPct: 98, rotation: 0, z: 2 },
+  { role: "top",     x: 64, y: 5,  widthPct: 36, heightPct: 48, rotation: 0, z: 4 },
   { role: "shoes",   x: 8,  y: 48, widthPct: 40, heightPct: 35, rotation: 0, z: 5 },
   { role: "bag",     x: 56, y: 50, widthPct: 44, heightPct: 36, rotation: 0, z: 5 },
   { role: "jewelry",   x: 44, y: -6, widthPct: 37, heightPct: 78, rotation: 0, z: 6 },
@@ -2370,16 +2370,31 @@ const COLLAGE_ROLES_DRESS = {
 
 const COLLAGE_HERO_PRIORITY = ["Dresses", "Co-ord Set", "Outerwear", "Tops", "Bottoms"];
 
-function assignCollageSlots(items, roleCategories) {
+function assignCollageSlots(items, roleCategories, focalItemName = null) {
   const remaining = [...items];
   const assignments = new Map();
 
-  // Assign hero by priority
-  for (const cat of COLLAGE_HERO_PRIORITY) {
-    const idx = remaining.findIndex((i) => i.category === cat);
-    if (idx !== -1) {
-      assignments.set("hero", remaining.splice(idx, 1)[0]);
-      break;
+  // If focal item specified, force it into the appropriate slot
+  if (focalItemName) {
+    const focalNorm = focalItemName.trim().toLowerCase();
+    const focalIdx = remaining.findIndex((i) => i.name?.trim().toLowerCase() === focalNorm);
+    if (focalIdx !== -1) {
+      const focalItem = remaining.splice(focalIdx, 1)[0];
+      const focalIsBottoms = focalItem.category === "Bottoms" || focalItem.category === "Skirts";
+      assignments.set(focalIsBottoms ? "bottom" : "hero", focalItem);
+    } else {
+      console.warn(`[assignCollageSlots] Focal item "${focalItemName}" not found, falling back to priority`);
+    }
+  }
+
+  // Assign hero by priority (skipped if focal already filled it)
+  if (!assignments.has("hero")) {
+    for (const cat of COLLAGE_HERO_PRIORITY) {
+      const idx = remaining.findIndex((i) => i.category === cat);
+      if (idx !== -1) {
+        assignments.set("hero", remaining.splice(idx, 1)[0]);
+        break;
+      }
     }
   }
 
@@ -2396,15 +2411,17 @@ function assignCollageSlots(items, roleCategories) {
   return { assignments, overflow: remaining };
 }
 
-function OutfitCollage({ items }) {
+function OutfitCollage({ items, focalItemName = null }) {
   console.log("[Collage] Input items:", items.map((i) => ({ name: i.name, category: i.category, hasCutout: !!i.cutout_url })));
+  const focalItem = focalItemName ? items.find((i) => i.name?.trim().toLowerCase() === focalItemName.trim().toLowerCase()) : null;
+  if (focalItemName) console.log("[Collage] Focal item:", focalItemName, "category:", focalItem?.category || "(not found)");
 
   const layout = selectCollageLayout(items);
   const isDress = layout === COLLAGE_LAYOUT_DRESS;
   const roles = isDress ? COLLAGE_ROLES_DRESS : COLLAGE_ROLES_DEFAULT;
   console.log("[Collage] Layout:", isDress ? "DRESS" : "DEFAULT");
 
-  const { assignments, overflow } = assignCollageSlots(items, roles);
+  const { assignments, overflow } = assignCollageSlots(items, roles, focalItemName);
 
   console.log("[Collage] Assignments after assignCollageSlots:");
   for (const [role, item] of assignments) {
@@ -2453,6 +2470,10 @@ function OutfitCollage({ items }) {
         {layout.map((slot) => {
           let item = assignments.get(slot.role);
           if (!item) return null;
+          // Override bottom slot height when focal item is bottoms
+          const focalIsBottoms = focalItem && (focalItem.category === "Bottoms" || focalItem.category === "Skirts");
+          const slotWidthPct = (slot.role === "bottom" && focalIsBottoms) ? 75 : (slot.role === "hero" && focalIsBottoms) ? 35 : slot.widthPct;
+          const slotHeightPct = (slot.role === "bottom" && focalIsBottoms) ? 98 : (slot.role === "hero" && focalIsBottoms) ? 55 : slot.heightPct;
           // Render-time fix: ensure cutout URLs include f_png for transparency
           let cutoutUrl = item.cutout_url;
           if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('f_png')) {
@@ -2467,8 +2488,8 @@ function OutfitCollage({ items }) {
                 position: "absolute",
                 left: `${slot.x}%`,
                 top: `${slot.y}%`,
-                width: `${slot.widthPct}%`,
-                height: `${slot.heightPct}%`,
+                width: `${slotWidthPct}%`,
+                height: `${slotHeightPct}%`,
                 zIndex: slot.z,
                 pointerEvents: "none",
                 willChange: "transform",
@@ -2828,6 +2849,7 @@ INVALID — NEVER do these:
 ❌ Three or more tops
 ❌ Only tops and accessories with no bottom or dress
 ❌ Four accessories with minimal clothing
+❌ Tank top, t-shirt, blouse, or button-down layered OVER a dress (a dress is the foundation, only outerwear like blazers, cardigans, or jackets go over it)
 
 LAYERING DONE RIGHT:
 ✅ T-shirt (base) + Open blazer (layer) + Jeans (bottom) + Sneakers + Bag
@@ -2899,7 +2921,7 @@ The formula is always: BASICS + ONE WOW MOMENT
 The wow moment can be:
 - A completely unexpected texture mix (silk scarf with denim, leather with linen)
 - An accessory used in an unconventional way (belt worn over a blazer, scarf tied as a bag charm, sunglasses hung from a collar)
-- A layering combination nobody thought of (sheer blouse over a fitted turtleneck, blazer over a hoodie, slip dress over a long sleeve tee)
+- A layering combination nobody thought of (sheer blouse over a fitted turtleneck, blazer over a hoodie, long sleeve tee under a slip dress)
 - A proportion surprise (oversized blazer with bike shorts, maxi skirt with a crop tee, wide leg pants with a fitted tank tucked in)
 - A color moment (one pop of unexpected color against neutrals, tonal dressing in an unexpected color like all olive or all burgundy)
 - A detail that shows intentionality (visible sock with a loafer, one statement ring, front tuck on a shirt, half tuck on a sweater)
@@ -2910,6 +2932,13 @@ When describing the outfit always call out the wow moment specifically. Say thin
 "The unexpected detail here is the silk scarf worn as a belt — it takes this basic tee and jeans combination into editorial territory."
 "The wow moment is the blazer worn over the hoodie — it's the mix of sharp and relaxed that makes this look feel intentional rather than thrown together."
 "Most people wouldn't think to add the white sock visible above the loafer but that one detail makes this whole look feel fashion-forward."
+
+SPECIAL CASE — STYLING A SPECIFIC ITEM:
+When the user asks you to build an outfit around a specific item they own (e.g., "Style an outfit using my X" or "How do I wear my X"), the creative work changes:
+- That specific item MUST be in the outfit. No substitutions, no "inspired by" interpretations.
+- The wow moment comes from HOW you style that item — the unexpected supporting pieces and combinations.
+- Your job is to make THEIR specific piece feel fresh and fashion-forward, not to show them what you'd wear instead.
+- Think of yourself as a stylist working with what the user has chosen — find the unexpected angle WITH the item, not around it.
 
 Cultural references beyond concerts — catch ALL of these:
 - "I have a job interview at a tech startup" → smart casual with personality, not stiff corporate
@@ -3010,7 +3039,7 @@ When the user mentions a specific event, artist, venue, or occasion — infer th
 LAYERING IS EVERYTHING RIGHT NOW:
 Current trend is NOT about single pieces — it's about unexpected layering combinations:
 - A sheer blouse over a fitted tee
-- A slip dress over a long sleeve top
+- A long sleeve top under a slip dress
 - A blazer worn as a top with no shirt underneath
 - A cardigan belted over a dress
 - Two necklaces at different lengths
@@ -7847,7 +7876,7 @@ COLORS: ${rule.colors}
     return basePrompt + culturalAddition + fashionRules + styleMemory + personaMemory + "\n\nVISION MODE: You are now looking at ACTUAL PHOTOS of the user's clothes. Use what you can SEE in the images — the real colors, textures, fabrics, silhouettes, and styling details — to make better outfit combinations. Don't rely on just the item names. A photo of a 'blue dress' might actually be a specific shade of cornflower blue with a structured bodice — use that visual information. When you recommend items, reference what you actually see: 'the cream tweed set with gold buttons' not just 'the co-ord set'." + CHAT_FORMAT_PROMPT;
   }
 
-  function selectRelevantItems(items, userMessage, limit = 20) {
+  function selectRelevantItems(items, userMessage, limit = 20, focalItemName = null) {
     if (items.length <= limit) return items;
     const lower = (userMessage || "").toLowerCase();
     const isFestival = /concert|festival|coachella|rave|block party|outdoor show|music event/i.test(lower);
@@ -7874,10 +7903,31 @@ COLORS: ${rule.colors}
       }
       return { ...item, _score: score };
     });
-    return scored.sort((a, b) => b._score - a._score).slice(0, limit).map(({ _score, ...item }) => item);
+    const sorted = scored.sort((a, b) => b._score - a._score);
+
+    // Guarantee focal item is included in the top N
+    if (focalItemName) {
+      const focalNorm = focalItemName.trim().toLowerCase();
+      const focalIdx = sorted.findIndex((item) => item.name?.trim().toLowerCase() === focalNorm);
+      if (focalIdx > 0) {
+        const [focal] = sorted.splice(focalIdx, 1);
+        sorted.unshift(focal);
+      } else if (focalIdx === -1) {
+        console.warn(`[selectRelevantItems] Focal item "${focalItemName}" not found in closet`);
+      }
+    }
+
+    return sorted.slice(0, limit).map(({ _score, ...item }) => item);
   }
 
   function buildVisionContent(items, userMessage) {
+    console.log("[DEBUG] Vision — Closet items being sent to AI:", items.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+    const styleItemMatch = userMessage.match(/^Style an outfit using my (.+?)\.?$/i);
+    console.log("[DEBUG] Vision — User message:", userMessage);
+    console.log("[DEBUG] Vision — Style item match:", styleItemMatch?.[1] || "(none)");
+    const focalConstraint = styleItemMatch
+      ? `\n\nCRITICAL: The user wants you to build an outfit AROUND "${styleItemMatch[1]}". This specific item MUST appear in YOUR LOOK as one of the selected items. The rest of the outfit should complement and feature this item.`
+      : "";
     const imageBlocks = items.map((item) => ({
       type: "image",
       source: { type: "url", url: toHttps(item.image_url) },
@@ -7888,21 +7938,31 @@ COLORS: ${rule.colors}
     return [
       { type: "text", text: `Here are photos of all the clothing items in my closet. Look at each image carefully to understand the actual fabric, color, cut, and style of each piece:\n\n${itemLabels}` },
       ...imageBlocks,
-      { type: "text", text: `I need an outfit for: ${userMessage}\n\nNow that you can SEE my actual clothes, pick the best combination. Consider the actual colors, fabrics, and silhouettes you can see in the photos. For each item you pick, use the exact URL from the item labels above.` },
+      { type: "text", text: `I need an outfit for: ${userMessage}${focalConstraint}\n\nCRITICAL CONSTRAINT: You may ONLY use items from the closet shown above. Do NOT invent, suggest, or reference items not in this list. Every item in YOUR LOOK must use the exact URL provided. If there aren't enough items to build a complete outfit, build the best outfit with what's available, never make up items.\n\nNow that you can SEE my actual clothes, pick the best combination. Consider the actual colors, fabrics, and silhouettes you can see in the photos.` },
     ];
   }
 
   function buildTextFallbackContent(items, userMessage) {
+    console.log("[DEBUG TEXT FALLBACK] User message:", userMessage);
+    console.log("[DEBUG TEXT FALLBACK] Items being sent:", items.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+    const styleItemMatch = userMessage.match(/^Style an outfit using my (.+?)\.?$/i);
+    const focalConstraint = styleItemMatch
+      ? `\n\nCRITICAL: The user wants you to build an outfit AROUND "${styleItemMatch[1]}". This specific item MUST appear in YOUR LOOK as one of the selected items. The rest of the outfit should complement and feature this item.`
+      : "";
+    console.log("[DEBUG TEXT FALLBACK] Focal match:", styleItemMatch);
+    console.log("[DEBUG TEXT FALLBACK] Focal constraint:", focalConstraint);
     const itemsText = items.map((item, i) =>
       `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
     ).join("\n");
-    return `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${userMessage}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`;
+    const finalPrompt = `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${userMessage}${focalConstraint}\n\nCRITICAL CONSTRAINT: You may ONLY use items and URLs from the list above. Do NOT invent or reference items not in this list. Pick the best combination from what I own. List the image URLs of the items you pick.`;
+    console.log("[DEBUG TEXT FALLBACK] Full prompt:", finalPrompt);
+    return finalPrompt;
   }
 
   function parseAiResponse(text) {
     const imageUrlRegex = /\(([^)]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)[^)]*)\)/gi;
     const imageUrls = [...new Set([...text.matchAll(imageUrlRegex)].map(m => m[1].trim()))].map(u =>
-      u.startsWith("/") ? `https://styliner.vercel.app${u}` : u
+      u.startsWith("/") ? `${window.location.origin}${u}` : u
     );
     console.log("[DEBUG] Extracted imageUrls:", imageUrls);
     let clean = text
@@ -8322,7 +8382,8 @@ COLORS: ${rule.colors}
       const userMsg = { id: savedUser.id, role: "user", content: trimmed, outfitImages: [] };
       setMessages((prev) => [...prev, userMsg]);
 
-      const relevantItems = selectRelevantItems(items, trimmed, 20);
+      const focalMatch = trimmed.match(/^Style an outfit using my (.+?)\.?$/i);
+      const relevantItems = selectRelevantItems(items, trimmed, 20, focalMatch?.[1] || null);
 
       // Fetch style memory from saved outfits
       const { data: savedLooks } = await supabase
@@ -8473,7 +8534,8 @@ COLORS: ${rule.colors}
       }
       setClosetCount(items.length);
 
-      const relevantRetryItems = selectRelevantItems(items, occasion, 20);
+      const retryFocalMatch = occasion.match(/^Style an outfit using my (.+?)\.?$/i);
+      const relevantRetryItems = selectRelevantItems(items, occasion, 20, retryFocalMatch?.[1] || null);
       const retrySystemPrompt = await getChatSystemPrompt(occasion);
       const retryMetadata = { screen: "chat", conversationId: activeConvoId, prompt: occasion, previousSuggestion: prevContent.slice(0, 500) };
 
@@ -9099,6 +9161,9 @@ COLORS: ${rule.colors}
                   const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0 && s.length < 40 && !s.toLowerCase().includes('vibe')) : [];
                   const shortCaption = whyText ? whyText.split(". ")[0] + "." : "";
                   const editorialEnabled = chatUserEmail === "cnrhee@gmail.com";
+                  const prevUserMsg = messages[msgIndex - 1];
+                  const chatFocalMatch = prevUserMsg?.role === "user" ? prevUserMsg.content.match(/^Style an outfit using my (.+?)\.?$/i) : null;
+                  const chatFocalItemName = chatFocalMatch?.[1] || null;
                   return (
                     <div ref={msgIndex === messages.length - 1 ? latestAssistantRef : undefined} className={isFading ? "chat-fade-out" : "chat-fade-in"}>
                       {/* 1. Vibe title */}
@@ -9142,9 +9207,9 @@ COLORS: ${rule.colors}
                           console.log("[Collage Wiring] imageUrls:", imageUrls);
                           console.log("[Collage Wiring] chatClosetItems count:", chatClosetItems.length);
                           const collageItems = imageUrls.slice(0, 7).map((url) => {
-                            const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
-                            const relativeUrl = absoluteUrl.startsWith("https://styliner.vercel.app")
-                              ? absoluteUrl.slice("https://styliner.vercel.app".length)
+                            const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+                            const relativeUrl = absoluteUrl.startsWith(window.location.origin)
+                              ? absoluteUrl.slice(window.location.origin.length)
                               : null;
                             const match = chatClosetItems.find((ci) => {
                               if (!ci.image_url) return false;
@@ -9164,7 +9229,7 @@ COLORS: ${rule.colors}
                               rotation: match?.rotation || 0,
                             };
                           });
-                          return <OutfitCollage items={collageItems} />;
+                          return <OutfitCollage items={collageItems} focalItemName={chatFocalItemName} />;
                         }
                         return (
                           <div
@@ -9182,7 +9247,7 @@ COLORS: ${rule.colors}
                             }}
                           >
                             {imageUrls.slice(0, 6).map((url, i) => {
-                              const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
+                              const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
                               const isLastOdd5 = imageUrls.length === 5 && i === 4;
                               const cellHeight = imageUrls.length >= 5 ? "110px" : "140px";
                               return (
