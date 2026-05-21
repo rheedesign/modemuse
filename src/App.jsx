@@ -2824,7 +2824,7 @@ const OUTFIT_COMBINATION_RULES = `
 ABSOLUTE OUTFIT RULES — never break these under any circumstances:
 
 WHAT COUNTS AS A BOTTOM: Pants, jeans, trousers, shorts, skirt, midi skirt, mini skirt
-WHAT COUNTS AS A TOP: T-shirt, blouse, shirt, tank, turtleneck, sweater, cardigan (when worn as main top)
+WHAT COUNTS AS A TOP: T-shirt, blouse, shirt, tank, turtleneck, sweater, cardigan (when worn as main top), blazer, jacket, coat, or vest (when worn as the primary upper piece without a separate top underneath)
 WHAT COUNTS AS A LAYER: Blazer, jacket, coat, open cardigan, open shirt worn over another top, vest
 WHAT COUNTS AS A ONE-PIECE: Dress, jumpsuit, romper, co-ord set
 
@@ -3750,7 +3750,7 @@ Only use URLs from the wardrobe list above.`;
       // Post-processing validation: ensure outfit has top + bottom/dress + shoes
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
       const catAndName = (i) => ((i.category || '') + ' ' + (i.name || '') + ' ' + (i.subcategory || '')).toLowerCase();
-      const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic)\b/i.test(catAndName(i)));
+      const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic|blazer|jacket|coat|vest)\b/i.test(catAndName(i)));
       const hasBottom = parsedItems.some(i => /\b(pants|jeans|trouser|skirt|shorts|legging)\b/i.test(catAndName(i)));
       const hasOnePiece = parsedItems.some(i => /\b(dress|jumpsuit|romper|co-ord|coord|overalls)\b/i.test(catAndName(i)));
       const hasShoes = parsedItems.some(i => /\b(shoes|heels|sneakers|boots|sandals|loafer|flat|mules|slides|pumps|oxfords|derby)\b/i.test(catAndName(i)));
