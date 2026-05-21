@@ -3596,7 +3596,7 @@ function HomeScreen() {
       if (user) {
         const { data: items } = await supabase
           .from("clothing_items")
-          .select("image_url, name, category, rotation")
+          .select("image_url, cutout_url, name, category, rotation")
           .eq("user_id", user.id)
           .limit(15);
         itemsList = items || [];
@@ -3847,7 +3847,7 @@ Only use URLs from the wardrobe list above.`;
 
       const { data, count } = await supabase
         .from("clothing_items")
-        .select("image_url, name, category, rotation", { count: "exact" })
+        .select("image_url, cutout_url, name, category, rotation", { count: "exact" })
         .eq("user_id", user.id);
 
       const validItems = (data || []).filter((item) => item.image_url);
@@ -4125,77 +4125,107 @@ Only use URLs from the wardrobe list above.`;
           ) : suggestedImages.length > 0 ? (
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
               <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
-              <FlatLayCard
-                images={suggestedImages.slice(0, 6)}
-                caption={suggestionVibe}
-                subtitle={outfitCaption}
-                pulsing={loadingOutfit}
-                compact
-                rotationMap={homeRotationMap}
-              >
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "12px" }}>
+              {isAdmin ? (() => {
+                const homeCollageItems = suggestedImages.slice(0, 7).map((url) => {
+                  const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+                  const relativeUrl = absoluteUrl.startsWith(window.location.origin)
+                    ? absoluteUrl.slice(window.location.origin.length)
+                    : null;
+                  const match = closetDataRef.current.find((ci) => {
+                    if (!ci.image_url) return false;
+                    return ci.image_url === absoluteUrl || ci.image_url === url || (relativeUrl && ci.image_url === relativeUrl);
+                  });
+                  return {
+                    image_url: absoluteUrl,
+                    cutout_url: match?.cutout_url || null,
+                    category: match?.category || null,
+                    name: match?.name || null,
+                    rotation: match?.rotation || 0,
+                  };
+                });
+                return <OutfitCollage items={homeCollageItems} />;
+              })() : (
+                <FlatLayCard
+                  images={suggestedImages.slice(0, 6)}
+                  caption={suggestionVibe}
+                  subtitle={outfitCaption}
+                  pulsing={loadingOutfit}
+                  compact
+                  rotationMap={homeRotationMap}
+                />
+              )}
+              {isAdmin && (
+                <div style={{ textAlign: "center", marginTop: "12px" }}>
+                  {suggestionVibe && (
+                    <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{suggestionVibe}</p>
+                  )}
+                  {outfitCaption && (
+                    <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", margin: "0 16px", lineHeight: 1.4 }}>{outfitCaption}</p>
+                  )}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: isAdmin ? "16px" : "12px" }}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                  style={{
+                    border: "none",
+                    background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                    color: "white",
+                    borderRadius: "100px",
+                    padding: "10px 22px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                  }}
+                >
+                  Get Styled
+                </button>
+                {limitReached && !isAdmin ? (
+                  <div style={{
+                    border: "1.5px solid #e0ddf5",
+                    background: "rgba(255,255,255,0.5)",
+                    borderRadius: "100px",
+                    padding: "10px 18px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "#999",
+                    textAlign: "center",
+                  }}>
+                    {"\u2726"} Back in {countdownText}
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                    onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
+                    disabled={loadingOutfit}
                     style={{
-                      border: "none",
-                      background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
-                      color: "white",
-                      borderRadius: "100px",
-                      padding: "10px 22px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-                    }}
-                  >
-                    Get Styled
-                  </button>
-                  {limitReached && !isAdmin ? (
-                    <div style={{
-                      border: "1.5px solid #e0ddf5",
-                      background: "rgba(255,255,255,0.5)",
+                      border: "1.5px solid #B08A4A",
+                      background: "transparent",
+                      color: "#B08A4A",
                       borderRadius: "100px",
                       padding: "10px 18px",
                       fontSize: "12px",
                       fontWeight: 600,
-                      color: "#999",
-                      textAlign: "center",
-                    }}>
-                      {"\u2726"} Back in {countdownText}
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
-                      disabled={loadingOutfit}
-                      style={{
-                        border: "1.5px solid #B08A4A",
-                        background: "transparent",
-                        color: "#B08A4A",
-                        borderRadius: "100px",
-                        padding: "10px 18px",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        cursor: loadingOutfit ? "default" : "pointer",
-                        opacity: loadingOutfit ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        transition: "opacity 0.2s",
-                      }}
-                    >
-                      <span style={{ display: "inline-block", transform: loadingOutfit ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
-                      {loadingOutfit ? "Styling..." : "New Look"}
-                    </button>
-                  )}
-                </div>
-                {!isAdmin && !limitReached && dailyLookCount > 0 && (
-                  <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#bbb", textAlign: "center" }}>
-                    {DAILY_LOOK_LIMIT - dailyLookCount} of {DAILY_LOOK_LIMIT} looks remaining today
-                  </p>
+                      cursor: loadingOutfit ? "default" : "pointer",
+                      opacity: loadingOutfit ? 0.6 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "opacity 0.2s",
+                    }}
+                  >
+                    <span style={{ display: "inline-block", transform: loadingOutfit ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
+                    {loadingOutfit ? "Styling..." : "New Look"}
+                  </button>
                 )}
-              </FlatLayCard>
+              </div>
+              {!isAdmin && !limitReached && dailyLookCount > 0 && (
+                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#bbb", textAlign: "center" }}>
+                  {DAILY_LOOK_LIMIT - dailyLookCount} of {DAILY_LOOK_LIMIT} looks remaining today
+                </p>
+              )}
               {isDemoMode && (
                 <div
                   onClick={() => navigate("/signup")}
