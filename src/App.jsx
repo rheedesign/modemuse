@@ -907,12 +907,18 @@ function getStarterClosetPreset(styleGender) {
   return STARTER_CLOSET_PRESETS[styleGender] || STARTER_CLOSET_PRESETS.womens;
 }
 
+function buildCutoutUrl(imageUrl) {
+  if (!imageUrl || !imageUrl.includes('/upload/')) return null;
+  return imageUrl.replace('/upload/', '/upload/e_background_removal,f_png/');
+}
+
 function buildStarterClosetItems(styleGender, userId) {
   const preset = getStarterClosetPreset(styleGender);
   const prefix = styleGender || "womens";
   return preset.map((item, index) => ({
     user_id: userId,
     image_url: item.image_url,
+    cutout_url: buildCutoutUrl(item.image_url),
     public_id: `starter-${prefix}-${index}`,
     name: item.name,
     category: item.category,
@@ -2322,6 +2328,226 @@ function PrivacyPolicyScreen() {
   );
 }
 
+// --- Editorial Collage Component ---
+const COLLAGE_LAYOUT_DEFAULT = [
+  { role: "hero",    x: 3,  y: 2,  widthPct: 47, heightPct: 68, rotation: 0, z: 3 },
+  { role: "bottom",  x: 22, y: 13, widthPct: 56, heightPct: 81, rotation: 0, z: 2 },
+  { role: "top",     x: 64, y: 8,  widthPct: 36, heightPct: 48, rotation: 0, z: 4 },
+  { role: "shoes",   x: 8,  y: 48, widthPct: 40, heightPct: 35, rotation: 0, z: 5 },
+  { role: "bag",     x: 56, y: 50, widthPct: 44, heightPct: 36, rotation: 0, z: 5 },
+  { role: "jewelry",   x: 44, y: -6, widthPct: 37, heightPct: 78, rotation: 0, z: 6 },
+  { role: "accessory", x: 76, y: 33, widthPct: 29, heightPct: 24, rotation: 0, z: 6 },
+];
+
+const COLLAGE_LAYOUT_DRESS = [
+  { role: "hero",      x: 17, y: 0,  widthPct: 65, heightPct: 95, rotation: 0, z: 2 },
+  { role: "top",       x: 2,  y: -9, widthPct: 44, heightPct: 64, rotation: 0, z: 4 },
+  { role: "shoes",     x: 6,  y: 52, widthPct: 32, heightPct: 45, rotation: 0, z: 5 },
+  { role: "bag",       x: 58, y: 43, widthPct: 42, heightPct: 50, rotation: 0, z: 5 },
+  { role: "jewelry",   x: 58, y: 1,  widthPct: 38, heightPct: 31, rotation: 0, z: 6 },
+  { role: "accessory", x: 74, y: 26, widthPct: 29, heightPct: 24, rotation: 0, z: 6 },
+];
+
+function selectCollageLayout(items) {
+  const hasDressOrCoord = items.some((i) => i.category === "Dresses" || i.category === "Co-ord Set");
+  return hasDressOrCoord ? COLLAGE_LAYOUT_DRESS : COLLAGE_LAYOUT_DEFAULT;
+}
+
+const COLLAGE_ROLES_DEFAULT = {
+  hero: null, // assigned by priority logic
+  bottom: ["Bottoms", "Skirts"],
+  top: ["Tops"],
+  shoes: ["Shoes", "Heels", "Sneakers", "Boots", "Sandals", "Flats"],
+  bag: ["Bags", "Handbag", "Crossbody", "Tote", "Clutch", "Backpack"],
+  jewelry: ["Jewelry"],
+  accessory: ["Accessories", "Belts", "Hats", "Sunglasses", "Scarves"],
+};
+
+const COLLAGE_ROLES_DRESS = {
+  ...COLLAGE_ROLES_DEFAULT,
+  top: ["Outerwear", "Tops"], // Outerwear first = wins findIndex
+};
+
+const COLLAGE_HERO_PRIORITY = ["Dresses", "Co-ord Set", "Outerwear", "Tops", "Bottoms"];
+
+function assignCollageSlots(items, roleCategories, focalItemName = null) {
+  const remaining = [...items];
+  const assignments = new Map();
+
+  // If focal item specified, force it into the appropriate slot
+  if (focalItemName) {
+    const focalNorm = focalItemName.trim().toLowerCase();
+    const focalIdx = remaining.findIndex((i) => i.name?.trim().toLowerCase() === focalNorm);
+    if (focalIdx !== -1) {
+      const focalItem = remaining.splice(focalIdx, 1)[0];
+      const focalIsBottoms = focalItem.category === "Bottoms" || focalItem.category === "Skirts";
+      assignments.set(focalIsBottoms ? "bottom" : "hero", focalItem);
+    } else {
+      console.warn(`[assignCollageSlots] Focal item "${focalItemName}" not found, falling back to priority`);
+    }
+  }
+
+  // Assign hero by priority (skipped if focal already filled it)
+  if (!assignments.has("hero")) {
+    for (const cat of COLLAGE_HERO_PRIORITY) {
+      const idx = remaining.findIndex((i) => i.category === cat);
+      if (idx !== -1) {
+        assignments.set("hero", remaining.splice(idx, 1)[0]);
+        break;
+      }
+    }
+  }
+
+  // Assign other roles
+  for (const [role, categories] of Object.entries(roleCategories)) {
+    if (role === "hero" || assignments.has(role)) continue;
+    if (!categories) continue;
+    const idx = remaining.findIndex((i) => categories.includes(i.category));
+    if (idx !== -1) {
+      assignments.set(role, remaining.splice(idx, 1)[0]);
+    }
+  }
+
+  return { assignments, overflow: remaining };
+}
+
+function OutfitCollage({ items, focalItemName = null }) {
+  console.log("[Collage] Input items:", items.map((i) => ({ name: i.name, category: i.category, hasCutout: !!i.cutout_url })));
+  const focalItem = focalItemName ? items.find((i) => i.name?.trim().toLowerCase() === focalItemName.trim().toLowerCase()) : null;
+  if (focalItemName) console.log("[Collage] Focal item:", focalItemName, "category:", focalItem?.category || "(not found)");
+
+  const layout = selectCollageLayout(items);
+  const isDress = layout === COLLAGE_LAYOUT_DRESS;
+  const roles = isDress ? COLLAGE_ROLES_DRESS : COLLAGE_ROLES_DEFAULT;
+  console.log("[Collage] Layout:", isDress ? "DRESS" : "DEFAULT");
+
+  const { assignments, overflow } = assignCollageSlots(items, roles, focalItemName);
+
+  console.log("[Collage] Assignments after assignCollageSlots:");
+  for (const [role, item] of assignments) {
+    console.log(`  ${role} → ${item.name} (${item.category})`);
+  }
+  console.log("[Collage] Overflow after assignCollageSlots:", overflow.map((i) => i.name));
+
+  // Promote accessory → jewelry slot if jewelry is empty
+  if (!assignments.has("jewelry") && assignments.has("accessory")) {
+    const accessoryItem = assignments.get("accessory");
+    console.log(`[Collage] Promoting accessory → jewelry slot: ${accessoryItem.name}`);
+    assignments.set("jewelry", accessoryItem);
+    assignments.delete("accessory");
+  }
+
+
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  console.log("[Collage] Final render — filled slots:");
+  for (const slot of layout) {
+    const item = assignments.get(slot.role);
+    console.log(`  slot "${slot.role}" (${slot.x}%, ${slot.y}%) ${slot.widthPct}%×${slot.heightPct}% → ${item ? item.name : "(empty)"}`);
+  }
+  console.log("[Collage] Final overflow chips:", overflow.map((i) => i.name));
+  console.log("[Collage Final State]", {
+    assignments: Object.fromEntries(assignments),
+    overflow: overflow.map(i => ({ name: i.name, category: i.category })),
+    layoutKey: layout === COLLAGE_LAYOUT_DRESS ? "dress" : "default",
+  });
+
+  return (
+    <div>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "560px",
+          aspectRatio: "1080 / 991",
+          margin: "0 auto",
+          backgroundColor: "#F1EADE",
+          borderRadius: "12px",
+          overflow: "visible",
+          pointerEvents: "none",
+        }}
+      >
+        {layout.map((slot) => {
+          let item = assignments.get(slot.role);
+          if (!item) return null;
+          // Override bottom slot height when focal item is bottoms
+          const focalIsBottoms = focalItem && (focalItem.category === "Bottoms" || focalItem.category === "Skirts");
+          const slotWidthPct = (slot.role === "bottom" && focalIsBottoms) ? 75 : (slot.role === "hero" && focalIsBottoms) ? 35 : slot.widthPct;
+          const slotHeightPct = (slot.role === "bottom" && focalIsBottoms) ? 98 : (slot.role === "hero" && focalIsBottoms) ? 55 : slot.heightPct;
+          // Render-time fix: ensure cutout URLs include f_png for transparency
+          let cutoutUrl = item.cutout_url;
+          if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('f_png')) {
+            cutoutUrl = cutoutUrl.replace('e_background_removal', 'e_background_removal,f_png');
+          }
+          const imgSrc = cutoutUrl || item.image_url;
+          if (!imgSrc) return null;
+          return (
+            <div
+              key={slot.role}
+              style={{
+                position: "absolute",
+                left: `${slot.x}%`,
+                top: `${slot.y}%`,
+                width: `${slotWidthPct}%`,
+                height: `${slotHeightPct}%`,
+                zIndex: slot.z,
+                pointerEvents: "none",
+                willChange: "transform",
+                transformOrigin: "center center",
+                animation: reducedMotion ? "none" : "collage-fade-in 0.4s ease both",
+                animationDelay: reducedMotion ? "0s" : `${layout.indexOf(slot) * 0.06}s`,
+              }}
+            >
+              <button
+                type="button"
+                aria-label={`Tap to view: ${item.name || "Outfit item"}`}
+                style={{
+                  transform: slot.rotation ? `rotate(${slot.rotation}deg)` : "none",
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  pointerEvents: "none",
+                }}
+              >
+                <img
+                  src={imgSrc}
+                  alt={item.name || "Outfit item"}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    pointerEvents: "none",
+                    transform: item.rotation ? `rotate(${item.rotation}deg)` : "none",
+                  }}
+                  onError={(e) => {
+                    if (item.cutout_url && e.target.src === item.cutout_url) {
+                      e.target.src = item.image_url;
+                    } else {
+                      e.target.style.display = "none";
+                    }
+                  }}
+                />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {overflow.filter((item) => item.name).length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginTop: "8px" }}>
+          {overflow.filter((item) => item.name).map((item, i) => (
+            <span key={i} style={{ background: "#F5EDE0", color: "#8A6A3C", fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "100px", whiteSpace: "nowrap" }}>
+              {item.name}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FlatLayCard({ images, caption, subtitle, children, pulsing, compact = false, rotationMap = {} }) {
   const rotations = ["-4deg", "3deg", "2deg", "-3deg", "1.5deg", "-2deg"];
   const displayImages = (images || []).slice(0, 6);
@@ -2598,7 +2824,7 @@ const OUTFIT_COMBINATION_RULES = `
 ABSOLUTE OUTFIT RULES — never break these under any circumstances:
 
 WHAT COUNTS AS A BOTTOM: Pants, jeans, trousers, shorts, skirt, midi skirt, mini skirt
-WHAT COUNTS AS A TOP: T-shirt, blouse, shirt, tank, turtleneck, sweater, cardigan (when worn as main top)
+WHAT COUNTS AS A TOP: T-shirt, blouse, shirt, tank, turtleneck, sweater, cardigan (when worn as main top), blazer, jacket, coat, or vest (when worn as the primary upper piece without a separate top underneath)
 WHAT COUNTS AS A LAYER: Blazer, jacket, coat, open cardigan, open shirt worn over another top, vest
 WHAT COUNTS AS A ONE-PIECE: Dress, jumpsuit, romper, co-ord set
 
@@ -2623,6 +2849,7 @@ INVALID — NEVER do these:
 ❌ Three or more tops
 ❌ Only tops and accessories with no bottom or dress
 ❌ Four accessories with minimal clothing
+❌ Tank top, t-shirt, blouse, or button-down layered OVER a dress (a dress is the foundation, only outerwear like blazers, cardigans, or jackets go over it)
 
 LAYERING DONE RIGHT:
 ✅ T-shirt (base) + Open blazer (layer) + Jeans (bottom) + Sneakers + Bag
@@ -2694,7 +2921,7 @@ The formula is always: BASICS + ONE WOW MOMENT
 The wow moment can be:
 - A completely unexpected texture mix (silk scarf with denim, leather with linen)
 - An accessory used in an unconventional way (belt worn over a blazer, scarf tied as a bag charm, sunglasses hung from a collar)
-- A layering combination nobody thought of (sheer blouse over a fitted turtleneck, blazer over a hoodie, slip dress over a long sleeve tee)
+- A layering combination nobody thought of (sheer blouse over a fitted turtleneck, blazer over a hoodie, long sleeve tee under a slip dress)
 - A proportion surprise (oversized blazer with bike shorts, maxi skirt with a crop tee, wide leg pants with a fitted tank tucked in)
 - A color moment (one pop of unexpected color against neutrals, tonal dressing in an unexpected color like all olive or all burgundy)
 - A detail that shows intentionality (visible sock with a loafer, one statement ring, front tuck on a shirt, half tuck on a sweater)
@@ -2705,6 +2932,13 @@ When describing the outfit always call out the wow moment specifically. Say thin
 "The unexpected detail here is the silk scarf worn as a belt — it takes this basic tee and jeans combination into editorial territory."
 "The wow moment is the blazer worn over the hoodie — it's the mix of sharp and relaxed that makes this look feel intentional rather than thrown together."
 "Most people wouldn't think to add the white sock visible above the loafer but that one detail makes this whole look feel fashion-forward."
+
+SPECIAL CASE — STYLING A SPECIFIC ITEM:
+When the user asks you to build an outfit around a specific item they own (e.g., "Style an outfit using my X" or "How do I wear my X"), the creative work changes:
+- That specific item MUST be in the outfit. No substitutions, no "inspired by" interpretations.
+- The wow moment comes from HOW you style that item — the unexpected supporting pieces and combinations.
+- Your job is to make THEIR specific piece feel fresh and fashion-forward, not to show them what you'd wear instead.
+- Think of yourself as a stylist working with what the user has chosen — find the unexpected angle WITH the item, not around it.
 
 Cultural references beyond concerts — catch ALL of these:
 - "I have a job interview at a tech startup" → smart casual with personality, not stiff corporate
@@ -2805,7 +3039,7 @@ When the user mentions a specific event, artist, venue, or occasion — infer th
 LAYERING IS EVERYTHING RIGHT NOW:
 Current trend is NOT about single pieces — it's about unexpected layering combinations:
 - A sheer blouse over a fitted tee
-- A slip dress over a long sleeve top
+- A long sleeve top under a slip dress
 - A blazer worn as a top with no shirt underneath
 - A cardigan belted over a dress
 - Two necklaces at different lengths
@@ -3362,9 +3596,9 @@ function HomeScreen() {
       if (user) {
         const { data: items } = await supabase
           .from("clothing_items")
-          .select("image_url, name, category, rotation")
+          .select("image_url, cutout_url, name, category, rotation")
           .eq("user_id", user.id)
-          .limit(15);
+          .limit(40);
         itemsList = items || [];
         closetDataRef.current = itemsList;
       } else {
@@ -3516,7 +3750,7 @@ Only use URLs from the wardrobe list above.`;
       // Post-processing validation: ensure outfit has top + bottom/dress + shoes
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
       const catAndName = (i) => ((i.category || '') + ' ' + (i.name || '') + ' ' + (i.subcategory || '')).toLowerCase();
-      const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic)\b/i.test(catAndName(i)));
+      const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic|blazer|jacket|coat|vest)\b/i.test(catAndName(i)));
       const hasBottom = parsedItems.some(i => /\b(pants|jeans|trouser|skirt|shorts|legging)\b/i.test(catAndName(i)));
       const hasOnePiece = parsedItems.some(i => /\b(dress|jumpsuit|romper|co-ord|coord|overalls)\b/i.test(catAndName(i)));
       const hasShoes = parsedItems.some(i => /\b(shoes|heels|sneakers|boots|sandals|loafer|flat|mules|slides|pumps|oxfords|derby)\b/i.test(catAndName(i)));
@@ -3613,7 +3847,7 @@ Only use URLs from the wardrobe list above.`;
 
       const { data, count } = await supabase
         .from("clothing_items")
-        .select("image_url, name, category, rotation", { count: "exact" })
+        .select("image_url, cutout_url, name, category, rotation", { count: "exact" })
         .eq("user_id", user.id);
 
       const validItems = (data || []).filter((item) => item.image_url);
@@ -3891,77 +4125,107 @@ Only use URLs from the wardrobe list above.`;
           ) : suggestedImages.length > 0 ? (
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
               <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
-              <FlatLayCard
-                images={suggestedImages.slice(0, 6)}
-                caption={suggestionVibe}
-                subtitle={outfitCaption}
-                pulsing={loadingOutfit}
-                compact
-                rotationMap={homeRotationMap}
-              >
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "12px" }}>
+              {(() => {
+                const homeCollageItems = suggestedImages.slice(0, 7).map((url) => {
+                  const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+                  const relativeUrl = absoluteUrl.startsWith(window.location.origin)
+                    ? absoluteUrl.slice(window.location.origin.length)
+                    : null;
+                  const match = closetDataRef.current.find((ci) => {
+                    if (!ci.image_url) return false;
+                    return ci.image_url === absoluteUrl || ci.image_url === url || (relativeUrl && ci.image_url === relativeUrl);
+                  });
+                  return {
+                    image_url: absoluteUrl,
+                    cutout_url: match?.cutout_url || null,
+                    category: match?.category || null,
+                    name: match?.name || null,
+                    rotation: match?.rotation || 0,
+                  };
+                });
+                const hasMatchedItems = homeCollageItems.some((i) => i.category);
+                if (hasMatchedItems) return <OutfitCollage items={homeCollageItems} />;
+                return (
+                  <FlatLayCard
+                    images={suggestedImages.slice(0, 6)}
+                    caption={suggestionVibe}
+                    subtitle={outfitCaption}
+                    pulsing={loadingOutfit}
+                    compact
+                    rotationMap={homeRotationMap}
+                  />
+                );
+              })()}
+              <div style={{ textAlign: "center", marginTop: "12px" }}>
+                  {suggestionVibe && (
+                    <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{suggestionVibe}</p>
+                  )}
+                  {outfitCaption && (
+                    <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", margin: "0 16px", lineHeight: 1.4 }}>{outfitCaption}</p>
+                  )}
+                </div>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                  style={{
+                    border: "none",
+                    background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
+                    color: "white",
+                    borderRadius: "100px",
+                    padding: "10px 22px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                  }}
+                >
+                  Get Styled
+                </button>
+                {limitReached && !isAdmin ? (
+                  <div style={{
+                    border: "1.5px solid #e0ddf5",
+                    background: "rgba(255,255,255,0.5)",
+                    borderRadius: "100px",
+                    padding: "10px 18px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "#999",
+                    textAlign: "center",
+                  }}>
+                    {"\u2726"} Back in {countdownText}
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                    onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
+                    disabled={loadingOutfit}
                     style={{
-                      border: "none",
-                      background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
-                      color: "white",
-                      borderRadius: "100px",
-                      padding: "10px 22px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
-                    }}
-                  >
-                    Get Styled
-                  </button>
-                  {limitReached && !isAdmin ? (
-                    <div style={{
-                      border: "1.5px solid #e0ddf5",
-                      background: "rgba(255,255,255,0.5)",
+                      border: "1.5px solid #B08A4A",
+                      background: "transparent",
+                      color: "#B08A4A",
                       borderRadius: "100px",
                       padding: "10px 18px",
                       fontSize: "12px",
                       fontWeight: 600,
-                      color: "#999",
-                      textAlign: "center",
-                    }}>
-                      {"\u2726"} Back in {countdownText}
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleNewLook(); }}
-                      disabled={loadingOutfit}
-                      style={{
-                        border: "1.5px solid #B08A4A",
-                        background: "transparent",
-                        color: "#B08A4A",
-                        borderRadius: "100px",
-                        padding: "10px 18px",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        cursor: loadingOutfit ? "default" : "pointer",
-                        opacity: loadingOutfit ? 0.6 : 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        transition: "opacity 0.2s",
-                      }}
-                    >
-                      <span style={{ display: "inline-block", transform: loadingOutfit ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
-                      {loadingOutfit ? "Styling..." : "New Look"}
-                    </button>
-                  )}
-                </div>
-                {!isAdmin && !limitReached && dailyLookCount > 0 && (
-                  <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#bbb", textAlign: "center" }}>
-                    {DAILY_LOOK_LIMIT - dailyLookCount} of {DAILY_LOOK_LIMIT} looks remaining today
-                  </p>
+                      cursor: loadingOutfit ? "default" : "pointer",
+                      opacity: loadingOutfit ? 0.6 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "opacity 0.2s",
+                    }}
+                  >
+                    <span style={{ display: "inline-block", transform: loadingOutfit ? "none" : "scaleX(-1)", fontSize: "14px" }}>{"\u21BB"}</span>
+                    {loadingOutfit ? "Styling..." : "New Look"}
+                  </button>
                 )}
-              </FlatLayCard>
+              </div>
+              {!isAdmin && !limitReached && dailyLookCount > 0 && (
+                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#bbb", textAlign: "center" }}>
+                  {DAILY_LOOK_LIMIT - dailyLookCount} of {DAILY_LOOK_LIMIT} looks remaining today
+                </p>
+              )}
               {isDemoMode && (
                 <div
                   onClick={() => navigate("/signup")}
@@ -4076,6 +4340,10 @@ Only use URLs from the wardrobe list above.`;
         @keyframes flatLayPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        @keyframes collage-fade-in {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
         }
         @keyframes heroFloat {
           0%, 100% { transform: translateY(0) scale(1); opacity: 0.45; }
@@ -5028,7 +5296,7 @@ function ClosetScreen() {
 
   function handleStyleItem(item) {
     closeActionSheet();
-    navigate("/chat", { state: { styleItemMessage: `Show me 3 outfit options using my ${item.name || "item"}` } });
+    navigate("/chat", { state: { styleItemMessage: `Style an outfit using my ${item.name || "item"}` } });
   }
 
   function handleEditItem(item) {
@@ -6397,7 +6665,7 @@ function ItemDetailScreen() {
             </button>
 
             <button
-              onClick={() => navigate("/chat", { state: { styleItemMessage: `Show me 3 outfit options using my ${editName || item?.name || "item"}` } })}
+              onClick={() => navigate("/chat", { state: { styleItemMessage: `Style an outfit using my ${editName || item?.name || "item"}` } })}
               style={{
                 width: "100%",
                 minHeight: "48px",
@@ -6563,7 +6831,7 @@ async function analyzeClothingImage(imageUrl, user = null) {
               { type: "image", source: { type: "url", url: toHttps(imageUrl) } },
               {
                 type: "text",
-                text: "Analyze this clothing image carefully. Return ONLY a JSON object with these fields: name (specific descriptive name including primary color, e.g. 'White Floral Midi Skirt', 'Black Leather Mini Skirt'. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set', 'Floral Matching Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if this appears to be a matching co-ord set or two-piece set, false otherwise). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item, not two separate pieces. Never split a co-ord set into separate items.",
+                text: "Analyze this clothing image carefully. Return ONLY a JSON object with these fields: name (specific descriptive name including primary color, e.g. 'White Floral Midi Skirt', 'Black Leather Mini Skirt'. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set', 'Floral Matching Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Jewelry, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if this appears to be a matching co-ord set or two-piece set, false otherwise). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item, not two separate pieces. Never split a co-ord set into separate items.",
               },
             ],
           },
@@ -6814,7 +7082,7 @@ function UploadScreen() {
               role: "user",
               content: [
                 { type: "image", source: { type: "url", url: toHttps(imageUrl) } },
-                { type: "text", text: "Analyze this photo and identify clothing items. Focus only on the most prominent clothing item — the one that is largest, most centered, or most in focus in the frame. Ignore partial items at the edges, background items, or items that appear incidentally. If one item clearly dominates the frame, return only that item. Only return multiple items if they are equally prominent and clearly intentional (like a flat lay of multiple pieces). For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
+                { type: "text", text: "Analyze this photo and identify clothing items. Focus only on the most prominent clothing item — the one that is largest, most centered, or most in focus in the frame. Ignore partial items at the edges, background items, or items that appear incidentally. If one item clearly dominates the frame, return only that item. Only return multiple items if they are equally prominent and clearly intentional (like a flat lay of multiple pieces). For each item return a JSON array where each object has: name (specific descriptive name including the primary color. If you see a matching co-ord set or two pieces in the same fabric/print, name it as a set e.g. 'Beige Linen Co-ord Set'. If it looks like a dress, always call it a dress), category (one of: Tops, Bottoms, Dresses, Skirts, Shoes, Bags, Accessories, Jewelry, Outerwear, Activewear, Co-ord Set), tags (array of 4-5 descriptive words including primary color, material if visible, silhouette, and style vibe), season (one of: 'Spring/Summer', 'Fall/Winter', or 'All Season'), is_set (true if co-ord set, false otherwise), confidence (high/medium/low). Important: If two pieces share the same fabric, pattern or color palette, treat them as ONE item (a co-ord set), not two separate pieces. Return ONLY the JSON array, no other text." },
               ],
             }],
           },
@@ -6869,6 +7137,7 @@ function UploadScreen() {
           .insert({
             user_id: user.id,
             image_url: item.imageUrl,
+            cutout_url: buildCutoutUrl(item.imageUrl),
             public_id: item.publicId,
             name: item.name || "Clothing Item",
             category: item.category || "Tops",
@@ -7451,6 +7720,7 @@ function ChatScreen() {
   const [preloadedOutfit, setPreloadedOutfit] = useState(null);
   const [closetCount, setClosetCount] = useState(null);
   const [chatClosetItems, setChatClosetItems] = useState([]);
+  const [chatUserEmail, setChatUserEmail] = useState("");
   const messagesEndRef = useRef(null);
   const latestAssistantRef = useRef(null);
   const inputRef = useRef(null);
@@ -7636,7 +7906,7 @@ COLORS: ${rule.colors}
     return basePrompt + culturalAddition + fashionRules + styleMemory + personaMemory + "\n\nVISION MODE: You are now looking at ACTUAL PHOTOS of the user's clothes. Use what you can SEE in the images — the real colors, textures, fabrics, silhouettes, and styling details — to make better outfit combinations. Don't rely on just the item names. A photo of a 'blue dress' might actually be a specific shade of cornflower blue with a structured bodice — use that visual information. When you recommend items, reference what you actually see: 'the cream tweed set with gold buttons' not just 'the co-ord set'." + CHAT_FORMAT_PROMPT;
   }
 
-  function selectRelevantItems(items, userMessage, limit = 20) {
+  function selectRelevantItems(items, userMessage, limit = 20, focalItemName = null) {
     if (items.length <= limit) return items;
     const lower = (userMessage || "").toLowerCase();
     const isFestival = /concert|festival|coachella|rave|block party|outdoor show|music event/i.test(lower);
@@ -7663,10 +7933,31 @@ COLORS: ${rule.colors}
       }
       return { ...item, _score: score };
     });
-    return scored.sort((a, b) => b._score - a._score).slice(0, limit).map(({ _score, ...item }) => item);
+    const sorted = scored.sort((a, b) => b._score - a._score);
+
+    // Guarantee focal item is included in the top N
+    if (focalItemName) {
+      const focalNorm = focalItemName.trim().toLowerCase();
+      const focalIdx = sorted.findIndex((item) => item.name?.trim().toLowerCase() === focalNorm);
+      if (focalIdx > 0) {
+        const [focal] = sorted.splice(focalIdx, 1);
+        sorted.unshift(focal);
+      } else if (focalIdx === -1) {
+        console.warn(`[selectRelevantItems] Focal item "${focalItemName}" not found in closet`);
+      }
+    }
+
+    return sorted.slice(0, limit).map(({ _score, ...item }) => item);
   }
 
   function buildVisionContent(items, userMessage) {
+    console.log("[DEBUG] Vision — Closet items being sent to AI:", items.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+    const styleItemMatch = userMessage.match(/^Style an outfit using my (.+?)\.?$/i);
+    console.log("[DEBUG] Vision — User message:", userMessage);
+    console.log("[DEBUG] Vision — Style item match:", styleItemMatch?.[1] || "(none)");
+    const focalConstraint = styleItemMatch
+      ? `\n\nCRITICAL: The user wants you to build an outfit AROUND "${styleItemMatch[1]}". This specific item MUST appear in YOUR LOOK as one of the selected items. The rest of the outfit should complement and feature this item.`
+      : "";
     const imageBlocks = items.map((item) => ({
       type: "image",
       source: { type: "url", url: toHttps(item.image_url) },
@@ -7677,21 +7968,31 @@ COLORS: ${rule.colors}
     return [
       { type: "text", text: `Here are photos of all the clothing items in my closet. Look at each image carefully to understand the actual fabric, color, cut, and style of each piece:\n\n${itemLabels}` },
       ...imageBlocks,
-      { type: "text", text: `I need an outfit for: ${userMessage}\n\nNow that you can SEE my actual clothes, pick the best combination. Consider the actual colors, fabrics, and silhouettes you can see in the photos. For each item you pick, use the exact URL from the item labels above.` },
+      { type: "text", text: `I need an outfit for: ${userMessage}${focalConstraint}\n\nCRITICAL CONSTRAINT: You may ONLY use items from the closet shown above. Do NOT invent, suggest, or reference items not in this list. Every item in YOUR LOOK must use the exact URL provided. If there aren't enough items to build a complete outfit, build the best outfit with what's available, never make up items.\n\nNow that you can SEE my actual clothes, pick the best combination. Consider the actual colors, fabrics, and silhouettes you can see in the photos.` },
     ];
   }
 
   function buildTextFallbackContent(items, userMessage) {
+    console.log("[DEBUG TEXT FALLBACK] User message:", userMessage);
+    console.log("[DEBUG TEXT FALLBACK] Items being sent:", items.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+    const styleItemMatch = userMessage.match(/^Style an outfit using my (.+?)\.?$/i);
+    const focalConstraint = styleItemMatch
+      ? `\n\nCRITICAL: The user wants you to build an outfit AROUND "${styleItemMatch[1]}". This specific item MUST appear in YOUR LOOK as one of the selected items. The rest of the outfit should complement and feature this item.`
+      : "";
+    console.log("[DEBUG TEXT FALLBACK] Focal match:", styleItemMatch);
+    console.log("[DEBUG TEXT FALLBACK] Focal constraint:", focalConstraint);
     const itemsText = items.map((item, i) =>
       `${i + 1}. ${item.name || "Item"} (${item.category || "clothing"}) - ${toHttps(item.image_url)}`
     ).join("\n");
-    return `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${userMessage}\n\nPick the best combination from what I own. List the image URLs of the items you pick.`;
+    const finalPrompt = `Here are all the clothing items in my closet:\n${itemsText}\n\nI need an outfit for: ${userMessage}${focalConstraint}\n\nCRITICAL CONSTRAINT: You may ONLY use items and URLs from the list above. Do NOT invent or reference items not in this list. Pick the best combination from what I own. List the image URLs of the items you pick.`;
+    console.log("[DEBUG TEXT FALLBACK] Full prompt:", finalPrompt);
+    return finalPrompt;
   }
 
   function parseAiResponse(text) {
     const imageUrlRegex = /\(([^)]+\.(?:jpg|jpeg|png|gif|webp|svg|bmp|avif)[^)]*)\)/gi;
     const imageUrls = [...new Set([...text.matchAll(imageUrlRegex)].map(m => m[1].trim()))].map(u =>
-      u.startsWith("/") ? `https://styliner.vercel.app${u}` : u
+      u.startsWith("/") ? `${window.location.origin}${u}` : u
     );
     console.log("[DEBUG] Extracted imageUrls:", imageUrls);
     let clean = text
@@ -7795,6 +8096,7 @@ COLORS: ${rule.colors}
         setLoadingHistory(false);
         return;
       }
+      setChatUserEmail(user.email || "");
 
       const [{ data: convos, error }, { data: closetItems, error: closetError }] = await Promise.all([
         supabase
@@ -7804,7 +8106,7 @@ COLORS: ${rule.colors}
           .order("created_at", { ascending: false }),
         supabase
           .from("clothing_items")
-          .select("id, image_url, rotation")
+          .select("id, image_url, cutout_url, category, name, rotation")
           .eq("user_id", user.id),
       ]);
 
@@ -8110,7 +8412,8 @@ COLORS: ${rule.colors}
       const userMsg = { id: savedUser.id, role: "user", content: trimmed, outfitImages: [] };
       setMessages((prev) => [...prev, userMsg]);
 
-      const relevantItems = selectRelevantItems(items, trimmed, 20);
+      const focalMatch = trimmed.match(/^Style an outfit using my (.+?)\.?$/i);
+      const relevantItems = selectRelevantItems(items, trimmed, 20, focalMatch?.[1] || null);
 
       // Fetch style memory from saved outfits
       const { data: savedLooks } = await supabase
@@ -8261,7 +8564,8 @@ COLORS: ${rule.colors}
       }
       setClosetCount(items.length);
 
-      const relevantRetryItems = selectRelevantItems(items, occasion, 20);
+      const retryFocalMatch = occasion.match(/^Style an outfit using my (.+?)\.?$/i);
+      const relevantRetryItems = selectRelevantItems(items, occasion, 20, retryFocalMatch?.[1] || null);
       const retrySystemPrompt = await getChatSystemPrompt(occasion);
       const retryMetadata = { screen: "chat", conversationId: activeConvoId, prompt: occasion, previousSuggestion: prevContent.slice(0, 500) };
 
@@ -8886,6 +9190,10 @@ COLORS: ${rule.colors}
                   const isExpanded = expandedMsgIds.has(msg.id);
                   const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0 && s.length < 40 && !s.toLowerCase().includes('vibe')) : [];
                   const shortCaption = whyText ? whyText.split(". ")[0] + "." : "";
+                  const editorialEnabled = true;
+                  const prevUserMsg = messages[msgIndex - 1];
+                  const chatFocalMatch = prevUserMsg?.role === "user" ? prevUserMsg.content.match(/^Style an outfit using my (.+?)\.?$/i) : null;
+                  const chatFocalItemName = chatFocalMatch?.[1] || null;
                   return (
                     <div ref={msgIndex === messages.length - 1 ? latestAssistantRef : undefined} className={isFading ? "chat-fade-out" : "chat-fade-in"}>
                       {/* 1. Vibe title */}
@@ -8903,8 +9211,8 @@ COLORS: ${rule.colors}
                         </p>
                       )}
 
-                      {/* 3. Item chips */}
-                      {itemChips.length > 0 && (
+                      {/* 3. Item chips (above collage for grid view only) */}
+                      {!editorialEnabled && itemChips.length > 0 && (
                         <div style={{ display: "flex", flexWrap: chatIsTablet ? "nowrap" : "wrap", gap: "6px", marginTop: "10px", overflowX: chatIsTablet ? "auto" : "visible", WebkitOverflowScrolling: chatIsTablet ? "touch" : undefined, scrollbarWidth: chatIsTablet ? "none" : undefined, msOverflowStyle: chatIsTablet ? "none" : undefined }}>
                           {itemChips.map((chip, ci) => (
                             <span key={ci} style={{
@@ -8924,49 +9232,79 @@ COLORS: ${rule.colors}
                       )}
 
                       {/* 4. Outfit images */}
-                      {imageUrls.length > 0 && (
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: chatIsTablet && imageUrls.length >= 5 ? "1fr 1fr 1fr" : "1fr 1fr",
-                            gap: "6px",
-                            padding: "10px",
-                            borderRadius: "16px",
-                            background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
-                            marginTop: "10px",
-                            overflow: "hidden",
-                            maxWidth: "100%",
-                            width: "100%",
-                          }}
-                        >
-                          {imageUrls.slice(0, 6).map((url, i) => {
-                            const absoluteUrl = url.startsWith("/") ? `https://styliner.vercel.app${url}` : url;
-                            const isLastOdd5 = imageUrls.length === 5 && i === 4;
-                            const cellHeight = imageUrls.length >= 5 ? "110px" : "140px";
-                            return (
-                              <div
-                                key={i}
-                                style={{
-                                  position: "relative",
-                                  height: cellHeight,
-                                  borderRadius: "12px",
-                                  overflow: "hidden",
-                                  background: "#F5F3EF",
-                                  boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
-                                  ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: chatIsTablet ? "33%" : "50%", justifySelf: "center" } : {}),
-                                }}
-                              >
-                                <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
-                                  onError={(e) => { e.target.style.display = "none"; }}
-                                  style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px", transform: `rotate(${getImageRotation(absoluteUrl, chatClosetItems)}deg)`, transition: "transform 0.2s ease" }} />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {imageUrls.length > 0 && (() => {
+                        if (editorialEnabled) {
+                          console.log("[Collage Wiring] imageUrls:", imageUrls);
+                          console.log("[Collage Wiring] chatClosetItems count:", chatClosetItems.length);
+                          const collageItems = imageUrls.slice(0, 7).map((url) => {
+                            const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+                            const relativeUrl = absoluteUrl.startsWith(window.location.origin)
+                              ? absoluteUrl.slice(window.location.origin.length)
+                              : null;
+                            const match = chatClosetItems.find((ci) => {
+                              if (!ci.image_url) return false;
+                              return (
+                                ci.image_url === absoluteUrl ||
+                                ci.image_url === url ||
+                                (relativeUrl && ci.image_url === relativeUrl)
+                              );
+                            });
+                            console.log(`[Collage Wiring] URL match: ${match ? "YES" : "NO"} | ${absoluteUrl.slice(-40)} → ${match?.name || "(no match)"} (${match?.category || "null"})`);
+                            if (!match) console.warn(`[Collage] URL did not match any closet item: ${absoluteUrl} (original: ${url})`);
+                            return {
+                              image_url: absoluteUrl,
+                              cutout_url: match?.cutout_url || null,
+                              category: match?.category || null,
+                              name: match?.name || null,
+                              rotation: match?.rotation || 0,
+                            };
+                          });
+                          return <OutfitCollage items={collageItems} focalItemName={chatFocalItemName} />;
+                        }
+                        return (
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: chatIsTablet && imageUrls.length >= 5 ? "1fr 1fr 1fr" : "1fr 1fr",
+                              gap: "6px",
+                              padding: "10px",
+                              borderRadius: "16px",
+                              background: "linear-gradient(160deg, #FBF8F1 0%, #EFE6D8 100%)",
+                              marginTop: "10px",
+                              overflow: "hidden",
+                              maxWidth: "100%",
+                              width: "100%",
+                            }}
+                          >
+                            {imageUrls.slice(0, 6).map((url, i) => {
+                              const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+                              const isLastOdd5 = imageUrls.length === 5 && i === 4;
+                              const cellHeight = imageUrls.length >= 5 ? "110px" : "140px";
+                              return (
+                                <div
+                                  key={i}
+                                  style={{
+                                    position: "relative",
+                                    height: cellHeight,
+                                    borderRadius: "12px",
+                                    overflow: "hidden",
+                                    background: "#F5F3EF",
+                                    boxShadow: "0 2px 12px rgba(176,138,74,0.08)",
+                                    ...(isLastOdd5 ? { gridColumn: "1 / -1", maxWidth: chatIsTablet ? "33%" : "50%", justifySelf: "center" } : {}),
+                                  }}
+                                >
+                                  <img src={absoluteUrl} alt={`Outfit item ${i + 1}`} loading="lazy"
+                                    onError={(e) => { e.target.style.display = "none"; }}
+                                    style={{ display: "block", width: "100%", height: "100%", objectFit: "contain", padding: "8px", transform: `rotate(${getImageRotation(absoluteUrl, chatClosetItems)}deg)`, transition: "transform 0.2s ease" }} />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
 
                       {/* 5. Buttons */}
-                      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                      <div style={{ display: "flex", gap: "8px", marginTop: "5px" }}>
                         <button
                           type="button"
                           onClick={() => handleAnotherOption(msgIndex)}
@@ -9104,6 +9442,25 @@ COLORS: ${rule.colors}
                           <span style={{ fontStyle: "normal", marginRight: "4px" }}>{"\u2726"}</span>
                           <span style={{ fontWeight: 600, fontStyle: "normal" }}>Style tip: </span>
                           {styleTipText}
+                        </div>
+                      )}
+
+                      {/* 9. Item chips at bottom (editorial view only) */}
+                      {editorialEnabled && itemChips.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "10px" }}>
+                          {itemChips.map((chip, ci) => (
+                            <span key={ci} style={{
+                              background: "#F5EDE0",
+                              color: "#8A6A3C",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              padding: "3px 10px",
+                              borderRadius: "100px",
+                              whiteSpace: "nowrap",
+                            }}>
+                              {chip.trim()}
+                            </span>
+                          ))}
                         </div>
                       )}
 
