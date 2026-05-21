@@ -4125,7 +4125,7 @@ Only use URLs from the wardrobe list above.`;
           ) : suggestedImages.length > 0 ? (
             <div onClick={() => setOutfitModalOpen(true)} style={{ cursor: "pointer", position: "relative" }}>
               <div aria-hidden="true" className={`hero-accent ${getHomeHeroAccentClass()}`} />
-              {isAdmin ? (() => {
+              {(() => {
                 const homeCollageItems = suggestedImages.slice(0, 7).map((url) => {
                   const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
                   const relativeUrl = absoluteUrl.startsWith(window.location.origin)
@@ -4143,19 +4143,20 @@ Only use URLs from the wardrobe list above.`;
                     rotation: match?.rotation || 0,
                   };
                 });
-                return <OutfitCollage items={homeCollageItems} />;
-              })() : (
-                <FlatLayCard
-                  images={suggestedImages.slice(0, 6)}
-                  caption={suggestionVibe}
-                  subtitle={outfitCaption}
-                  pulsing={loadingOutfit}
-                  compact
-                  rotationMap={homeRotationMap}
-                />
-              )}
-              {isAdmin && (
-                <div style={{ textAlign: "center", marginTop: "12px" }}>
+                const hasMatchedItems = homeCollageItems.some((i) => i.category);
+                if (hasMatchedItems) return <OutfitCollage items={homeCollageItems} />;
+                return (
+                  <FlatLayCard
+                    images={suggestedImages.slice(0, 6)}
+                    caption={suggestionVibe}
+                    subtitle={outfitCaption}
+                    pulsing={loadingOutfit}
+                    compact
+                    rotationMap={homeRotationMap}
+                  />
+                );
+              })()}
+              <div style={{ textAlign: "center", marginTop: "12px" }}>
                   {suggestionVibe && (
                     <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{suggestionVibe}</p>
                   )}
@@ -4163,8 +4164,7 @@ Only use URLs from the wardrobe list above.`;
                     <p style={{ fontSize: "13px", color: "#7A6A5A", fontStyle: "italic", margin: "0 16px", lineHeight: 1.4 }}>{outfitCaption}</p>
                   )}
                 </div>
-              )}
-              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: isAdmin ? "16px" : "12px" }}>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
@@ -9190,7 +9190,7 @@ COLORS: ${rule.colors}
                   const isExpanded = expandedMsgIds.has(msg.id);
                   const itemChips = itemNames ? itemNames.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0 && s.length < 40 && !s.toLowerCase().includes('vibe')) : [];
                   const shortCaption = whyText ? whyText.split(". ")[0] + "." : "";
-                  const editorialEnabled = chatUserEmail === "cnrhee@gmail.com";
+                  const editorialEnabled = true;
                   const prevUserMsg = messages[msgIndex - 1];
                   const chatFocalMatch = prevUserMsg?.role === "user" ? prevUserMsg.content.match(/^Style an outfit using my (.+?)\.?$/i) : null;
                   const chatFocalItemName = chatFocalMatch?.[1] || null;
@@ -9304,7 +9304,7 @@ COLORS: ${rule.colors}
                       })()}
 
                       {/* 5. Buttons */}
-                      <div style={{ display: "flex", gap: "8px", marginTop: editorialEnabled ? "5px" : "10px" }}>
+                      <div style={{ display: "flex", gap: "8px", marginTop: "5px" }}>
                         <button
                           type="button"
                           onClick={() => handleAnotherOption(msgIndex)}
