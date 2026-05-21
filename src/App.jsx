@@ -2350,9 +2350,7 @@ const COLLAGE_LAYOUT_DRESS = [
 
 function selectCollageLayout(items) {
   const hasDressOrCoord = items.some((i) => i.category === "Dresses" || i.category === "Co-ord Set");
-  if (hasDressOrCoord) return COLLAGE_LAYOUT_DRESS;
-  const hasBottoms = items.some((i) => i.category === "Bottoms" || i.category === "Skirts");
-  return hasBottoms ? COLLAGE_LAYOUT_DRESS : COLLAGE_LAYOUT_DEFAULT;
+  return hasDressOrCoord ? COLLAGE_LAYOUT_DRESS : COLLAGE_LAYOUT_DEFAULT;
 }
 
 const COLLAGE_ROLES_DEFAULT = {
@@ -2382,7 +2380,8 @@ function assignCollageSlots(items, roleCategories, focalItemName = null) {
     const focalIdx = remaining.findIndex((i) => i.name?.trim().toLowerCase() === focalNorm);
     if (focalIdx !== -1) {
       const focalItem = remaining.splice(focalIdx, 1)[0];
-      assignments.set("hero", focalItem);
+      const focalIsBottoms = focalItem.category === "Bottoms" || focalItem.category === "Skirts";
+      assignments.set(focalIsBottoms ? "bottom" : "hero", focalItem);
     } else {
       console.warn(`[assignCollageSlots] Focal item "${focalItemName}" not found, falling back to priority`);
     }
@@ -2390,14 +2389,7 @@ function assignCollageSlots(items, roleCategories, focalItemName = null) {
 
   // Assign hero by priority (skipped if focal already filled it)
   if (!assignments.has("hero")) {
-    // When DRESS layout is used for a bottoms-anchored outfit (no dress/co-ord),
-    // prioritize the bottoms item as hero so it fills the center slot
-    const hasDressOrCoord = remaining.some((i) => i.category === "Dresses" || i.category === "Co-ord Set");
-    const bottomsAsHero = !hasDressOrCoord && remaining.some((i) => i.category === "Bottoms" || i.category === "Skirts");
-    const heroPriority = bottomsAsHero
-      ? ["Bottoms", "Skirts", ...COLLAGE_HERO_PRIORITY]
-      : COLLAGE_HERO_PRIORITY;
-    for (const cat of heroPriority) {
+    for (const cat of COLLAGE_HERO_PRIORITY) {
       const idx = remaining.findIndex((i) => i.category === cat);
       if (idx !== -1) {
         assignments.set("hero", remaining.splice(idx, 1)[0]);
@@ -2479,6 +2471,9 @@ function OutfitCollage({ items, focalItemName = null }) {
           let item = assignments.get(slot.role);
           if (!item) return null;
           // Override bottom slot height when focal item is bottoms
+          const focalIsBottoms = focalItem && (focalItem.category === "Bottoms" || focalItem.category === "Skirts");
+          const slotWidthPct = (slot.role === "bottom" && focalIsBottoms) ? 75 : (slot.role === "hero" && focalIsBottoms) ? 35 : slot.widthPct;
+          const slotHeightPct = (slot.role === "bottom" && focalIsBottoms) ? 98 : (slot.role === "hero" && focalIsBottoms) ? 55 : slot.heightPct;
           // Render-time fix: ensure cutout URLs include f_png for transparency
           let cutoutUrl = item.cutout_url;
           if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('f_png')) {
@@ -2493,8 +2488,8 @@ function OutfitCollage({ items, focalItemName = null }) {
                 position: "absolute",
                 left: `${slot.x}%`,
                 top: `${slot.y}%`,
-                width: `${slot.widthPct}%`,
-                height: `${slot.heightPct}%`,
+                width: `${slotWidthPct}%`,
+                height: `${slotHeightPct}%`,
                 zIndex: slot.z,
                 pointerEvents: "none",
                 willChange: "transform",
