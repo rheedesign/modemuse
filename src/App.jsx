@@ -1460,11 +1460,11 @@ function OnboardingSplash() {
   }
 
   return (
+    <div style={{ minHeight: "100dvh", background: "linear-gradient(180deg, #C6A05C 0%, #D6B77A 100%)" }}>
     <div
       style={{
         minHeight: "100dvh",
         margin: "0 auto",
-        background: "linear-gradient(180deg, #C6A05C 0%, #D6B77A 100%)",
         color: "white",
         boxSizing: "border-box",
         display: "flex",
@@ -1581,6 +1581,7 @@ function OnboardingSplash() {
         </div>
       )}
       </div>
+    </div>
     </div>
   );
 }
