@@ -2330,9 +2330,9 @@ function PrivacyPolicyScreen() {
 
 // --- Editorial Collage Component ---
 const COLLAGE_LAYOUT_DEFAULT = [
-  { role: "hero",    x: 3,  y: -2, widthPct: 47, heightPct: 68, rotation: 0, z: 3 },
-  { role: "bottom",  x: 22, y: 9,  widthPct: 56, heightPct: 81, rotation: 0, z: 2 },
-  { role: "top",     x: 64, y: 5,  widthPct: 36, heightPct: 48, rotation: 0, z: 4 },
+  { role: "hero",    x: 3,  y: 2,  widthPct: 47, heightPct: 68, rotation: 0, z: 3 },
+  { role: "bottom",  x: 22, y: 13, widthPct: 56, heightPct: 81, rotation: 0, z: 2 },
+  { role: "top",     x: 64, y: 8,  widthPct: 36, heightPct: 48, rotation: 0, z: 4 },
   { role: "shoes",   x: 8,  y: 48, widthPct: 40, heightPct: 35, rotation: 0, z: 5 },
   { role: "bag",     x: 56, y: 50, widthPct: 44, heightPct: 36, rotation: 0, z: 5 },
   { role: "jewelry",   x: 44, y: -6, widthPct: 37, heightPct: 78, rotation: 0, z: 6 },
@@ -3747,22 +3747,13 @@ Only use URLs from the wardrobe list above.`;
 
       const imageUrls = deduplicateOutfitByCategory(rawImageUrls, closetDataRef.current);
 
-      // Diagnostic logging
-      console.log("[Home Validation] Raw AI text:", text);
-      console.log("[Home Validation] Raw image URLs from AI:", rawImageUrls);
-      console.log("[Home Validation] Deduplicated image URLs:", imageUrls);
-      console.log("[Home Validation] closetDataRef items:", closetDataRef.current.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
-
       // Post-processing validation: ensure outfit has top + bottom/dress + shoes
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
-      console.log("[Home Validation] Matched parsedItems:", parsedItems.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
-      console.log("[Home Validation] Unmatched URLs:", imageUrls.filter(url => !closetDataRef.current.find(i => i.image_url === url)));
       const catAndName = (i) => ((i.category || '') + ' ' + (i.name || '') + ' ' + (i.subcategory || '')).toLowerCase();
       const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic|blazer|jacket|coat|vest)\b/i.test(catAndName(i)));
       const hasBottom = parsedItems.some(i => /\b(pants|jeans|trouser|skirt|shorts|legging)\b/i.test(catAndName(i)));
       const hasOnePiece = parsedItems.some(i => /\b(dress|jumpsuit|romper|co-ord|coord|overalls)\b/i.test(catAndName(i)));
       const hasShoes = parsedItems.some(i => /\b(shoes|heels|sneakers|boots|sandals|loafer|flat|mules|slides|pumps|oxfords|derby)\b/i.test(catAndName(i)));
-      console.log("[Home Validation] Results:", { hasTop, hasBottom, hasOnePiece, hasShoes, parsedCount: parsedItems.length, totalUrls: imageUrls.length });
       const needsTop = !hasTop && !hasOnePiece;
       const needsBottom = !hasBottom && !hasOnePiece;
       const needsShoes = !hasShoes;
