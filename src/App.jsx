@@ -2350,9 +2350,7 @@ const COLLAGE_LAYOUT_DRESS = [
 
 function selectCollageLayout(items) {
   const hasDressOrCoord = items.some((i) => i.category === "Dresses" || i.category === "Co-ord Set");
-  if (hasDressOrCoord) return COLLAGE_LAYOUT_DRESS;
-  const hasBottoms = items.some((i) => i.category === "Bottoms" || i.category === "Skirts");
-  return hasBottoms ? COLLAGE_LAYOUT_DRESS : COLLAGE_LAYOUT_DEFAULT;
+  return hasDressOrCoord ? COLLAGE_LAYOUT_DRESS : COLLAGE_LAYOUT_DEFAULT;
 }
 
 const COLLAGE_ROLES_DEFAULT = {
