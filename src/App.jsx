@@ -2331,7 +2331,7 @@ function PrivacyPolicyScreen() {
 // --- Editorial Collage Component ---
 const COLLAGE_LAYOUT_DEFAULT = [
   { role: "hero",    x: 3,  y: -2, widthPct: 47, heightPct: 68, rotation: 0, z: 3 },
-  { role: "bottom",  x: 13, y: 1,  widthPct: 56, heightPct: 98, rotation: 0, z: 2 },
+  { role: "bottom",  x: 22, y: 9,  widthPct: 56, heightPct: 81, rotation: 0, z: 2 },
   { role: "top",     x: 64, y: 5,  widthPct: 36, heightPct: 48, rotation: 0, z: 4 },
   { role: "shoes",   x: 8,  y: 48, widthPct: 40, heightPct: 35, rotation: 0, z: 5 },
   { role: "bag",     x: 56, y: 50, widthPct: 44, heightPct: 36, rotation: 0, z: 5 },
