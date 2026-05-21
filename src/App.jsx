@@ -3747,13 +3747,22 @@ Only use URLs from the wardrobe list above.`;
 
       const imageUrls = deduplicateOutfitByCategory(rawImageUrls, closetDataRef.current);
 
+      // Diagnostic logging
+      console.log("[Home Validation] Raw AI text:", text);
+      console.log("[Home Validation] Raw image URLs from AI:", rawImageUrls);
+      console.log("[Home Validation] Deduplicated image URLs:", imageUrls);
+      console.log("[Home Validation] closetDataRef items:", closetDataRef.current.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+
       // Post-processing validation: ensure outfit has top + bottom/dress + shoes
       const parsedItems = imageUrls.map(url => closetDataRef.current.find(i => i.image_url === url)).filter(Boolean);
+      console.log("[Home Validation] Matched parsedItems:", parsedItems.map(i => ({ name: i.name, category: i.category, url: i.image_url })));
+      console.log("[Home Validation] Unmatched URLs:", imageUrls.filter(url => !closetDataRef.current.find(i => i.image_url === url)));
       const catAndName = (i) => ((i.category || '') + ' ' + (i.name || '') + ' ' + (i.subcategory || '')).toLowerCase();
       const hasTop = parsedItems.some(i => /\b(shirt|blouse|tee|t-shirt|top|tank|turtleneck|sweater|cardigan|hoodie|polo|henley|crop top|camisole|tunic|blazer|jacket|coat|vest)\b/i.test(catAndName(i)));
       const hasBottom = parsedItems.some(i => /\b(pants|jeans|trouser|skirt|shorts|legging)\b/i.test(catAndName(i)));
       const hasOnePiece = parsedItems.some(i => /\b(dress|jumpsuit|romper|co-ord|coord|overalls)\b/i.test(catAndName(i)));
       const hasShoes = parsedItems.some(i => /\b(shoes|heels|sneakers|boots|sandals|loafer|flat|mules|slides|pumps|oxfords|derby)\b/i.test(catAndName(i)));
+      console.log("[Home Validation] Results:", { hasTop, hasBottom, hasOnePiece, hasShoes, parsedCount: parsedItems.length, totalUrls: imageUrls.length });
       const needsTop = !hasTop && !hasOnePiece;
       const needsBottom = !hasBottom && !hasOnePiece;
       const needsShoes = !hasShoes;
