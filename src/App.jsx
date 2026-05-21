@@ -3598,7 +3598,7 @@ function HomeScreen() {
           .from("clothing_items")
           .select("image_url, cutout_url, name, category, rotation")
           .eq("user_id", user.id)
-          .limit(15);
+          .limit(40);
         itemsList = items || [];
         closetDataRef.current = itemsList;
       } else {
