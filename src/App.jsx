@@ -3641,7 +3641,12 @@ Layering is the current #1 trend. Always suggest at least one layering element u
 
       const locationCtx = getLocationStyleContext(locationLabel);
       const locationSuffix = locationCtx ? `\n\nLOCATION STYLE CONTEXT:\n${locationCtx}` : "";
-      const systemPrompt = (styleGender === "mens" ? menSystemPrompt : womenSystemPrompt) + locationSuffix;
+      const styleInspoGuidance = formatStyleInspoGuidance(styleInspoRef.current);
+      const persona = user?.user_metadata?.style_persona || "";
+      const personaSuffix = persona
+        ? `\n\nUSER STYLE PERSONA: This user identifies with ${persona} aesthetic. Always lean into this when making suggestions.`
+        : "";
+      const systemPrompt = (styleGender === "mens" ? menSystemPrompt : womenSystemPrompt) + locationSuffix + (styleInspoGuidance ? `\n\n${styleInspoGuidance}` : "") + personaSuffix;
 
       // Build avoidance instruction from recent outfits
       const prevUrls = previousUrlsRef.current;
