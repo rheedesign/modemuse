@@ -3983,7 +3983,7 @@ Only use URLs from the wardrobe list above.`;
       localStorage.setItem("styliner_last_convo_id", newConvo.id);
       localStorage.setItem("styliner_last_convo_time", Date.now().toString());
 
-      navigate("/chat");
+      navigate("/chat", { state: { handoffConvoId: newConvo.id } });
     } catch (err) {
       console.error("[Home] Get Styled handoff error:", err);
       navigate("/chat");
@@ -7877,8 +7877,14 @@ function ChatScreen() {
   const styleInspoRef = useRef([]);
   const demoChatSeedRef = useRef(0);
 
-  // Handle preloaded outfit from HomeScreen navigation
+  // Handle preloaded outfit or handoff from HomeScreen navigation
   useEffect(() => {
+    if (location.state?.handoffConvoId) {
+      setActiveConvoId(location.state.handoffConvoId);
+      setPreloadedOutfit(null);
+      window.history.replaceState({}, "");
+      return;
+    }
     if (location.state?.preloadedOutfit) {
       setPreloadedOutfit(location.state.preloadedOutfit);
       window.history.replaceState({}, "");
