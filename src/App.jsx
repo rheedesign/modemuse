@@ -3206,6 +3206,7 @@ function HomeScreen() {
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
   const [isHomeOutfitSaved, setIsHomeOutfitSaved] = useState(false);
   const [savedOutfitId, setSavedOutfitId] = useState(null);
+  const [getStyledLoading, setGetStyledLoading] = useState(false);
   const [deleteConfirmStep, setDeleteConfirmStep] = useState(0); // 0=hidden, 1=first confirm, 2=final confirm
   const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -3934,6 +3935,63 @@ Only use URLs from the wardrobe list above.`;
     }
   }
 
+  async function handleGetStyled(e) {
+    if (e) e.stopPropagation();
+    if (isDemoMode) {
+      showDemoPrompt({ title: "Sign up to get styled", message: "Create an account to chat with your AI stylist." });
+      return;
+    }
+    setGetStyledLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate("/chat"); return; }
+
+      // Build synthetic YOUR LOOK line from closet data
+      const yourLookLine = suggestedImages.map((url) => {
+        const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+        const relativeUrl = absoluteUrl.startsWith(window.location.origin) ? absoluteUrl.slice(window.location.origin.length) : null;
+        const match = closetDataRef.current.find((ci) => {
+          if (!ci.image_url) return false;
+          return ci.image_url === absoluteUrl || ci.image_url === url || (relativeUrl && ci.image_url === relativeUrl);
+        });
+        return `${match?.name || "Item"} (${absoluteUrl})`;
+      }).join(" + ");
+
+      const syntheticContent = `YOUR LOOK\n${yourLookLine}\n\nWHY IT WORKS\n${outfitCaption || suggestionCaption || "A curated look from your wardrobe."}`;
+
+      // Insert conversation
+      const { data: newConvo, error: convoErr } = await supabase
+        .from("conversations")
+        .insert({ user_id: user.id, title: suggestionVibe || "Today's Look", is_starred: false, preview_images: suggestedImages.slice(0, 4) })
+        .select()
+        .single();
+      if (convoErr) throw new Error(convoErr.message);
+
+      // Insert user message
+      const { error: userMsgErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "user", content: "Style my daily look", outfit_images: [], conversation_id: newConvo.id });
+      if (userMsgErr) throw new Error(userMsgErr.message);
+
+      // Insert assistant message
+      const { error: assistantMsgErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "assistant", content: syntheticContent, outfit_images: suggestedImages, conversation_id: newConvo.id });
+      if (assistantMsgErr) throw new Error(assistantMsgErr.message);
+
+      // Set localStorage so Chat auto-restores this conversation
+      localStorage.setItem("styliner_last_convo_id", newConvo.id);
+      localStorage.setItem("styliner_last_convo_time", Date.now().toString());
+
+      navigate("/chat");
+    } catch (err) {
+      console.error("[Home] Get Styled handoff error:", err);
+      navigate("/chat");
+    } finally {
+      setGetStyledLoading(false);
+    }
+  }
+
   const homeRotationMap = getRotationMap(closetDataRef.current);
   const { isTablet } = useDeviceType();
 
@@ -4232,7 +4290,8 @@ Only use URLs from the wardrobe list above.`;
               <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                  onClick={handleGetStyled}
+                  disabled={getStyledLoading}
                   style={{
                     border: "none",
                     background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
@@ -4241,11 +4300,12 @@ Only use URLs from the wardrobe list above.`;
                     padding: "10px 22px",
                     fontSize: "12px",
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: getStyledLoading ? "default" : "pointer",
                     boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                    opacity: getStyledLoading ? 0.7 : 1,
                   }}
                 >
-                  Get Styled
+                  {getStyledLoading ? "Styling..." : "Get Styled"}
                 </button>
                 {limitReached && !isAdmin ? (
                   <div style={{
@@ -4993,7 +5053,7 @@ Only use URLs from the wardrobe list above.`;
           closetItems={closetDataRef.current}
           onClose={() => setOutfitModalOpen(false)}
           onNavigateChat={() => navigate("/chat")}
-          onGetStyled={() => navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } })}
+          onGetStyled={handleGetStyled}
         />
       )}
     </div>
