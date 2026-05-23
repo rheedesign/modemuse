@@ -3204,6 +3204,8 @@ function HomeScreen() {
   const [countdownText, setCountdownText] = useState("");
   const DAILY_LOOK_LIMIT = 10;
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [isHomeOutfitSaved, setIsHomeOutfitSaved] = useState(false);
+  const [savedOutfitId, setSavedOutfitId] = useState(null);
   const [deleteConfirmStep, setDeleteConfirmStep] = useState(0); // 0=hidden, 1=first confirm, 2=final confirm
   const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -3782,6 +3784,8 @@ Only use URLs from the wardrobe list above.`;
       setSuggestionVibe(vibe);
       setOutfitCaption(caption);
       setSuggestionCaption(why);
+      setIsHomeOutfitSaved(false);
+      setSavedOutfitId(null);
       previousUrlsRef.current = imageUrls;
       recordOutfitHistory(imageUrls);
     } catch (err) {
@@ -3898,6 +3902,36 @@ Only use URLs from the wardrobe list above.`;
       return;
     }
     await fetchOutfitSuggestion();
+  }
+
+  async function handleHomeOutfitSave(e) {
+    e.stopPropagation();
+    if (isDemoMode) {
+      showDemoPrompt({ title: "Sign up to save looks", message: "Create an account to save outfits to your Lookbook." });
+      return;
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      if (isHomeOutfitSaved && savedOutfitId) {
+        await supabase.from("saved_outfits").delete().eq("id", savedOutfitId);
+        setIsHomeOutfitSaved(false);
+        setSavedOutfitId(null);
+        return;
+      }
+      const { data, error } = await supabase.from("saved_outfits").insert({
+        user_id: user.id,
+        occasion: "Daily Look",
+        title: suggestionVibe || "Today's Look",
+        outfit_images: suggestedImages,
+        description: outfitCaption || suggestionCaption || "",
+      }).select("id").single();
+      if (error) throw new Error(error.message);
+      setIsHomeOutfitSaved(true);
+      setSavedOutfitId(data.id);
+    } catch (err) {
+      console.error("[Home] Save outfit error:", err);
+    }
   }
 
   const homeRotationMap = getRotationMap(closetDataRef.current);
@@ -4162,6 +4196,31 @@ Only use URLs from the wardrobe list above.`;
                   />
                 );
               })()}
+              <button
+                type="button"
+                onClick={handleHomeOutfitSave}
+                aria-label={isHomeOutfitSaved ? "Unsave outfit" : "Save outfit"}
+                style={{
+                  position: "absolute",
+                  top: "12px",
+                  right: "12px",
+                  zIndex: 10,
+                  background: "rgba(255,255,255,0.7)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={isHomeOutfitSaved ? "#B08A4A" : "none"} stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
               <div style={{ textAlign: "center", marginTop: "12px" }}>
                   {suggestionVibe && (
                     <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{suggestionVibe}</p>
