@@ -909,7 +909,7 @@ function getStarterClosetPreset(styleGender) {
 
 function buildCutoutUrl(imageUrl) {
   if (!imageUrl || !imageUrl.includes('/upload/')) return null;
-  return imageUrl.replace('/upload/', '/upload/e_background_removal,f_png/');
+  return imageUrl.replace('/upload/', '/upload/e_background_removal,c_pad,b_transparent,w_1000,h_1000,f_png/');
 }
 
 function buildStarterClosetItems(styleGender, userId) {
@@ -2477,8 +2477,8 @@ function OutfitCollage({ items, focalItemName = null }) {
           const slotHeightPct = (slot.role === "bottom" && focalIsBottoms) ? 98 : (slot.role === "hero" && focalIsBottoms) ? 55 : slot.heightPct;
           // Render-time fix: ensure cutout URLs include f_png for transparency
           let cutoutUrl = item.cutout_url;
-          if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('f_png')) {
-            cutoutUrl = cutoutUrl.replace('e_background_removal', 'e_background_removal,f_png');
+          if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('c_pad')) {
+            cutoutUrl = cutoutUrl.replace('e_background_removal', 'e_background_removal,c_pad,b_transparent,w_1000,h_1000');
           }
           const imgSrc = cutoutUrl || item.image_url;
           if (!imgSrc) return null;
