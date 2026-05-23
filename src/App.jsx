@@ -909,7 +909,7 @@ function getStarterClosetPreset(styleGender) {
 
 function buildCutoutUrl(imageUrl) {
   if (!imageUrl || !imageUrl.includes('/upload/')) return null;
-  return imageUrl.replace('/upload/', '/upload/e_background_removal,f_png/');
+  return imageUrl.replace('/upload/', '/upload/e_background_removal,c_pad,b_transparent,w_1000,h_1000,f_png/');
 }
 
 function buildStarterClosetItems(styleGender, userId) {
@@ -2477,8 +2477,8 @@ function OutfitCollage({ items, focalItemName = null }) {
           const slotHeightPct = (slot.role === "bottom" && focalIsBottoms) ? 98 : (slot.role === "hero" && focalIsBottoms) ? 55 : slot.heightPct;
           // Render-time fix: ensure cutout URLs include f_png for transparency
           let cutoutUrl = item.cutout_url;
-          if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('f_png')) {
-            cutoutUrl = cutoutUrl.replace('e_background_removal', 'e_background_removal,f_png');
+          if (cutoutUrl && cutoutUrl.includes('e_background_removal') && !cutoutUrl.includes('c_pad')) {
+            cutoutUrl = cutoutUrl.replace('e_background_removal', 'e_background_removal,c_pad,b_transparent,w_1000,h_1000');
           }
           const imgSrc = cutoutUrl || item.image_url;
           if (!imgSrc) return null;
@@ -3204,6 +3204,9 @@ function HomeScreen() {
   const [countdownText, setCountdownText] = useState("");
   const DAILY_LOOK_LIMIT = 10;
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [isHomeOutfitSaved, setIsHomeOutfitSaved] = useState(false);
+  const [savedOutfitId, setSavedOutfitId] = useState(null);
+  const [getStyledLoading, setGetStyledLoading] = useState(false);
   const [deleteConfirmStep, setDeleteConfirmStep] = useState(0); // 0=hidden, 1=first confirm, 2=final confirm
   const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -3641,7 +3644,12 @@ Layering is the current #1 trend. Always suggest at least one layering element u
 
       const locationCtx = getLocationStyleContext(locationLabel);
       const locationSuffix = locationCtx ? `\n\nLOCATION STYLE CONTEXT:\n${locationCtx}` : "";
-      const systemPrompt = (styleGender === "mens" ? menSystemPrompt : womenSystemPrompt) + locationSuffix;
+      const styleInspoGuidance = formatStyleInspoGuidance(styleInspoRef.current);
+      const persona = user?.user_metadata?.style_persona || "";
+      const personaSuffix = persona
+        ? `\n\nUSER STYLE PERSONA: This user identifies with ${persona} aesthetic. Always lean into this when making suggestions.`
+        : "";
+      const systemPrompt = (styleGender === "mens" ? menSystemPrompt : womenSystemPrompt) + locationSuffix + (styleInspoGuidance ? `\n\n${styleInspoGuidance}` : "") + personaSuffix;
 
       // Build avoidance instruction from recent outfits
       const prevUrls = previousUrlsRef.current;
@@ -3777,6 +3785,8 @@ Only use URLs from the wardrobe list above.`;
       setSuggestionVibe(vibe);
       setOutfitCaption(caption);
       setSuggestionCaption(why);
+      setIsHomeOutfitSaved(false);
+      setSavedOutfitId(null);
       previousUrlsRef.current = imageUrls;
       recordOutfitHistory(imageUrls);
     } catch (err) {
@@ -3893,6 +3903,93 @@ Only use URLs from the wardrobe list above.`;
       return;
     }
     await fetchOutfitSuggestion();
+  }
+
+  async function handleHomeOutfitSave(e) {
+    e.stopPropagation();
+    if (isDemoMode) {
+      showDemoPrompt({ title: "Sign up to save looks", message: "Create an account to save outfits to your Lookbook." });
+      return;
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      if (isHomeOutfitSaved && savedOutfitId) {
+        await supabase.from("saved_outfits").delete().eq("id", savedOutfitId);
+        setIsHomeOutfitSaved(false);
+        setSavedOutfitId(null);
+        return;
+      }
+      const { data, error } = await supabase.from("saved_outfits").insert({
+        user_id: user.id,
+        occasion: "Daily Look",
+        title: suggestionVibe || "Today's Look",
+        outfit_images: suggestedImages,
+        description: outfitCaption || suggestionCaption || "",
+      }).select("id").single();
+      if (error) throw new Error(error.message);
+      setIsHomeOutfitSaved(true);
+      setSavedOutfitId(data.id);
+    } catch (err) {
+      console.error("[Home] Save outfit error:", err);
+    }
+  }
+
+  async function handleGetStyled(e) {
+    if (e) e.stopPropagation();
+    if (isDemoMode) {
+      showDemoPrompt({ title: "Sign up to get styled", message: "Create an account to chat with your AI stylist." });
+      return;
+    }
+    setGetStyledLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate("/chat"); return; }
+
+      // Build synthetic YOUR LOOK line from closet data
+      const yourLookLine = suggestedImages.map((url) => {
+        const absoluteUrl = url.startsWith("/") ? `${window.location.origin}${url}` : url;
+        const relativeUrl = absoluteUrl.startsWith(window.location.origin) ? absoluteUrl.slice(window.location.origin.length) : null;
+        const match = closetDataRef.current.find((ci) => {
+          if (!ci.image_url) return false;
+          return ci.image_url === absoluteUrl || ci.image_url === url || (relativeUrl && ci.image_url === relativeUrl);
+        });
+        return `${match?.name || "Item"} (${absoluteUrl})`;
+      }).join(" + ");
+
+      const syntheticContent = `YOUR LOOK\n${yourLookLine}\n\nWHY IT WORKS\n${outfitCaption || suggestionCaption || "A curated look from your wardrobe."}`;
+
+      // Insert conversation
+      const { data: newConvo, error: convoErr } = await supabase
+        .from("conversations")
+        .insert({ user_id: user.id, title: suggestionVibe || "Today's Look", is_starred: false, preview_images: suggestedImages.slice(0, 4) })
+        .select()
+        .single();
+      if (convoErr) throw new Error(convoErr.message);
+
+      // Insert user message
+      const { error: userMsgErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "user", content: "Style my daily look", outfit_images: [], conversation_id: newConvo.id });
+      if (userMsgErr) throw new Error(userMsgErr.message);
+
+      // Insert assistant message
+      const { error: assistantMsgErr } = await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "assistant", content: syntheticContent, outfit_images: suggestedImages, conversation_id: newConvo.id });
+      if (assistantMsgErr) throw new Error(assistantMsgErr.message);
+
+      // Set localStorage so Chat auto-restores this conversation
+      localStorage.setItem("styliner_last_convo_id", newConvo.id);
+      localStorage.setItem("styliner_last_convo_time", Date.now().toString());
+
+      navigate("/chat", { state: { handoffConvoId: newConvo.id } });
+    } catch (err) {
+      console.error("[Home] Get Styled handoff error:", err);
+      navigate("/chat");
+    } finally {
+      setGetStyledLoading(false);
+    }
   }
 
   const homeRotationMap = getRotationMap(closetDataRef.current);
@@ -4157,6 +4254,31 @@ Only use URLs from the wardrobe list above.`;
                   />
                 );
               })()}
+              <button
+                type="button"
+                onClick={handleHomeOutfitSave}
+                aria-label={isHomeOutfitSaved ? "Unsave outfit" : "Save outfit"}
+                style={{
+                  position: "absolute",
+                  top: "12px",
+                  right: "12px",
+                  zIndex: 10,
+                  background: "rgba(255,255,255,0.7)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={isHomeOutfitSaved ? "#B08A4A" : "none"} stroke="#B08A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
               <div style={{ textAlign: "center", marginTop: "12px" }}>
                   {suggestionVibe && (
                     <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#111111", letterSpacing: "0.02em", fontStyle: "italic" }}>{suggestionVibe}</p>
@@ -4168,7 +4290,8 @@ Only use URLs from the wardrobe list above.`;
               <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px" }}>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } }); }}
+                  onClick={handleGetStyled}
+                  disabled={getStyledLoading}
                   style={{
                     border: "none",
                     background: "linear-gradient(135deg, #B08A4A 0%, #D8C3A5 100%)",
@@ -4177,11 +4300,12 @@ Only use URLs from the wardrobe list above.`;
                     padding: "10px 22px",
                     fontSize: "12px",
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: getStyledLoading ? "default" : "pointer",
                     boxShadow: "0 4px 16px rgba(176,138,74,0.3)",
+                    opacity: getStyledLoading ? 0.7 : 1,
                   }}
                 >
-                  Get Styled
+                  {getStyledLoading ? "Styling..." : "Get Styled"}
                 </button>
                 {limitReached && !isAdmin ? (
                   <div style={{
@@ -4929,7 +5053,7 @@ Only use URLs from the wardrobe list above.`;
           closetItems={closetDataRef.current}
           onClose={() => setOutfitModalOpen(false)}
           onNavigateChat={() => navigate("/chat")}
-          onGetStyled={() => navigate("/chat", { state: { preloadedOutfit: { images: suggestedImages, vibe: suggestionVibe, description: suggestionCaption } } })}
+          onGetStyled={handleGetStyled}
         />
       )}
     </div>
@@ -7753,8 +7877,14 @@ function ChatScreen() {
   const styleInspoRef = useRef([]);
   const demoChatSeedRef = useRef(0);
 
-  // Handle preloaded outfit from HomeScreen navigation
+  // Handle preloaded outfit or handoff from HomeScreen navigation
   useEffect(() => {
+    if (location.state?.handoffConvoId) {
+      setActiveConvoId(location.state.handoffConvoId);
+      setPreloadedOutfit(null);
+      window.history.replaceState({}, "");
+      return;
+    }
     if (location.state?.preloadedOutfit) {
       setPreloadedOutfit(location.state.preloadedOutfit);
       window.history.replaceState({}, "");
